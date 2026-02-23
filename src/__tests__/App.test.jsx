@@ -37,7 +37,7 @@ describe('App Integration Tests', () => {
     render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText(/project management tool/i)).toBeInTheDocument();
+      expect(screen.getByText(/projectflow/i)).toBeInTheDocument();
     });
   });
 
@@ -46,7 +46,8 @@ describe('App Integration Tests', () => {
     
     await waitFor(() => {
       expect(screen.getByText(/new task/i)).toBeInTheDocument();
-      expect(screen.getByText(/total tasks/i)).toBeInTheDocument();
+      // Stat cards now show "Total", "Done", "Active" labels
+      expect(screen.getByText(/^total$/i)).toBeInTheDocument();
     });
   });
 
@@ -75,10 +76,10 @@ describe('App Integration Tests', () => {
     render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText(/total tasks:/i)).toBeInTheDocument();
-      // Find the stats section and check within it
-      const stats = screen.getByText(/total tasks:/i).closest('.task-stats');
-      expect(stats).toBeInTheDocument();
+      // Stat cards now show labels "Total", "Done", "Active"
+      expect(screen.getByText(/^total$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^done$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^active$/i)).toBeInTheDocument();
     });
   });
 });

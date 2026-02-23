@@ -1,37 +1,73 @@
 .calendar-container {
-  padding: 20px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
 }
 
+/* ── FullCalendar Core ── */
 .fc {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding: 20px;
 }
 
 .fc-event {
   cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
+  border-radius: 6px !important;
+  padding: 2px 6px;
+  border: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.fc-event-content-wrapper {
+  padding: 1px 0;
+}
+
+.fc-event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.fc-event-priority-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 
 .fc-event-title {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+}
+
+.fc-event-badge {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.85;
+  flex-shrink: 0;
 }
 
 .fc-event-assignee {
-  font-size: 11px;
-  opacity: 0.9;
-  margin-top: 2px;
-}
-
-.fc-event-meta {
-  font-size: 12px;
-  margin-top: 2px;
+  font-size: 10px;
+  opacity: 0.85;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fc-daygrid-event {
@@ -42,31 +78,112 @@
   color: white;
 }
 
+/* ── Toolbar & Navigation ── */
 .fc-toolbar-title {
-  font-size: 1.5em;
-  font-weight: 600;
+  font-size: 1.35em !important;
+  font-weight: 700 !important;
+  color: #1E293B !important;
+  letter-spacing: -0.4px;
 }
 
 .fc-button {
-  background-color: #3788d8 !important;
-  border-color: #3788d8 !important;
+  background: #6366F1 !important;
+  border-color: #6366F1 !important;
+  border-radius: 8px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  padding: 6px 14px !important;
+  box-shadow: none !important;
   text-transform: capitalize;
+  transition: background 0.2s !important;
 }
 
 .fc-button:hover {
-  background-color: #2b6cb0 !important;
-  border-color: #2b6cb0 !important;
+  background: #4F46E5 !important;
+  border-color: #4F46E5 !important;
 }
 
 .fc-button-active {
-  background-color: #2b6cb0 !important;
-  border-color: #2b6cb0 !important;
+  background: #4F46E5 !important;
+  border-color: #4F46E5 !important;
 }
 
+.fc-today-button {
+  background: #10B981 !important;
+  border-color: #10B981 !important;
+}
+
+.fc-today-button:hover {
+  background: #059669 !important;
+  border-color: #059669 !important;
+}
+
+.fc-today-button:disabled {
+  opacity: 0.5;
+}
+
+/* ── Day cells ── */
 .fc-day-today {
-  background-color: #fff9e6 !important;
+  background: #EEF2FF !important;
 }
 
+.fc-col-header-cell-cushion {
+  font-weight: 600;
+  color: #64748B;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none !important;
+}
+
+.fc-daygrid-day-number {
+  color: #64748B;
+  font-weight: 500;
+  font-size: 13px;
+  text-decoration: none !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  background: #6366F1;
+  color: white;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ── List View ── */
 .fc-list-event:hover td {
-  background-color: #f0f0f0;
+  background: #F8FAFC;
+}
+
+.fc-list-event-title a {
+  color: #1E293B;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.fc-list-day-cushion {
+  background: #F1F5F9 !important;
+  font-weight: 700;
+  font-size: 13px;
+  color: #475569;
+}
+
+/* ── More events popover ── */
+.fc-more-popover {
+  border-radius: 12px !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+
+.fc-popover-header {
+  background: #F8FAFC !important;
+  border-radius: 12px 12px 0 0 !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
 }

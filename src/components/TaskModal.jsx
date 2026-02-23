@@ -266,14 +266,14 @@ export default function TaskModal({ task, projects, teamMembers, onSave, onClose
           </div>
 
           <div className="form-group">
-            <label>
+            <label className="toggle-group">
               <input
                 type="checkbox"
                 name="isRecurring"
                 checked={formData.isRecurring}
                 onChange={handleChange}
               />
-              {' '}Recurring Task
+              <span>Recurring Task</span>
             </label>
           </div>
 

@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { generateRecurringTasks } from '../utils/recurrence';
 import './Calendar.css';
 
-export default function Calendar({ tasks, projects, teamMembers, onTaskClick, onDateSelect, onEventDrop }) {
+export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, onTaskClick, onDateSelect, onEventDrop }) {
   const calendarRef = useRef(null);
   const [calendarEvents, setCalendarEvents] = useState([]);
 
@@ -20,9 +20,15 @@ export default function Calendar({ tasks, projects, teamMembers, onTaskClick, on
     const startDate = view.activeStart;
     const endDate = view.activeEnd;
 
+    // Filter tasks by active project filters
+    const filteredTasks =
+      activeProjectFilters && activeProjectFilters.size > 0
+        ? tasks.filter((task) => activeProjectFilters.has(task.projectId))
+        : tasks;
+
     // Generate events including recurring instances
     const events = [];
-    tasks.forEach(task => {
+    filteredTasks.forEach(task => {
       if (task.isRecurring) {
         const recurringInstances = generateRecurringTasks(task, startDate, endDate);
         recurringInstances.forEach(instance => {
@@ -34,24 +40,24 @@ export default function Calendar({ tasks, projects, teamMembers, onTaskClick, on
     });
 
     setCalendarEvents(events);
-  }, [tasks, projects, teamMembers]);
+  }, [tasks, projects, teamMembers, activeProjectFilters]);
 
   const taskToEvent = (task, projects, teamMembers) => {
     const project = projects.find(p => p.id === task.projectId);
     const assignee = teamMembers.find(m => m.id === task.assignedTo);
     
-    let backgroundColor = '#3788d8';
-    let borderColor = '#3788d8';
+    let backgroundColor = '#6366F1';
+    let borderColor = '#6366F1';
     
     if (task.status === 'completed') {
-      backgroundColor = '#28a745';
-      borderColor = '#28a745';
+      backgroundColor = '#10B981';
+      borderColor = '#10B981';
     } else if (task.status === 'in-progress') {
-      backgroundColor = '#ffc107';
-      borderColor = '#ffc107';
+      backgroundColor = '#F59E0B';
+      borderColor = '#F59E0B';
     } else if (task.priority === 'high') {
-      backgroundColor = '#dc3545';
-      borderColor = '#dc3545';
+      backgroundColor = '#EF4444';
+      borderColor = '#EF4444';
     } else if (project) {
       backgroundColor = project.color;
       borderColor = project.color;
@@ -68,7 +74,9 @@ export default function Calendar({ tasks, projects, teamMembers, onTaskClick, on
         task,
         assignee: assignee?.name || null,
         priority: task.priority,
-        status: task.status
+        status: task.status,
+        projectColor: project?.color || null,
+        projectName: project?.name || null,
       }
     };
   };
@@ -100,23 +108,18 @@ export default function Calendar({ tasks, projects, teamMembers, onTaskClick, on
   const renderEventContent = (eventInfo) => {
     const { assignee, priority, status } = eventInfo.event.extendedProps;
     
+    const priorityDot = priority === 'high' ? '#EF4444' : priority === 'medium' ? '#F59E0B' : '#10B981';
+
     return (
       <div className="fc-event-content-wrapper">
-        <div className="fc-event-title">
-          {eventInfo.event.title}
+        <div className="fc-event-title-row">
+          <span className="fc-event-priority-dot" style={{ background: priorityDot }} />
+          <span className="fc-event-title">{eventInfo.event.title}</span>
+          {status === 'completed' && <span className="fc-event-badge fc-event-badge--done">✓</span>}
         </div>
         {assignee && (
-          <div className="fc-event-assignee">
-            👤 {assignee}
-          </div>
+          <div className="fc-event-assignee">{assignee}</div>
         )}
-        <div className="fc-event-meta">
-          {priority === 'high' && '🔴'}
-          {priority === 'medium' && '🟡'}
-          {priority === 'low' && '🟢'}
-          {status === 'completed' && ' ✓'}
-          {status === 'in-progress' && ' ⏳'}
-        </div>
       </div>
     );
   };

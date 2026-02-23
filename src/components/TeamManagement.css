@@ -1,47 +1,56 @@
 .team-management {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid #E2E8F0;
 }
 
 .team-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .team-header h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1E293B;
+  letter-spacing: -0.3px;
 }
 
 .team-form {
-  background-color: #f8f9fa;
+  background: #F8FAFC;
   padding: 20px;
-  border-radius: 4px;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1.5px solid #E2E8F0;
 }
 
 .team-form .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .team-form input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 10px 14px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
   font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: #1E293B;
+  background: white;
+  transition: all 0.2s;
+  outline: none;
 }
 
 .team-form input:focus {
-  outline: none;
-  border-color: #3788d8;
-  box-shadow: 0 0 0 3px rgba(55, 136, 216, 0.1);
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
 
 .form-actions {
@@ -55,8 +64,9 @@
 
 .empty-state {
   text-align: center;
-  padding: 40px;
-  color: #666;
+  padding: 48px 20px;
+  color: #94A3B8;
+  font-size: 15px;
 }
 
 .team-table {
@@ -65,73 +75,85 @@
 }
 
 .team-table thead {
-  background-color: #f8f9fa;
+  background: #F8FAFC;
 }
 
 .team-table th {
   text-align: left;
-  padding: 12px;
+  padding: 12px 16px;
   font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
+  font-size: 12px;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1.5px solid #E2E8F0;
 }
 
 .team-table td {
-  padding: 12px;
-  border-bottom: 1px solid #dee2e6;
+  padding: 14px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+  font-size: 14px;
 }
 
 .team-table tbody tr:hover {
-  background-color: #f8f9fa;
+  background: #F8FAFC;
 }
 
 .icon-btn {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
-  margin-right: 5px;
-  color: #6c757d;
-  font-size: 16px;
-  border-radius: 4px;
+  padding: 7px;
+  margin-right: 4px;
+  color: #94A3B8;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
 
 .icon-btn:hover {
-  background-color: #e9ecef;
-  color: #495057;
+  background: #F1F5F9;
+  color: #475569;
 }
 
 .icon-btn.delete-btn:hover {
-  background-color: #dc3545;
-  color: white;
+  background: #FEF2F2;
+  color: #EF4444;
 }
 
 .btn {
-  padding: 10px 20px;
+  padding: 9px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
 .btn-primary {
-  background-color: #3788d8;
+  background: #6366F1;
   color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
-  background-color: #2b6cb0;
+  background: #4F46E5;
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: #6c757d;
-  color: white;
+  background: white;
+  color: #475569;
+  border: 1.5px solid #E2E8F0;
 }
 
 .btn-secondary:hover {
-  background-color: #5a6268;
+  background: #F8FAFC;
+  border-color: #CBD5E1;
 }
