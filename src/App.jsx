@@ -38,23 +38,27 @@ function App() {
   }, []);
 
   const loadData = async () => {
-    const [tasksData, projectsData, membersData] = await Promise.all([
-      taskService.getAll(),
-      projectService.getAll(),
-      teamMemberService.getAll()
-    ]);
+    try {
+      const [tasksData, projectsData, membersData] = await Promise.all([
+        taskService.getAll(),
+        projectService.getAll(),
+        teamMemberService.getAll()
+      ]);
 
-    setTasks(tasksData);
-    setProjects(projectsData);
-    setTeamMembers(membersData);
+      setTasks(tasksData);
+      setProjects(projectsData);
+      setTeamMembers(membersData);
 
-    // Create default project if none exists
-    if (projectsData.length === 0) {
-      const defaultProject = await projectService.create({
-        name: 'General',
-        color: '#3788d8'
-      });
-      setProjects([defaultProject]);
+      // Create default project if none exists
+      if (projectsData.length === 0) {
+        const defaultProject = await projectService.create({
+          name: 'General',
+          color: '#3788d8'
+        });
+        setProjects([defaultProject]);
+      }
+    } catch (err) {
+      console.error('Failed to load data:', err);
     }
   };
 
@@ -112,14 +116,18 @@ function App() {
   };
 
   const handleSaveProject = async (projectData) => {
-    if (editingProject) {
-      await projectService.update(editingProject.id, projectData);
-    } else {
-      await projectService.create(projectData);
+    try {
+      if (editingProject) {
+        await projectService.update(editingProject.id, projectData);
+      } else {
+        await projectService.create(projectData);
+      }
+      await loadData();
+      setShowProjectModal(false);
+      setEditingProject(null);
+    } catch (err) {
+      console.error('Failed to save project:', err);
     }
-    await loadData();
-    setShowProjectModal(false);
-    setEditingProject(null);
   };
 
   const handleDeleteProject = async (projectId) => {
