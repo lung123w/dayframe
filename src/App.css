@@ -1,14 +1,15 @@
 /* ===========================
-   DESIGN SYSTEM — SaaS PM Tool
-   Primary:    #6366F1 (Indigo)
-   Secondary:  #8B5CF6 (Violet)
-   Success:    #10B981 (Emerald)
-   Danger:     #EF4444 (Red)
-   Background: #F1F5F9
+   DESIGN SYSTEM — UI UX Pro Max: Flat Design
+   Style:      Flat Design (2D, no shadows, no gradients)
+   Primary:    #2563EB  (Blue 600)
+   Secondary:  #3B82F6  (Blue 500)
+   CTA:        #F97316  (Orange 500)
+   Background: #EFF6FF  (Blue 50)
+   Text:       #1E293B  (body) / #1E40AF (labels)
    Surface:    #FFFFFF
-   Text:       #1E293B
-   Muted:      #64748B
-   Border:     #E2E8F0
+   Border:     #BFDBFE  (Blue 200)
+   Font:       Plus Jakarta Sans
+   Effects:    150-200ms ease, color-shift only
 =========================== */
 
 * {
@@ -17,9 +18,9 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #F1F5F9;
+  background-color: #EFF6FF;
   color: #1E293B;
 }
 
@@ -30,13 +31,13 @@ body {
   flex-direction: column;
 }
 
-/* ── HEADER ── */
+/* ── HEADER — Flat Design: solid color, border-bottom, no gradient ── */
 .app-header {
-  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  background: #2563EB;
   color: white;
   padding: 0 32px;
   height: 64px;
-  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.3);
+  border-bottom: 3px solid #1D4ED8;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -67,29 +68,30 @@ body {
 
 .nav-btn {
   background: transparent;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   display: flex;
   align-items: center;
   gap: 7px;
-  transition: all 0.2s;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .nav-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   color: white;
 }
 
 .nav-btn.active {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.25);
   color: white;
-  font-weight: 600;
+  font-weight: 700;
+  border-bottom: 2px solid white;
 }
 
 .btn-icon {
@@ -118,6 +120,7 @@ body {
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
+  background-color: #EFF6FF;
 }
 
 /* ── TOOLBAR ── */
@@ -151,28 +154,32 @@ body {
 
 .stat-card {
   background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 8px 16px;
+  border: 2px solid #BFDBFE;
+  border-radius: 8px;
+  padding: 8px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 72px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease;
+}
+
+.stat-card:hover {
+  border-color: #2563EB;
 }
 
 .stat-label {
   font-size: 10px;
-  color: #94A3B8;
-  font-weight: 600;
+  color: #3B82F6;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.8px;
 }
 
 .stat-value {
   font-size: 22px;
   font-weight: 700;
-  color: #1E293B;
+  color: #1E40AF;
   line-height: 1.2;
 }
 
@@ -183,19 +190,18 @@ body {
   gap: 8px;
   margin-bottom: 16px;
   flex-wrap: wrap;
-  padding: 12px 20px;
+  padding: 10px 18px;
   background: white;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  border: 2px solid #BFDBFE;
 }
 
 .project-filter-label {
   font-size: 11px;
   font-weight: 700;
-  color: #94A3B8;
+  color: #3B82F6;
   text-transform: uppercase;
-  letter-spacing: 0.7px;
+  letter-spacing: 0.8px;
   margin-right: 4px;
   white-space: nowrap;
 }
@@ -205,27 +211,26 @@ body {
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
-  border-radius: 20px;
-  border: 2px solid transparent;
+  border-radius: 4px;
+  border: 2px solid #BFDBFE;
   cursor: pointer;
   font-size: 13px;
-  font-weight: 500;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-  background: #F8FAFC;
-  color: #475569;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  background: white;
+  color: #1E40AF;
   white-space: nowrap;
 }
 
 .project-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .project-chip.active {
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  border-color: transparent;
 }
 
 .project-chip-dot {
@@ -241,13 +246,13 @@ body {
   padding: 0;
   margin-left: 2px;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.65;
   display: inline-flex;
   align-items: center;
   font-size: 11px;
   color: inherit;
-  font-family: 'Inter', sans-serif;
-  transition: opacity 0.15s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: opacity 0.15s ease;
 }
 
 .project-chip-edit:hover {
@@ -263,34 +268,34 @@ body {
 }
 
 .filter-clear-btn {
-  background: #FEF2F2;
-  color: #EF4444;
-  border: 1.5px solid #FECACA;
-  border-radius: 20px;
+  background: white;
+  color: #2563EB;
+  border: 2px solid #BFDBFE;
+  border-radius: 4px;
   padding: 4px 12px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .filter-clear-btn:hover {
-  background: #EF4444;
+  background: #2563EB;
   color: white;
-  border-color: #EF4444;
+  border-color: #2563EB;
 }
 
-/* ── BUTTONS ── */
+/* ── BUTTONS — Flat Design: no shadow, no transform, color-shift hover ── */
 .btn {
   padding: 9px 20px;
-  border: none;
-  border-radius: 8px;
+  border: 2px solid transparent;
+  border-radius: 6px;
   font-size: 14px;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -298,56 +303,69 @@ body {
   text-decoration: none;
 }
 
+/* Primary action = CTA orange (#F97316) per skill */
 .btn-primary {
-  background: #6366F1;
+  background: #F97316;
   color: white;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  border-color: #F97316;
 }
 
 .btn-primary:hover {
-  background: #4F46E5;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-  transform: translateY(-1px);
+  background: #EA580C;
+  border-color: #EA580C;
 }
 
+/* Secondary = outlined blue */
 .btn-secondary {
   background: white;
-  color: #475569;
-  border: 1.5px solid #E2E8F0;
+  color: #2563EB;
+  border-color: #BFDBFE;
 }
 
 .btn-secondary:hover {
-  background: #F8FAFC;
-  border-color: #CBD5E1;
+  background: #EFF6FF;
+  border-color: #2563EB;
+}
+
+/* Blue filled variant */
+.btn-blue {
+  background: #2563EB;
+  color: white;
+  border-color: #2563EB;
+}
+
+.btn-blue:hover {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
 }
 
 .btn-success {
-  background: #10B981;
+  background: #16A34A;
   color: white;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  border-color: #16A34A;
 }
 
 .btn-success:hover {
-  background: #059669;
-  transform: translateY(-1px);
+  background: #15803D;
+  border-color: #15803D;
 }
 
 .btn-danger {
-  background: #FEF2F2;
-  color: #EF4444;
-  border: 1.5px solid #FECACA;
+  background: white;
+  color: #DC2626;
+  border-color: #FECACA;
 }
 
 .btn-danger:hover {
-  background: #EF4444;
+  background: #DC2626;
   color: white;
-  border-color: #EF4444;
+  border-color: #DC2626;
 }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .app-header {
-    padding: 12px 16px;
+    padding: 10px 16px;
     height: auto;
   }
 

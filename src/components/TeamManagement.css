@@ -1,9 +1,8 @@
 .team-management {
   background: white;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 28px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  border: 1px solid #E2E8F0;
+  border: 2px solid #BFDBFE;
 }
 
 .team-header {
@@ -22,11 +21,11 @@
 }
 
 .team-form {
-  background: #F8FAFC;
+  background: #EFF6FF;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 6px;
   margin-bottom: 24px;
-  border: 1.5px solid #E2E8F0;
+  border: 2px solid #BFDBFE;
 }
 
 .team-form .form-row {
@@ -38,19 +37,19 @@
 
 .team-form input {
   padding: 10px 14px;
-  border: 1.5px solid #E2E8F0;
-  border-radius: 8px;
+  border: 2px solid #BFDBFE;
+  border-radius: 6px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: #1E293B;
   background: white;
-  transition: all 0.2s;
+  transition: border-color 0.15s ease;
   outline: none;
 }
 
 .team-form input:focus {
-  border-color: #6366F1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-actions {
@@ -75,18 +74,18 @@
 }
 
 .team-table thead {
-  background: #F8FAFC;
+  background: #EFF6FF;
 }
 
 .team-table th {
   text-align: left;
   padding: 12px 16px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 12px;
-  color: #64748B;
+  color: #1E40AF;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1.5px solid #E2E8F0;
+  border-bottom: 2px solid #BFDBFE;
 }
 
 .team-table td {
@@ -97,7 +96,7 @@
 }
 
 .team-table tbody tr:hover {
-  background: #F8FAFC;
+  background: #EFF6FF;
 }
 
 .icon-btn {
@@ -108,52 +107,52 @@
   margin-right: 4px;
   color: #94A3B8;
   font-size: 14px;
-  border-radius: 6px;
-  transition: all 0.2s;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .icon-btn:hover {
-  background: #F1F5F9;
-  color: #475569;
+  background: #EFF6FF;
+  color: #2563EB;
 }
 
 .icon-btn.delete-btn:hover {
   background: #FEF2F2;
-  color: #EF4444;
+  color: #DC2626;
 }
 
 .btn {
   padding: 9px 20px;
-  border: none;
-  border-radius: 8px;
+  border: 2px solid transparent;
+  border-radius: 6px;
   font-size: 14px;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
 .btn-primary {
-  background: #6366F1;
+  background: #F97316;
   color: white;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  border-color: #F97316;
 }
 
 .btn-primary:hover {
-  background: #4F46E5;
-  transform: translateY(-1px);
+  background: #EA580C;
+  border-color: #EA580C;
 }
 
 .btn-secondary {
   background: white;
-  color: #475569;
-  border: 1.5px solid #E2E8F0;
+  color: #2563EB;
+  border-color: #BFDBFE;
 }
 
 .btn-secondary:hover {
-  background: #F8FAFC;
-  border-color: #CBD5E1;
+  background: #EFF6FF;
+  border-color: #2563EB;
 }

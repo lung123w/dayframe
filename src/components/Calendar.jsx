@@ -46,18 +46,18 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     const project = projects.find(p => p.id === task.projectId);
     const assignee = teamMembers.find(m => m.id === task.assignedTo);
     
-    let backgroundColor = '#6366F1';
-    let borderColor = '#6366F1';
+    let backgroundColor = '#2563EB';
+    let borderColor = '#2563EB';
     
     if (task.status === 'completed') {
-      backgroundColor = '#10B981';
-      borderColor = '#10B981';
+      backgroundColor = '#16A34A';
+      borderColor = '#16A34A';
     } else if (task.status === 'in-progress') {
-      backgroundColor = '#F59E0B';
-      borderColor = '#F59E0B';
+      backgroundColor = '#3B82F6';
+      borderColor = '#3B82F6';
     } else if (task.priority === 'high') {
-      backgroundColor = '#EF4444';
-      borderColor = '#EF4444';
+      backgroundColor = '#DC2626';
+      borderColor = '#DC2626';
     } else if (project) {
       backgroundColor = project.color;
       borderColor = project.color;

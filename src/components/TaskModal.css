@@ -1,8 +1,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,13 +11,12 @@
 
 .modal-content {
   background: white;
-  border-radius: 16px;
+  border-radius: 8px;
   max-width: 680px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
-  border: 1px solid #E2E8F0;
+  border: 2px solid #BFDBFE;
 }
 
 .modal-header {
@@ -84,13 +82,13 @@
 .form-group textarea {
   width: 100%;
   padding: 10px 14px;
-  border: 1.5px solid #E2E8F0;
-  border-radius: 8px;
+  border: 2px solid #BFDBFE;
+  border-radius: 6px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: #1E293B;
-  background: #F8FAFC;
-  transition: all 0.2s;
+  background: white;
+  transition: border-color 0.15s ease;
   outline: none;
 }
 
@@ -102,9 +100,8 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #6366F1;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-group select {
@@ -137,14 +134,14 @@
 }
 
 .toggle-group:hover {
-  border-color: #6366F1;
-  background: #EEF2FF;
+  border-color: #2563EB;
+  background: #EFF6FF;
 }
 
 .toggle-group input[type="checkbox"] {
   width: 17px;
   height: 17px;
-  accent-color: #6366F1;
+  accent-color: #2563EB;
   cursor: pointer;
 }
 
@@ -199,18 +196,18 @@
 
 /* ── Recurrence panel ── */
 .recurrence-options {
-  background: linear-gradient(135deg, #F8FAFC, #EEF2FF);
+  background: #EFF6FF;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 6px;
   margin-top: 8px;
-  border: 1.5px solid #C7D2FE;
+  border: 2px solid #BFDBFE;
 }
 
 .recurrence-options h3 {
   margin: 0 0 16px 0;
   font-size: 12px;
   font-weight: 700;
-  color: #6366F1;
+  color: #2563EB;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
@@ -227,14 +224,14 @@
   justify-content: center;
   padding: 7px 12px;
   background: white;
-  border: 1.5px solid #E2E8F0;
-  border-radius: 8px;
+  border: 2px solid #BFDBFE;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  transition: all 0.2s;
-  color: #475569;
-  font-family: 'Inter', sans-serif;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  color: #1E40AF;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .day-checkbox input {
@@ -242,10 +239,9 @@
 }
 
 .day-checkbox:has(input:checked) {
-  background: #6366F1;
+  background: #2563EB;
   color: white;
-  border-color: #6366F1;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  border-color: #2563EB;
 }
 
 .recurrence-description {
@@ -277,53 +273,53 @@
 /* ── Button variants (scoped here for modal use) ── */
 .btn {
   padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
+  border: 2px solid transparent;
+  border-radius: 6px;
   font-size: 14px;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
 .btn-primary {
-  background: #6366F1;
+  background: #F97316;
   color: white;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  border-color: #F97316;
 }
 
 .btn-primary:hover {
-  background: #4F46E5;
-  transform: translateY(-1px);
+  background: #EA580C;
+  border-color: #EA580C;
 }
 
 .btn-secondary {
   background: white;
-  color: #475569;
-  border: 1.5px solid #E2E8F0;
+  color: #2563EB;
+  border: 2px solid #BFDBFE;
 }
 
 .btn-secondary:hover {
-  background: #F8FAFC;
-  border-color: #CBD5E1;
+  background: #EFF6FF;
+  border-color: #2563EB;
 }
 
 .btn-danger {
-  background: #FEF2F2;
-  color: #EF4444;
-  border: 1.5px solid #FECACA;
+  background: white;
+  color: #DC2626;
+  border: 2px solid #FECACA;
 }
 
 .btn-danger:hover {
-  background: #EF4444;
+  background: #DC2626;
   color: white;
-  border-color: #EF4444;
+  border-color: #DC2626;
 }
 
 input[type="checkbox"] {
   cursor: pointer;
-  accent-color: #6366F1;
+  accent-color: #2563EB;
 }
