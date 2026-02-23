@@ -81,32 +81,43 @@ function App() {
   };
 
   const handleSaveTask = async (taskData) => {
-    if (selectedTask) {
-      await taskService.update(selectedTask.id, taskData);
-    } else {
-      await taskService.create(taskData);
+    try {
+      if (selectedTask) {
+        await taskService.update(selectedTask.id, taskData);
+      } else {
+        await taskService.create(taskData);
+      }
+      await loadData();
+      setShowTaskModal(false);
+      setSelectedTask(null);
+      setSelectedDate(null);
+    } catch (err) {
+      console.error('Failed to save task:', err);
     }
-    
-    await loadData();
-    setShowTaskModal(false);
-    setSelectedTask(null);
-    setSelectedDate(null);
   };
 
   const handleDeleteTask = async (taskId) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
-      await taskService.delete(taskId);
-      await loadData();
-      setShowTaskModal(false);
-      setSelectedTask(null);
+      try {
+        await taskService.delete(taskId);
+        await loadData();
+        setShowTaskModal(false);
+        setSelectedTask(null);
+      } catch (err) {
+        console.error('Failed to delete task:', err);
+      }
     }
   };
 
   const handleEventDrop = async (task, newDate) => {
-    await taskService.update(task.id, {
-      dueDate: newDate.toISOString()
-    });
-    await loadData();
+    try {
+      await taskService.update(task.id, {
+        dueDate: newDate.toISOString()
+      });
+      await loadData();
+    } catch (err) {
+      console.error('Failed to move task:', err);
+    }
   };
 
   // ── Project handlers ──

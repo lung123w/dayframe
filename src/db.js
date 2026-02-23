@@ -2,17 +2,10 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('ProjectManagementDB');
 
-// v1: original schema (tasks + teamMembers only)
 db.version(1).stores({
   tasks: '++id, title, description, dueDate, priority, status, projectId, assignedTo, createdAt, updatedAt, isRecurring, recurrencePattern',
   teamMembers: '++id, name, email, role, createdAt',
-});
-
-// v2: added projects table
-// Dexie's createMissingTables() checks objectStoreNames.contains() first,
-// so this is safe for browsers that already have the projects store from v1.
-db.version(2).stores({
-  projects: '++id, name, color, createdAt',
+  projects: '++id, name, color, createdAt'
 });
 
 // Task model
