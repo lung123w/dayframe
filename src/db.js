@@ -2,16 +2,23 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('ProjectManagementDB');
 
+// v1: original schema (tasks + teamMembers only)
 db.version(1).stores({
   tasks: '++id, title, description, dueDate, priority, status, projectId, assignedTo, createdAt, updatedAt, isRecurring, recurrencePattern',
   teamMembers: '++id, name, email, role, createdAt',
-  projects: '++id, name, color, createdAt'
+});
+
+// v2: added projects table
+// Dexie's createMissingTables() checks objectStoreNames.contains() first,
+// so this is safe for browsers that already have the projects store from v1.
+db.version(2).stores({
+  projects: '++id, name, color, createdAt',
 });
 
 // Task model
 export class Task {
   constructor(data) {
-    this.id = data.id || null;
+    this.id = data.id;
     this.title = data.title || '';
     this.description = data.description || '';
     this.descriptionImages = data.descriptionImages || []; // Array of base64 images
@@ -30,7 +37,7 @@ export class Task {
 // Team Member model
 export class TeamMember {
   constructor(data) {
-    this.id = data.id || null;
+    this.id = data.id;
     this.name = data.name || '';
     this.email = data.email || '';
     this.role = data.role || '';
@@ -41,7 +48,7 @@ export class TeamMember {
 // Project model
 export class Project {
   constructor(data) {
-    this.id = data.id || null;
+    this.id = data.id;
     this.name = data.name || '';
     this.color = data.color || '#3788d8';
     this.createdAt = data.createdAt || new Date().toISOString();
