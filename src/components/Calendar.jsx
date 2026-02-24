@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { generateRecurringTasks } from '../utils/recurrence';
 import './Calendar.css';
 
-export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, onTaskClick, onDateSelect, onEventDrop, onStatusUpdate, onDeleteTask }) {
+export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, selectedDayDate, onTaskClick, onDateSelect, onEventDrop, onStatusUpdate, onDeleteTask }) {
   const calendarRef = useRef(null);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [statusPopup, setStatusPopup] = useState(null); // { task, x, y }
@@ -161,6 +161,16 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     }
   };
 
+  // Highlight the day cell that matches selectedDayDate
+  const getDayCellClassNames = (arg) => {
+    const cellStr = [
+      arg.date.getFullYear(),
+      String(arg.date.getMonth() + 1).padStart(2, '0'),
+      String(arg.date.getDate()).padStart(2, '0'),
+    ].join('-');
+    return cellStr === selectedDayDate ? ['fc-day--selected'] : [];
+  };
+
   const renderEventContent = (eventInfo) => {
     const { assignee, priority, status, projectName } = eventInfo.event.extendedProps;
     const isListView = eventInfo.view.type === 'listWeek';
@@ -265,6 +275,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
           droppable={true}
           eventDrop={handleEventDrop}
           eventContent={renderEventContent}
+          dayCellClassNames={getDayCellClassNames}
           height="auto"
           nowIndicator={false}
           weekends={true}
