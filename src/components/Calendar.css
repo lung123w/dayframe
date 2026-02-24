@@ -404,3 +404,22 @@
 .status-popup-edit:hover {
   background: #EFF6FF;
 }
+
+.status-popup-delete {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #DC2626;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.status-popup-delete:hover {
+  background: #FEF2F2;
+}

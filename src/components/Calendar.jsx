@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { generateRecurringTasks } from '../utils/recurrence';
 import './Calendar.css';
 
-export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, onTaskClick, onDateSelect, onEventDrop, onStatusUpdate }) {
+export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, onTaskClick, onDateSelect, onEventDrop, onStatusUpdate, onDeleteTask }) {
   const calendarRef = useRef(null);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [statusPopup, setStatusPopup] = useState(null); // { task, x, y }
@@ -138,6 +138,14 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
       onTaskClick(statusPopup.task);
     }
     setStatusPopup(null);
+  };
+
+  const handleDeleteTask = () => {
+    if (statusPopup && onDeleteTask) {
+      const task = statusPopup.task;
+      setStatusPopup(null);
+      onDeleteTask(task.id);
+    }
   };
 
   const renderEventContent = (eventInfo) => {
@@ -274,6 +282,9 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
             <div className="status-popup-divider" />
             <button className="status-popup-edit" onClick={handleOpenTaskEdit}>
               Open &amp; Edit Task
+            </button>
+            <button className="status-popup-delete" onClick={handleDeleteTask}>
+              Delete Task
             </button>
           </div>
         )}

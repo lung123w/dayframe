@@ -339,6 +339,7 @@ function App() {
               onDateSelect={handleDateSelect}
               onEventDrop={handleEventDrop}
               onStatusUpdate={handleStatusUpdate}
+              onDeleteTask={handleDeleteTask}
             />
           </>
         )}
