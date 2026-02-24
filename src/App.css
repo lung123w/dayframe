@@ -374,8 +374,39 @@ body {
   border-color: #DC2626;
 }
 
+/* ── CALENDAR + DAY PANEL LAYOUT ── */
+.calendar-day-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.calendar-day-layout__calendar {
+  flex: 1;
+  min-width: 0;
+}
+
+.calendar-day-layout__panel {
+  width: 320px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 84px; /* header height + a little gap */
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
+  .calendar-day-layout {
+    flex-direction: column;
+  }
+
+  .calendar-day-layout__panel {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+
   .app-header {
     padding: 10px 16px;
     height: auto;

@@ -247,6 +247,13 @@
   background: #DBEAFE !important;
 }
 
+/* Selected day (Day Panel) highlight */
+.fc-day--selected {
+  background: #FFF7ED !important;
+  outline: 2px solid #F97316;
+  outline-offset: -2px;
+}
+
 .fc-col-header-cell-cushion {
   font-weight: 600;
   color: #64748B;

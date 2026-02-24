@@ -45,7 +45,8 @@ describe('App Integration Tests', () => {
     render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText(/new task/i)).toBeInTheDocument();
+      // Both the header button and DayPanel have "New Task" — expect at least one
+      expect(screen.getAllByText(/new task/i).length).toBeGreaterThan(0);
       // Stat cards now show "Total", "Done", "Active" labels
       expect(screen.getByText(/^total$/i)).toBeInTheDocument();
     });

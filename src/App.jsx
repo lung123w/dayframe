@@ -4,6 +4,7 @@ import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
 import TeamManagement from './components/TeamManagement';
 import OutstandingTasks from './components/OutstandingTasks';
+import DayPanel from './components/DayPanel';
 import { taskService, teamMemberService, projectService } from './db';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
 import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle, FaDownload } from 'react-icons/fa';
@@ -21,6 +22,15 @@ function sortTasks(tasks) {
   });
 }
 
+function todayStr() {
+  const d = new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 function App() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -29,6 +39,9 @@ function App() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('calendar');
+
+  // Day panel: which date is selected (defaults to today)
+  const [selectedDayDate, setSelectedDayDate] = useState(todayStr);
 
   // Project management state
   const [showProjectModal, setShowProjectModal] = useState(false);
@@ -80,9 +93,15 @@ function App() {
     setShowTaskModal(true);
   };
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = (dateStr) => {
+    // Update the day panel to show tasks for this date
+    setSelectedDayDate(dateStr);
+    // Do NOT open the task modal on plain date click — use New Task button instead
+  };
+
+  const handleNewTaskForDay = (dateStr) => {
     setSelectedTask(null);
-    setSelectedDate(date);
+    setSelectedDate(dateStr);
     setShowTaskModal(true);
   };
 
@@ -375,17 +394,34 @@ function App() {
               </div>
             )}
 
-            <Calendar
-              tasks={tasks}
-              projects={projects}
-              teamMembers={teamMembers}
-              activeProjectFilters={activeProjectFilters}
-              onTaskClick={handleTaskClick}
-              onDateSelect={handleDateSelect}
-              onEventDrop={handleEventDrop}
-              onStatusUpdate={handleStatusUpdate}
-              onDeleteTask={handleDeleteTask}
-            />
+            <div className="calendar-day-layout">
+              <div className="calendar-day-layout__calendar">
+                <Calendar
+                  tasks={tasks}
+                  projects={projects}
+                  teamMembers={teamMembers}
+                  activeProjectFilters={activeProjectFilters}
+                  selectedDayDate={selectedDayDate}
+                  onTaskClick={handleTaskClick}
+                  onDateSelect={handleDateSelect}
+                  onEventDrop={handleEventDrop}
+                  onStatusUpdate={handleStatusUpdate}
+                  onDeleteTask={handleDeleteTask}
+                />
+              </div>
+              <div className="calendar-day-layout__panel">
+                <DayPanel
+                  date={selectedDayDate}
+                  tasks={tasks}
+                  projects={projects}
+                  teamMembers={teamMembers}
+                  onTaskClick={handleTaskClick}
+                  onStatusUpdate={handleStatusUpdate}
+                  onNewTask={handleNewTaskForDay}
+                  onDeleteTask={handleDeleteTask}
+                />
+              </div>
+            </div>
           </>
         )}
 
