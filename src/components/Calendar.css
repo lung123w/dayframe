@@ -1,7 +1,78 @@
+.calendar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Calendar Project Filter Bar ── */
+.calendar-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: white;
+  border: 2px solid #BFDBFE;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  flex-wrap: wrap;
+}
+
+.calendar-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3B82F6;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+
+.calendar-filter-select {
+  padding: 6px 30px 6px 10px;
+  border: 2px solid #BFDBFE;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1E40AF;
+  background: white;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  outline: none;
+  min-width: 160px;
+}
+
+.calendar-filter-select:focus {
+  border-color: #2563EB;
+}
+
+.calendar-filter-clear {
+  background: white;
+  color: #2563EB;
+  border: 2px solid #BFDBFE;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.calendar-filter-clear:hover {
+  background: #2563EB;
+  color: white;
+  border-color: #2563EB;
+}
+
 .calendar-container {
   background: white;
-  border-radius: 8px;
+  border-radius: 0 0 8px 8px;
   border: 2px solid #BFDBFE;
+  border-top: none;
   overflow: hidden;
 }
 
@@ -25,6 +96,57 @@
 
 .fc-event-content-wrapper {
   padding: 1px 0;
+}
+
+/* Completed task: muted text */
+.fc-event--completed .fc-event-title {
+  opacity: 0.75;
+  text-decoration: line-through;
+}
+
+/* ── List view extras ── */
+.fc-list-event-wrapper {
+  width: 100%;
+}
+
+.fc-list-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.fc-list-project-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1.5px solid;
+  white-space: nowrap;
+}
+
+.fc-list-project-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fc-event-assignee-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1.5px solid #E2E8F0;
+  color: #64748B;
+  background: #F8FAFC;
+  white-space: nowrap;
 }
 
 .fc-event-title-row {

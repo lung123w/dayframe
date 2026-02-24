@@ -3,7 +3,7 @@ import { FaTimes, FaImage, FaTrash } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
 import './TaskModal.css';
 
-export default function TaskModal({ task, projects, teamMembers, onSave, onClose, onDelete, selectedDate }) {
+export default function TaskModal({ task, projects, teamMembers, tasks, onSave, onClose, onDelete, selectedDate }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -257,11 +257,46 @@ export default function TaskModal({ task, projects, teamMembers, onSave, onClose
               onChange={handleChange}
             >
               <option value="">Unassigned</option>
-              {teamMembers.map(member => (
-                <option key={member.id} value={member.id}>
-                  {member.name}
-                </option>
-              ))}
+              {(() => {
+                // Show members who are already assigned to tasks in the same project (relevant members),
+                // plus the currently assigned member, plus an "Other members" divider for the rest.
+                const selectedProjectId = formData.projectId ? parseInt(formData.projectId) : null;
+                const projectTasks = (tasks || []).filter(t =>
+                  t.projectId === selectedProjectId && t.id !== (task?.id)
+                );
+                const relevantMemberIds = new Set(
+                  projectTasks.map(t => t.assignedTo).filter(Boolean)
+                );
+                // Always include current assignee
+                if (formData.assignedTo) relevantMemberIds.add(parseInt(formData.assignedTo));
+
+                const relevant = teamMembers.filter(m => relevantMemberIds.has(m.id));
+                const others = teamMembers.filter(m => !relevantMemberIds.has(m.id));
+
+                if (relevant.length === 0) {
+                  // No relevant members — show all members flat
+                  return teamMembers.map(member => (
+                    <option key={member.id} value={member.id}>{member.name}</option>
+                  ));
+                }
+
+                return (
+                  <>
+                    <optgroup label="Project Members">
+                      {relevant.map(member => (
+                        <option key={member.id} value={member.id}>{member.name}</option>
+                      ))}
+                    </optgroup>
+                    {others.length > 0 && (
+                      <optgroup label="Other Members">
+                        {others.map(member => (
+                          <option key={member.id} value={member.id}>{member.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </>
+                );
+              })()}
             </select>
           </div>
 
