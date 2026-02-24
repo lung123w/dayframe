@@ -48,7 +48,15 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
 
   const taskToEvent = (task, projects, teamMembers) => {
     const project = projects.find(p => p.id === task.projectId);
-    const assignee = teamMembers.find(m => m.id === task.assignedTo);
+
+    // assignedTo is now an array of ids
+    const assignedIds = Array.isArray(task.assignedTo)
+      ? task.assignedTo
+      : (task.assignedTo != null ? [task.assignedTo] : []);
+    const assigneeNames = assignedIds
+      .map(id => teamMembers.find(m => m.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
 
     let backgroundColor;
     let borderColor;
@@ -82,7 +90,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
       textColor,
       extendedProps: {
         task,
-        assignee: assignee?.name || null,
+        assignee: assigneeNames || null,
         priority: task.priority,
         status: task.status,
         projectColor: project?.color || null,
