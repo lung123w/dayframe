@@ -393,6 +393,7 @@ function App() {
           task={selectedTask}
           projects={projects}
           teamMembers={teamMembers}
+          tasks={tasks}
           selectedDate={selectedDate}
           onSave={handleSaveTask}
           onDelete={handleDeleteTask}

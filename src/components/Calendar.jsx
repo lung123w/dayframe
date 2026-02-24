@@ -10,6 +10,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   const calendarRef = useRef(null);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [statusPopup, setStatusPopup] = useState(null); // { task, x, y }
+  const [projectFilter, setProjectFilter] = useState(''); // '' = all projects
 
   useEffect(() => {
     // Get the current view's date range
@@ -20,11 +21,13 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     const startDate = view.activeStart;
     const endDate = view.activeEnd;
 
-    // Filter tasks by active project filters
-    const filteredTasks =
-      activeProjectFilters && activeProjectFilters.size > 0
-        ? tasks.filter((task) => activeProjectFilters.has(task.projectId))
-        : tasks;
+    // Apply project chip filters from parent (multi-select) OR internal dropdown (single)
+    let filteredTasks = tasks;
+    if (projectFilter) {
+      filteredTasks = tasks.filter(t => String(t.projectId) === projectFilter);
+    } else if (activeProjectFilters && activeProjectFilters.size > 0) {
+      filteredTasks = tasks.filter(t => activeProjectFilters.has(t.projectId));
+    }
 
     // Generate events including recurring instances
     const events = [];
@@ -41,18 +44,20 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     });
 
     setCalendarEvents(events);
-  }, [tasks, projects, teamMembers, activeProjectFilters]);
+  }, [tasks, projects, teamMembers, activeProjectFilters, projectFilter]);
 
   const taskToEvent = (task, projects, teamMembers) => {
     const project = projects.find(p => p.id === task.projectId);
     const assignee = teamMembers.find(m => m.id === task.assignedTo);
-    
-    let backgroundColor = '#2563EB';
-    let borderColor = '#2563EB';
-    
+
+    let backgroundColor;
+    let borderColor;
+    let textColor = 'white';
+
     if (task.status === 'completed') {
-      backgroundColor = '#16A34A';
-      borderColor = '#16A34A';
+      // Grey for completed tasks
+      backgroundColor = '#94A3B8';
+      borderColor = '#94A3B8';
     } else if (task.status === 'in-progress') {
       backgroundColor = '#3B82F6';
       borderColor = '#3B82F6';
@@ -62,6 +67,9 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     } else if (project) {
       backgroundColor = project.color;
       borderColor = project.color;
+    } else {
+      backgroundColor = '#2563EB';
+      borderColor = '#2563EB';
     }
 
     return {
@@ -71,6 +79,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
       allDay: true,
       backgroundColor,
       borderColor,
+      textColor,
       extendedProps: {
         task,
         assignee: assignee?.name || null,
@@ -85,8 +94,6 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   const handleEventClick = (info) => {
     info.jsEvent.preventDefault();
     const task = info.event.extendedProps.task;
-
-    // Show status popup near the click position
     setStatusPopup({
       task,
       x: info.jsEvent.clientX,
@@ -101,7 +108,6 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   const handleEventDrop = async (info) => {
     const task = info.event.extendedProps.task;
     const newDate = info.event.start;
-    
     if (onEventDrop) {
       try {
         await onEventDrop(task, newDate);
@@ -127,16 +133,53 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   };
 
   const renderEventContent = (eventInfo) => {
-    const { assignee, priority, status } = eventInfo.event.extendedProps;
-    
-    const priorityDot = priority === 'high' ? '#EF4444' : priority === 'medium' ? '#F59E0B' : '#10B981';
+    const { assignee, priority, status, projectName } = eventInfo.event.extendedProps;
+    const isListView = eventInfo.view.type === 'listWeek';
 
+    const priorityDot = priority === 'high' ? '#EF4444' : priority === 'medium' ? '#F59E0B' : '#10B981';
+    const isCompleted = status === 'completed';
+
+    if (isListView) {
+      // List view: show project name as a chip next to the title
+      return (
+        <div className={`fc-event-content-wrapper fc-list-event-wrapper${isCompleted ? ' fc-event--completed' : ''}`}>
+          <div className="fc-event-title-row">
+            <span className="fc-event-priority-dot" style={{ background: isCompleted ? '#CBD5E1' : priorityDot }} />
+            <span className="fc-event-title">{eventInfo.event.title}</span>
+            {isCompleted && <span className="fc-event-badge fc-event-badge--done">✓</span>}
+            {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}
+          </div>
+          <div className="fc-list-meta-row">
+            {projectName && (
+              <span
+                className="fc-list-project-chip"
+                style={{
+                  borderColor: (eventInfo.event.extendedProps.projectColor || '#2563EB') + '60',
+                  color: isCompleted ? '#94A3B8' : (eventInfo.event.extendedProps.projectColor || '#2563EB'),
+                }}
+              >
+                <span
+                  className="fc-list-project-dot"
+                  style={{ background: isCompleted ? '#CBD5E1' : (eventInfo.event.extendedProps.projectColor || '#2563EB') }}
+                />
+                {projectName}
+              </span>
+            )}
+            {assignee && (
+              <span className="fc-event-assignee-chip">{assignee}</span>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Month / week grid view
     return (
-      <div className="fc-event-content-wrapper">
+      <div className={`fc-event-content-wrapper${isCompleted ? ' fc-event--completed' : ''}`}>
         <div className="fc-event-title-row">
-          <span className="fc-event-priority-dot" style={{ background: priorityDot }} />
+          <span className="fc-event-priority-dot" style={{ background: isCompleted ? 'rgba(255,255,255,0.5)' : priorityDot }} />
           <span className="fc-event-title">{eventInfo.event.title}</span>
-          {status === 'completed' && <span className="fc-event-badge fc-event-badge--done">✓</span>}
+          {isCompleted && <span className="fc-event-badge fc-event-badge--done">✓</span>}
           {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}
         </div>
         {assignee && (
@@ -149,61 +192,84 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   const statusOptions = [
     { value: 'todo', label: 'To Do', color: '#64748B' },
     { value: 'in-progress', label: 'In Progress', color: '#3B82F6' },
-    { value: 'completed', label: 'Completed', color: '#16A34A' },
+    { value: 'completed', label: 'Completed', color: '#94A3B8' },
   ];
 
   return (
-    <div className="calendar-container" onClick={() => setStatusPopup(null)}>
-      <FullCalendar
-        ref={calendarRef}
-        plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,dayGridWeek,listWeek'
-        }}
-        events={calendarEvents}
-        eventClick={handleEventClick}
-        dateClick={handleDateClick}
-        editable={true}
-        droppable={true}
-        eventDrop={handleEventDrop}
-        eventContent={renderEventContent}
-        height="auto"
-        nowIndicator={false}
-        weekends={true}
-        dayMaxEvents={3}
-        moreLinkClick="popover"
-      />
-
-      {/* Status quick-update popup */}
-      {statusPopup && (
-        <div
-          className="status-popup"
-          style={{ top: statusPopup.y, left: statusPopup.x }}
-          onClick={e => e.stopPropagation()}
+    <div className="calendar-wrapper">
+      {/* Project filter dropdown for calendar */}
+      <div className="calendar-filter-bar">
+        <label className="calendar-filter-label" htmlFor="cal-project-filter">Show Project</label>
+        <select
+          id="cal-project-filter"
+          className="calendar-filter-select"
+          value={projectFilter}
+          onChange={e => setProjectFilter(e.target.value)}
         >
-          <div className="status-popup-title">{statusPopup.task.title}</div>
-          <div className="status-popup-section-label">Update Status</div>
-          {statusOptions.map(opt => (
-            <button
-              key={opt.value}
-              className={`status-popup-option ${statusPopup.task.status === opt.value ? 'active' : ''}`}
-              style={{ '--status-color': opt.color }}
-              onClick={() => handleStatusChange(opt.value)}
-            >
-              <span className="status-popup-dot" style={{ background: opt.color }} />
-              {opt.label}
-              {statusPopup.task.status === opt.value && <span className="status-popup-check">✓</span>}
-            </button>
+          <option value="">All Projects</option>
+          {projects.map(p => (
+            <option key={p.id} value={String(p.id)}>{p.name}</option>
           ))}
-          <div className="status-popup-divider" />
-          <button className="status-popup-edit" onClick={handleOpenTaskEdit}>
-            Open &amp; Edit Task
+        </select>
+        {projectFilter && (
+          <button className="calendar-filter-clear" onClick={() => setProjectFilter('')}>
+            ✕ Clear
           </button>
-        </div>
-      )}
+        )}
+      </div>
+
+      <div className="calendar-container" onClick={() => setStatusPopup(null)}>
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek,listWeek'
+          }}
+          events={calendarEvents}
+          eventClick={handleEventClick}
+          dateClick={handleDateClick}
+          editable={true}
+          droppable={true}
+          eventDrop={handleEventDrop}
+          eventContent={renderEventContent}
+          height="auto"
+          nowIndicator={false}
+          weekends={true}
+          dayMaxEvents={3}
+          moreLinkClick="popover"
+        />
+
+        {/* Status quick-update popup */}
+        {statusPopup && (
+          <div
+            className="status-popup"
+            style={{ top: statusPopup.y, left: statusPopup.x }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="status-popup-title">{statusPopup.task.title}</div>
+            <div className="status-popup-section-label">Update Status</div>
+            {statusOptions.map(opt => (
+              <button
+                key={opt.value}
+                className={`status-popup-option ${statusPopup.task.status === opt.value ? 'active' : ''}`}
+                style={{ '--status-color': opt.color }}
+                onClick={() => handleStatusChange(opt.value)}
+              >
+                <span className="status-popup-dot" style={{ background: opt.color }} />
+                {opt.label}
+                {statusPopup.task.status === opt.value && <span className="status-popup-check">✓</span>}
+              </button>
+            ))}
+            <div className="status-popup-divider" />
+            <button className="status-popup-edit" onClick={handleOpenTaskEdit}>
+              Open &amp; Edit Task
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
