@@ -19,28 +19,31 @@ export function generateRecurringTasks(task, startDate, endDate) {
 
   const tasks = [];
   const pattern = task.recurrencePattern;
+  const maxOccurrences = pattern.endAfterOccurrences || 500; // Safety limit
+
+  // Fast-forward from task.dueDate to the first occurrence that is >= startDate,
+  // so we never miss visible instances when the base date is far in the past.
   let currentDate = new Date(task.dueDate);
   let occurrenceCount = 0;
-  const maxOccurrences = pattern.endAfterOccurrences || 100; // Safety limit
 
+  while (isBefore(currentDate, startDate) && occurrenceCount < maxOccurrences) {
+    if (pattern.endDate && isAfter(currentDate, new Date(pattern.endDate))) break;
+    currentDate = getNextOccurrence(currentDate, pattern);
+    occurrenceCount++;
+  }
+
+  // Now emit all instances within [startDate, endDate)
   while (isBefore(currentDate, endDate) && occurrenceCount < maxOccurrences) {
-    // Check if we've passed the end date for recurrence
-    if (pattern.endDate && isAfter(currentDate, new Date(pattern.endDate))) {
-      break;
-    }
+    if (pattern.endDate && isAfter(currentDate, new Date(pattern.endDate))) break;
 
-    // Only include if within the view range
-    if (!isBefore(currentDate, startDate)) {
-      tasks.push({
-        ...task,
-        dueDate: currentDate.toISOString(),
-        isRecurringInstance: true,
-        recurringSourceId: task.id,
-        instanceDate: currentDate.toISOString()
-      });
-    }
+    tasks.push({
+      ...task,
+      dueDate: currentDate.toISOString(),
+      isRecurringInstance: true,
+      recurringSourceId: task.id,
+      instanceDate: currentDate.toISOString()
+    });
 
-    // Calculate next occurrence
     currentDate = getNextOccurrence(currentDate, pattern);
     occurrenceCount++;
   }

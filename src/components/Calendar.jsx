@@ -11,15 +11,20 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [statusPopup, setStatusPopup] = useState(null); // { task, x, y }
   const [projectFilter, setProjectFilter] = useState(''); // '' = all projects
+  // Track the visible date range so events re-generate on month navigation
+  const [viewRange, setViewRange] = useState({ start: null, end: null });
+
+  // Called by FullCalendar whenever the view or dates change
+  const handleDatesSet = (dateInfo) => {
+    setViewRange({ start: dateInfo.start, end: dateInfo.end });
+  };
 
   useEffect(() => {
-    // Get the current view's date range
-    const calendarApi = calendarRef.current?.getApi();
-    if (!calendarApi) return;
+    // Wait until FullCalendar has reported its visible range via datesSet
+    if (!viewRange.start || !viewRange.end) return;
 
-    const view = calendarApi.view;
-    const startDate = view.activeStart;
-    const endDate = view.activeEnd;
+    const startDate = viewRange.start;
+    const endDate = viewRange.end;
 
     // Apply project chip filters from parent (multi-select) OR internal dropdown (single)
     let filteredTasks = tasks;
@@ -44,7 +49,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     });
 
     setCalendarEvents(events);
-  }, [tasks, projects, teamMembers, activeProjectFilters, projectFilter]);
+  }, [tasks, projects, teamMembers, activeProjectFilters, projectFilter, viewRange]);
 
   const taskToEvent = (task, projects, teamMembers) => {
     const project = projects.find(p => p.id === task.projectId);
@@ -110,7 +115,15 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   };
 
   const handleDateClick = (info) => {
-    onDateSelect(info.date);
+    // info.date is midnight UTC for the clicked day; use local date parts to
+    // avoid a timezone shift when converting to YYYY-MM-DD.
+    const d = info.date;
+    const localDateStr = [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      String(d.getDate()).padStart(2, '0'),
+    ].join('-');
+    onDateSelect(localDateStr);
   };
 
   const handleEventDrop = async (info) => {
@@ -247,6 +260,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
           events={calendarEvents}
           eventClick={handleEventClick}
           dateClick={handleDateClick}
+          datesSet={handleDatesSet}
           editable={true}
           droppable={true}
           eventDrop={handleEventDrop}
