@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import { generateRecurringTasks } from '../utils/recurrence';
 import './Calendar.css';
 
-export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, onTaskClick, onDateSelect, onEventDrop }) {
+export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, onTaskClick, onDateSelect, onEventDrop, onStatusUpdate }) {
   const calendarRef = useRef(null);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [statusPopup, setStatusPopup] = useState(null); // { task, x, y }
 
   useEffect(() => {
     // Get the current view's date range
@@ -29,6 +29,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     // Generate events including recurring instances
     const events = [];
     filteredTasks.forEach(task => {
+      if (!task.dueDate) return; // skip unscheduled tasks
       if (task.isRecurring) {
         const recurringInstances = generateRecurringTasks(task, startDate, endDate);
         recurringInstances.forEach(instance => {
@@ -84,7 +85,13 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   const handleEventClick = (info) => {
     info.jsEvent.preventDefault();
     const task = info.event.extendedProps.task;
-    onTaskClick(task);
+
+    // Show status popup near the click position
+    setStatusPopup({
+      task,
+      x: info.jsEvent.clientX,
+      y: info.jsEvent.clientY,
+    });
   };
 
   const handleDateClick = (info) => {
@@ -105,6 +112,20 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     }
   };
 
+  const handleStatusChange = (status) => {
+    if (statusPopup && onStatusUpdate) {
+      onStatusUpdate(statusPopup.task, status);
+    }
+    setStatusPopup(null);
+  };
+
+  const handleOpenTaskEdit = () => {
+    if (statusPopup) {
+      onTaskClick(statusPopup.task);
+    }
+    setStatusPopup(null);
+  };
+
   const renderEventContent = (eventInfo) => {
     const { assignee, priority, status } = eventInfo.event.extendedProps;
     
@@ -116,6 +137,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
           <span className="fc-event-priority-dot" style={{ background: priorityDot }} />
           <span className="fc-event-title">{eventInfo.event.title}</span>
           {status === 'completed' && <span className="fc-event-badge fc-event-badge--done">✓</span>}
+          {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}
         </div>
         {assignee && (
           <div className="fc-event-assignee">{assignee}</div>
@@ -124,16 +146,22 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     );
   };
 
+  const statusOptions = [
+    { value: 'todo', label: 'To Do', color: '#64748B' },
+    { value: 'in-progress', label: 'In Progress', color: '#3B82F6' },
+    { value: 'completed', label: 'Completed', color: '#16A34A' },
+  ];
+
   return (
-    <div className="calendar-container">
+    <div className="calendar-container" onClick={() => setStatusPopup(null)}>
       <FullCalendar
         ref={calendarRef}
-        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+          right: 'dayGridMonth,dayGridWeek,listWeek'
         }}
         events={calendarEvents}
         eventClick={handleEventClick}
@@ -143,11 +171,39 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
         eventDrop={handleEventDrop}
         eventContent={renderEventContent}
         height="auto"
-        nowIndicator={true}
+        nowIndicator={false}
         weekends={true}
         dayMaxEvents={3}
         moreLinkClick="popover"
       />
+
+      {/* Status quick-update popup */}
+      {statusPopup && (
+        <div
+          className="status-popup"
+          style={{ top: statusPopup.y, left: statusPopup.x }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="status-popup-title">{statusPopup.task.title}</div>
+          <div className="status-popup-section-label">Update Status</div>
+          {statusOptions.map(opt => (
+            <button
+              key={opt.value}
+              className={`status-popup-option ${statusPopup.task.status === opt.value ? 'active' : ''}`}
+              style={{ '--status-color': opt.color }}
+              onClick={() => handleStatusChange(opt.value)}
+            >
+              <span className="status-popup-dot" style={{ background: opt.color }} />
+              {opt.label}
+              {statusPopup.task.status === opt.value && <span className="status-popup-check">✓</span>}
+            </button>
+          ))}
+          <div className="status-popup-divider" />
+          <button className="status-popup-edit" onClick={handleOpenTaskEdit}>
+            Open &amp; Edit Task
+          </button>
+        </div>
+      )}
     </div>
   );
 }
