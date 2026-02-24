@@ -6,9 +6,20 @@ import TeamManagement from './components/TeamManagement';
 import OutstandingTasks from './components/OutstandingTasks';
 import { taskService, teamMemberService, projectService } from './db';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
-import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle } from 'react-icons/fa';
+import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle, FaDownload } from 'react-icons/fa';
 
 import './App.css';
+
+// Sort tasks: ascending by dueDate (nulls last), then high > medium > low priority
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+function sortTasks(tasks) {
+  return [...tasks].sort((a, b) => {
+    const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+    const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+    if (aDate !== bDate) return aDate - bDate;
+    return (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
+  });
+}
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -46,7 +57,7 @@ function App() {
         teamMemberService.getAll()
       ]);
 
-      setTasks(tasksData);
+      setTasks(sortTasks(tasksData));
       setProjects(projectsData);
       setTeamMembers(membersData);
 
@@ -203,6 +214,37 @@ function App() {
     await loadData();
   };
 
+  // ── Backup: export all DB data as a JSON download ──
+  const handleBackup = async () => {
+    try {
+      const [allTasks, allProjects, allMembers] = await Promise.all([
+        taskService.getAll(),
+        projectService.getAll(),
+        teamMemberService.getAll(),
+      ]);
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 2,
+        tasks: allTasks,
+        projects: allProjects,
+        teamMembers: allMembers,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `projectflow-backup-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Backup failed:', err);
+      alert('Backup failed. See console for details.');
+    }
+  };
+
   const outstandingCount = tasks.filter(t => !t.dueDate).length;
 
   return (
@@ -236,6 +278,9 @@ function App() {
           </button>
           <button className="btn-icon" onClick={requestNotificationPermission} title="Enable Notifications">
             <FaBell />
+          </button>
+          <button className="btn-icon" onClick={handleBackup} title="Backup data to JSON (save to repo/backups/)">
+            <FaDownload />
           </button>
         </nav>
       </header>
@@ -375,6 +420,7 @@ function App() {
               teamMembers={teamMembers}
               onTaskClick={handleTaskClick}
               onAssignDate={handleAssignDate}
+              onDeleteTask={handleDeleteTask}
             />
           </>
         )}

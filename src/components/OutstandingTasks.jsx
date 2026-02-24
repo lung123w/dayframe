@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { FaCalendarPlus, FaEdit, FaExclamationCircle, FaFilter, FaTimes } from 'react-icons/fa';
+import { FaCalendarPlus, FaEdit, FaExclamationCircle, FaFilter, FaTimes, FaTrash } from 'react-icons/fa';
 import './OutstandingTasks.css';
 
-export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskClick, onAssignDate }) {
+export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskClick, onAssignDate, onDeleteTask }) {
   const [filterProject, setFilterProject] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
   const [assigningTaskId, setAssigningTaskId] = useState(null);
@@ -181,6 +181,14 @@ export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskC
                       >
                         <FaEdit /> Edit
                       </button>
+                      {onDeleteTask && (
+                        <button
+                          className="outstanding-btn outstanding-btn-delete"
+                          onClick={() => onDeleteTask(task.id)}
+                        >
+                          <FaTrash /> Delete
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
