@@ -184,3 +184,101 @@
   font-weight: 700 !important;
   color: #1E40AF !important;
 }
+
+/* ── Status Quick-Update Popup ── */
+.status-popup {
+  position: fixed;
+  z-index: 9999;
+  background: white;
+  border: 2px solid #BFDBFE;
+  border-radius: 8px;
+  min-width: 200px;
+  padding: 10px 0 6px;
+  transform: translate(-10px, 8px);
+}
+
+.status-popup-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  padding: 2px 16px 8px;
+  border-bottom: 1px solid #F1F5F9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.status-popup-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 8px 16px 4px;
+}
+
+.status-popup-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1E293B;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.status-popup-option:hover {
+  background: #F8FAFC;
+}
+
+.status-popup-option.active {
+  background: #EFF6FF;
+  color: var(--status-color);
+}
+
+.status-popup-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-popup-check {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--status-color);
+  font-weight: 700;
+}
+
+.status-popup-divider {
+  height: 1px;
+  background: #F1F5F9;
+  margin: 6px 0;
+}
+
+.status-popup-edit {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #2563EB;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.status-popup-edit:hover {
+  background: #EFF6FF;
+}

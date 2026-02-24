@@ -3,9 +3,10 @@ import Calendar from './components/Calendar';
 import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
 import TeamManagement from './components/TeamManagement';
+import OutstandingTasks from './components/OutstandingTasks';
 import { taskService, teamMemberService, projectService } from './db';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
-import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit } from 'react-icons/fa';
+import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle } from 'react-icons/fa';
 
 import './App.css';
 
@@ -120,6 +121,26 @@ function App() {
     }
   };
 
+  // Update task status directly from calendar view
+  const handleStatusUpdate = async (task, newStatus) => {
+    try {
+      await taskService.update(task.id, { status: newStatus });
+      await loadData();
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    }
+  };
+
+  // Assign a due date to an outstanding (unscheduled) task
+  const handleAssignDate = async (task, date) => {
+    try {
+      await taskService.update(task.id, { dueDate: date.toISOString() });
+      await loadData();
+    } catch (err) {
+      console.error('Failed to assign date:', err);
+    }
+  };
+
   // ── Project handlers ──
   const handleOpenProjectModal = (project = null) => {
     setEditingProject(project);
@@ -182,6 +203,8 @@ function App() {
     await loadData();
   };
 
+  const outstandingCount = tasks.filter(t => !t.dueDate).length;
+
   return (
     <div className="app">
       <header className="app-header">
@@ -195,6 +218,15 @@ function App() {
             onClick={() => setActiveView('calendar')}
           >
             <FaCalendar /> Calendar
+          </button>
+          <button
+            className={`nav-btn ${activeView === 'outstanding' ? 'active' : ''}`}
+            onClick={() => setActiveView('outstanding')}
+          >
+            <FaExclamationCircle /> Outstanding
+            {outstandingCount > 0 && (
+              <span className="nav-badge">{outstandingCount}</span>
+            )}
           </button>
           <button
             className={`nav-btn ${activeView === 'team' ? 'active' : ''}`}
@@ -237,6 +269,12 @@ function App() {
                     <span className="stat-label">Active</span>
                     <span className="stat-value" style={{ color: '#6366F1' }}>
                       {tasks.filter((t) => t.status === 'in-progress').length}
+                    </span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">O/S</span>
+                    <span className="stat-value" style={{ color: '#F97316' }}>
+                      {outstandingCount}
                     </span>
                   </div>
                 </div>
@@ -300,6 +338,42 @@ function App() {
               onTaskClick={handleTaskClick}
               onDateSelect={handleDateSelect}
               onEventDrop={handleEventDrop}
+              onStatusUpdate={handleStatusUpdate}
+            />
+          </>
+        )}
+
+        {activeView === 'outstanding' && (
+          <>
+            {/* ── Toolbar ── */}
+            <div className="toolbar">
+              <div className="toolbar-left">
+                <button className="btn btn-primary" onClick={handleNewTask}>
+                  <FaPlus /> New Task
+                </button>
+              </div>
+              <div className="toolbar-right">
+                <div className="task-stats">
+                  <div className="stat-card">
+                    <span className="stat-label">Total</span>
+                    <span className="stat-value">{tasks.length}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">O/S</span>
+                    <span className="stat-value" style={{ color: '#F97316' }}>
+                      {outstandingCount}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <OutstandingTasks
+              tasks={tasks}
+              projects={projects}
+              teamMembers={teamMembers}
+              onTaskClick={handleTaskClick}
+              onAssignDate={handleAssignDate}
             />
           </>
         )}
