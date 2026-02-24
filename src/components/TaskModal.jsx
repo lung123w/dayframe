@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FaTimes, FaTrash, FaUserPlus, FaCheck } from 'react-icons/fa';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FaTimes, FaTrash, FaUserPlus, FaCheck, FaSearchPlus } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
 import './TaskModal.css';
 
@@ -25,6 +25,20 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
 
   const [showRecurrenceOptions, setShowRecurrenceOptions] = useState(false);
   const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
+
+  // Close lightbox on Escape key
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') setLightboxSrc(null);
+  }, []);
+  useEffect(() => {
+    if (lightboxSrc) {
+      document.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxSrc, handleKeyDown]);
 
   // Find Anderson's id (case-insensitive match on name containing "anderson")
   const andersonMember = teamMembers.find(m =>
@@ -56,10 +70,18 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       // New task: default assignee = Anderson (if found in team)
       const defaultAssignedTo = andersonMember ? [andersonMember.id] : [];
       if (selectedDate) {
+        // selectedDate is already a local YYYY-MM-DD string from Calendar's dateClick
+        const dueDateStr = typeof selectedDate === 'string'
+          ? selectedDate
+          : [
+              selectedDate.getFullYear(),
+              String(selectedDate.getMonth() + 1).padStart(2, '0'),
+              String(selectedDate.getDate()).padStart(2, '0'),
+            ].join('-');
         setFormData(prev => ({
           ...prev,
           assignedTo: defaultAssignedTo,
-          dueDate: new Date(selectedDate).toISOString().split('T')[0]
+          dueDate: dueDateStr,
         }));
       } else {
         setFormData(prev => ({ ...prev, assignedTo: defaultAssignedTo }));
@@ -182,6 +204,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     : [{ group: null, members: teamMembers }];
 
   return (
+    <>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -220,13 +243,27 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
               <div className="image-preview-container">
                 {formData.descriptionImages.map((img, index) => (
                   <div key={index} className="image-preview">
-                    <img src={img} alt={`Preview ${index + 1}`} />
+                    <img
+                      src={img}
+                      alt={`Preview ${index + 1}`}
+                      className="image-preview-thumb"
+                      onClick={() => setLightboxSrc(img)}
+                      title="Click to enlarge"
+                    />
                     <button
                       type="button"
                       className="remove-image-btn"
                       onClick={() => removeImage(index)}
                     >
                       <FaTrash />
+                    </button>
+                    <button
+                      type="button"
+                      className="enlarge-image-btn"
+                      onClick={() => setLightboxSrc(img)}
+                      title="Enlarge image"
+                    >
+                      <FaSearchPlus />
                     </button>
                   </div>
                 ))}
@@ -494,5 +531,31 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
         </form>
       </div>
     </div>
+
+      {/* ── Lightbox ── */}
+      {lightboxSrc && (
+        <div
+          className="lightbox-overlay"
+          onClick={() => setLightboxSrc(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Enlarged image"
+        >
+          <button
+            className="lightbox-close"
+            onClick={() => setLightboxSrc(null)}
+            title="Close (Esc)"
+          >
+            <FaTimes />
+          </button>
+          <img
+            src={lightboxSrc}
+            alt="Enlarged preview"
+            className="lightbox-img"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </>
   );
 }
