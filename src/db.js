@@ -2,10 +2,28 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('ProjectManagementDB');
 
+// Version 1 — original schema (kept so Dexie can open existing databases)
 db.version(1).stores({
   tasks: '++id, title, description, dueDate, priority, status, projectId, assignedTo, createdAt, updatedAt, isRecurring, recurrencePattern',
   teamMembers: '++id, name, email, role, createdAt',
   projects: '++id, name, color, createdAt'
+});
+
+// Version 2 — assignedTo changed from single int to array of ints
+db.version(2).stores({
+  tasks: '++id, title, description, dueDate, priority, status, projectId, assignedTo, createdAt, updatedAt, isRecurring, recurrencePattern',
+  teamMembers: '++id, name, email, role, createdAt',
+  projects: '++id, name, color, createdAt'
+}).upgrade(async tx => {
+  // Migrate each task: wrap scalar assignedTo into an array, leave nulls as []
+  const tasks = await tx.table('tasks').toArray();
+  for (const task of tasks) {
+    let assignedTo = task.assignedTo;
+    if (!Array.isArray(assignedTo)) {
+      assignedTo = assignedTo != null ? [assignedTo] : [];
+    }
+    await tx.table('tasks').update(task.id, { assignedTo });
+  }
 });
 
 // Task model
@@ -19,7 +37,9 @@ export class Task {
     this.priority = data.priority || 'medium'; // low, medium, high
     this.status = data.status || 'todo'; // todo, in-progress, completed
     this.projectId = data.projectId || null;
-    this.assignedTo = data.assignedTo || null; // team member id
+    this.assignedTo = Array.isArray(data.assignedTo)
+      ? data.assignedTo
+      : (data.assignedTo != null ? [data.assignedTo] : []); // array of team member ids
     this.createdAt = data.createdAt || new Date().toISOString();
     this.updatedAt = data.updatedAt || new Date().toISOString();
     this.isRecurring = data.isRecurring || false;

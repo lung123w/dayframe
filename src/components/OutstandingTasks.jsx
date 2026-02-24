@@ -18,7 +18,15 @@ export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskC
   });
 
   const getProject = (projectId) => projects.find(p => p.id === projectId);
-  const getAssignee = (assignedTo) => teamMembers.find(m => m.id === assignedTo);
+  const getAssigneeNames = (assignedTo) => {
+    const ids = Array.isArray(assignedTo)
+      ? assignedTo
+      : (assignedTo != null ? [assignedTo] : []);
+    return ids
+      .map(id => teamMembers.find(m => m.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
+  };
 
   const priorityColor = { high: '#DC2626', medium: '#F59E0B', low: '#10B981' };
   const statusLabel = { todo: 'To Do', 'in-progress': 'In Progress', completed: 'Completed' };
@@ -92,7 +100,7 @@ export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskC
         <div className="outstanding-list">
           {filteredTasks.map(task => {
             const project = getProject(task.projectId);
-            const assignee = getAssignee(task.assignedTo);
+            const assigneeNames = getAssigneeNames(task.assignedTo);
             const isAssigning = assigningTaskId === task.id;
 
             return (
@@ -128,9 +136,9 @@ export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskC
                         {project.name}
                       </span>
                     )}
-                    {assignee && (
+                    {assigneeNames && (
                       <span className="outstanding-meta-chip outstanding-meta-assignee">
-                        {assignee.name}
+                        {assigneeNames}
                       </span>
                     )}
                     {task.description && (

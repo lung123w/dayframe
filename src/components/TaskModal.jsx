@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaImage, FaTrash } from 'react-icons/fa';
+import { FaTimes, FaTrash, FaUserPlus, FaCheck } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
 import './TaskModal.css';
 
@@ -12,7 +12,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     priority: 'medium',
     status: 'todo',
     projectId: null,
-    assignedTo: null,
+    assignedTo: [], // array of team member ids
     isRecurring: false,
     recurrencePattern: {
       type: 'daily',
@@ -24,11 +24,23 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
   });
 
   const [showRecurrenceOptions, setShowRecurrenceOptions] = useState(false);
+  const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
+
+  // Find Anderson's id (case-insensitive match on name containing "anderson")
+  const andersonMember = teamMembers.find(m =>
+    m.name.toLowerCase().includes('anderson')
+  );
 
   useEffect(() => {
     if (task) {
+      // Normalise assignedTo to array
+      const assignedTo = Array.isArray(task.assignedTo)
+        ? task.assignedTo
+        : (task.assignedTo != null ? [task.assignedTo] : []);
+
       setFormData({
         ...task,
+        assignedTo,
         descriptionImages: task.descriptionImages || [],
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
         recurrencePattern: task.recurrencePattern || {
@@ -40,13 +52,20 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
         }
       });
       setShowRecurrenceOptions(task.isRecurring);
-    } else if (selectedDate) {
-      setFormData(prev => ({
-        ...prev,
-        dueDate: new Date(selectedDate).toISOString().split('T')[0]
-      }));
+    } else {
+      // New task: default assignee = Anderson (if found in team)
+      const defaultAssignedTo = andersonMember ? [andersonMember.id] : [];
+      if (selectedDate) {
+        setFormData(prev => ({
+          ...prev,
+          assignedTo: defaultAssignedTo,
+          dueDate: new Date(selectedDate).toISOString().split('T')[0]
+        }));
+      } else {
+        setFormData(prev => ({ ...prev, assignedTo: defaultAssignedTo }));
+      }
     }
-  }, [task, selectedDate]);
+  }, [task, selectedDate, teamMembers]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -54,7 +73,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-
     if (name === 'isRecurring') {
       setShowRecurrenceOptions(checked);
     }
@@ -62,14 +80,13 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
 
   const handleRecurrenceChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
     if (name === 'daysOfWeek') {
       const day = parseInt(value);
       setFormData(prev => ({
         ...prev,
         recurrencePattern: {
           ...prev.recurrencePattern,
-          daysOfWeek: checked 
+          daysOfWeek: checked
             ? [...prev.recurrencePattern.daysOfWeek, day]
             : prev.recurrencePattern.daysOfWeek.filter(d => d !== day)
         }
@@ -85,21 +102,38 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     }
   };
 
+  // Toggle a member in/out of assignedTo array
+  const toggleAssignee = (memberId) => {
+    setFormData(prev => {
+      const already = prev.assignedTo.includes(memberId);
+      return {
+        ...prev,
+        assignedTo: already
+          ? prev.assignedTo.filter(id => id !== memberId)
+          : [...prev.assignedTo, memberId]
+      };
+    });
+  };
+
+  const removeAssignee = (memberId) => {
+    setFormData(prev => ({
+      ...prev,
+      assignedTo: prev.assignedTo.filter(id => id !== memberId)
+    }));
+  };
+
   const handleImagePaste = (e) => {
     const items = e.clipboardData.items;
-    
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {
         const blob = items[i].getAsFile();
         const reader = new FileReader();
-        
         reader.onload = (event) => {
           setFormData(prev => ({
             ...prev,
             descriptionImages: [...prev.descriptionImages, event.target.result]
           }));
         };
-        
         reader.readAsDataURL(blob);
       }
     }
@@ -114,25 +148,38 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     const taskData = {
       ...formData,
       dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
       projectId: formData.projectId ? parseInt(formData.projectId) : null,
-      assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : null,
+      assignedTo: formData.assignedTo.map(id => parseInt(id)),
       recurrencePattern: formData.isRecurring ? {
         ...formData.recurrencePattern,
         interval: parseInt(formData.recurrencePattern.interval) || 1,
-        endAfterOccurrences: formData.recurrencePattern.endAfterOccurrences 
-          ? parseInt(formData.recurrencePattern.endAfterOccurrences) 
+        endAfterOccurrences: formData.recurrencePattern.endAfterOccurrences
+          ? parseInt(formData.recurrencePattern.endAfterOccurrences)
           : null
       } : null
     };
-
     onSave(taskData);
   };
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  // Build the ordered member list: project-relevant first, then others
+  const selectedProjectId = formData.projectId ? parseInt(formData.projectId) : null;
+  const projectTasks = (tasks || []).filter(t =>
+    t.projectId === selectedProjectId && t.id !== task?.id
+  );
+  const relevantMemberIds = new Set([
+    ...projectTasks.flatMap(t => Array.isArray(t.assignedTo) ? t.assignedTo : (t.assignedTo ? [t.assignedTo] : [])),
+    ...formData.assignedTo
+  ]);
+  const relevantMembers = teamMembers.filter(m => relevantMemberIds.has(m.id));
+  const otherMembers = teamMembers.filter(m => !relevantMemberIds.has(m.id));
+  const orderedMembers = relevantMembers.length > 0
+    ? [{ group: 'Project Members', members: relevantMembers }, { group: 'Other Members', members: otherMembers }]
+    : [{ group: null, members: teamMembers }];
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -169,7 +216,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
               rows="4"
               placeholder="Task description..."
             />
-            
             {formData.descriptionImages.length > 0 && (
               <div className="image-preview-container">
                 {formData.descriptionImages.map((img, index) => (
@@ -248,56 +294,89 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
             </div>
           </div>
 
+          {/* ── Multi-select Assigned To ── */}
           <div className="form-group">
-            <label htmlFor="assignedTo">Assigned To</label>
-            <select
-              id="assignedTo"
-              name="assignedTo"
-              value={formData.assignedTo || ''}
-              onChange={handleChange}
-            >
-              <option value="">Unassigned</option>
-              {(() => {
-                // Show members who are already assigned to tasks in the same project (relevant members),
-                // plus the currently assigned member, plus an "Other members" divider for the rest.
-                const selectedProjectId = formData.projectId ? parseInt(formData.projectId) : null;
-                const projectTasks = (tasks || []).filter(t =>
-                  t.projectId === selectedProjectId && t.id !== (task?.id)
-                );
-                const relevantMemberIds = new Set(
-                  projectTasks.map(t => t.assignedTo).filter(Boolean)
-                );
-                // Always include current assignee
-                if (formData.assignedTo) relevantMemberIds.add(parseInt(formData.assignedTo));
+            <label>Assigned To</label>
 
-                const relevant = teamMembers.filter(m => relevantMemberIds.has(m.id));
-                const others = teamMembers.filter(m => !relevantMemberIds.has(m.id));
-
-                if (relevant.length === 0) {
-                  // No relevant members — show all members flat
-                  return teamMembers.map(member => (
-                    <option key={member.id} value={member.id}>{member.name}</option>
-                  ));
-                }
-
+            {/* Selected assignee chips */}
+            <div className="assignee-chips">
+              {formData.assignedTo.length === 0 && (
+                <span className="assignee-placeholder">No one assigned</span>
+              )}
+              {formData.assignedTo.map(id => {
+                const member = teamMembers.find(m => m.id === id || m.id === parseInt(id));
+                if (!member) return null;
                 return (
-                  <>
-                    <optgroup label="Project Members">
-                      {relevant.map(member => (
-                        <option key={member.id} value={member.id}>{member.name}</option>
-                      ))}
-                    </optgroup>
-                    {others.length > 0 && (
-                      <optgroup label="Other Members">
-                        {others.map(member => (
-                          <option key={member.id} value={member.id}>{member.name}</option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </>
+                  <span key={id} className="assignee-chip">
+                    <span className="assignee-chip-avatar">
+                      {member.name.charAt(0).toUpperCase()}
+                    </span>
+                    {member.name}
+                    <button
+                      type="button"
+                      className="assignee-chip-remove"
+                      onClick={() => removeAssignee(id)}
+                      title={`Remove ${member.name}`}
+                    >
+                      <FaTimes />
+                    </button>
+                  </span>
                 );
-              })()}
-            </select>
+              })}
+              <button
+                type="button"
+                className="assignee-add-btn"
+                onClick={() => setAssigneeDropdownOpen(prev => !prev)}
+                title="Add assignee"
+              >
+                <FaUserPlus /> {formData.assignedTo.length === 0 ? 'Assign' : 'Add'}
+              </button>
+            </div>
+
+            {/* Dropdown list */}
+            {assigneeDropdownOpen && (
+              <div className="assignee-dropdown">
+                {teamMembers.length === 0 && (
+                  <div className="assignee-dropdown-empty">No team members yet.</div>
+                )}
+                {orderedMembers.map(({ group, members }) => (
+                  members.length === 0 ? null : (
+                    <React.Fragment key={group || 'all'}>
+                      {group && <div className="assignee-dropdown-group">{group}</div>}
+                      {members.map(member => {
+                        const selected = formData.assignedTo.includes(member.id);
+                        return (
+                          <button
+                            key={member.id}
+                            type="button"
+                            className={`assignee-dropdown-item${selected ? ' selected' : ''}`}
+                            onClick={() => toggleAssignee(member.id)}
+                          >
+                            <span className="assignee-chip-avatar assignee-chip-avatar--sm">
+                              {member.name.charAt(0).toUpperCase()}
+                            </span>
+                            <span className="assignee-dropdown-name">
+                              {member.name}
+                              {member.role && <span className="assignee-dropdown-role">{member.role}</span>}
+                            </span>
+                            {selected && <FaCheck className="assignee-dropdown-check" />}
+                          </button>
+                        );
+                      })}
+                    </React.Fragment>
+                  )
+                ))}
+                <div className="assignee-dropdown-footer">
+                  <button
+                    type="button"
+                    className="assignee-dropdown-done"
+                    onClick={() => setAssigneeDropdownOpen(false)}
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="form-group">
@@ -315,7 +394,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
           {showRecurrenceOptions && (
             <div className="recurrence-options">
               <h3>Recurrence Pattern</h3>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="recurrenceType">Repeat</label>
