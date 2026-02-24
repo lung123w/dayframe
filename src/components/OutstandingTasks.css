@@ -280,6 +280,18 @@
   border-color: #CBD5E1;
 }
 
+.outstanding-btn-delete {
+  background: white;
+  color: #DC2626;
+  border-color: #FCA5A5;
+}
+
+.outstanding-btn-delete:hover {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border-color: #F87171;
+}
+
 /* ── Inline Date Assignment ── */
 .outstanding-assign-row {
   display: flex;
