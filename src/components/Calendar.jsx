@@ -6,8 +6,9 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { generateRecurringTasks } from '../utils/recurrence';
 import './Calendar.css';
 
-export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, selectedDayDate, onTaskClick, onDateSelect, onEventDrop, onStatusUpdate, onDeleteTask }) {
+export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, selectedDayDate, onTaskClick, onDateSelect, onNewTask, onEventDrop, onStatusUpdate, onDeleteTask }) {
   const calendarRef = useRef(null);
+  const lastClickRef = useRef({ dateStr: null, time: 0 });
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [statusPopup, setStatusPopup] = useState(null); // { task, x, y }
   const [projectFilter, setProjectFilter] = useState(''); // '' = all projects
@@ -123,7 +124,19 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
       String(d.getMonth() + 1).padStart(2, '0'),
       String(d.getDate()).padStart(2, '0'),
     ].join('-');
-    onDateSelect(localDateStr);
+
+    const now = Date.now();
+    const last = lastClickRef.current;
+    const DBL_CLICK_MS = 350;
+
+    if (last.dateStr === localDateStr && now - last.time < DBL_CLICK_MS) {
+      // Double-click on same cell — open new task modal for that date
+      lastClickRef.current = { dateStr: null, time: 0 };
+      if (onNewTask) onNewTask(localDateStr);
+    } else {
+      lastClickRef.current = { dateStr: localDateStr, time: now };
+      onDateSelect(localDateStr);
+    }
   };
 
   const handleEventDrop = async (info) => {
