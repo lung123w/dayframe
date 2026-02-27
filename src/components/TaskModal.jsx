@@ -56,7 +56,14 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
         ...task,
         assignedTo,
         descriptionImages: task.descriptionImages || [],
-        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+        dueDate: task.dueDate ? (() => {
+          const d = new Date(task.dueDate);
+          return [
+            d.getFullYear(),
+            String(d.getMonth() + 1).padStart(2, '0'),
+            String(d.getDate()).padStart(2, '0'),
+          ].join('-');
+        })() : '',
         recurrencePattern: task.recurrencePattern || {
           type: 'daily',
           interval: 1,

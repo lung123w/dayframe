@@ -254,6 +254,15 @@
   outline-offset: -2px;
 }
 
+/* Double-click hint on day cell hover */
+.fc-daygrid-day:hover .fc-daygrid-day-number::after {
+  content: ' +';
+  color: #F97316;
+  font-weight: 700;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
 .fc-col-header-cell-cushion {
   font-weight: 600;
   color: #64748B;

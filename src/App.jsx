@@ -404,6 +404,7 @@ function App() {
                   selectedDayDate={selectedDayDate}
                   onTaskClick={handleTaskClick}
                   onDateSelect={handleDateSelect}
+                  onNewTask={handleNewTaskForDay}
                   onEventDrop={handleEventDrop}
                   onStatusUpdate={handleStatusUpdate}
                   onDeleteTask={handleDeleteTask}
