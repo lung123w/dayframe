@@ -69,21 +69,14 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     let textColor = 'white';
 
     if (task.status === 'completed') {
-      // Grey for completed tasks
+      // Grey for completed tasks regardless of project
       backgroundColor = '#94A3B8';
       borderColor = '#94A3B8';
-    } else if (task.status === 'in-progress') {
-      backgroundColor = '#3B82F6';
-      borderColor = '#3B82F6';
-    } else if (task.priority === 'high') {
-      backgroundColor = '#DC2626';
-      borderColor = '#DC2626';
-    } else if (project) {
-      backgroundColor = project.color;
-      borderColor = project.color;
     } else {
-      backgroundColor = '#2563EB';
-      borderColor = '#2563EB';
+      // Always colour by project; fall back to slate if no project assigned
+      const projectColor = project?.color || '#64748B';
+      backgroundColor = projectColor;
+      borderColor = projectColor;
     }
 
     return {
