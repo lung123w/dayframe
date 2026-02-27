@@ -187,16 +187,19 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   const renderEventContent = (eventInfo) => {
     const { assignee, priority, status, projectName } = eventInfo.event.extendedProps;
     const isListView = eventInfo.view.type === 'listWeek';
-
-    const priorityDot = priority === 'high' ? '#EF4444' : priority === 'medium' ? '#F59E0B' : '#10B981';
     const isCompleted = status === 'completed';
 
+    // Priority badge: H / M / L text label
+    const priorityLabel = priority === 'high' ? 'H' : priority === 'medium' ? 'M' : 'L';
+    const priorityClass = `fc-priority-badge fc-priority-badge--${priority || 'low'}`;
+    // Don't show priority badge for completed tasks (de-emphasised)
+    const showPriority = !isCompleted;
+
     if (isListView) {
-      // List view: show project name as a chip next to the title
       return (
         <div className={`fc-event-content-wrapper fc-list-event-wrapper${isCompleted ? ' fc-event--completed' : ''}`}>
           <div className="fc-event-title-row">
-            <span className="fc-event-priority-dot" style={{ background: isCompleted ? '#CBD5E1' : priorityDot }} />
+            {showPriority && <span className={priorityClass}>{priorityLabel}</span>}
             <span className="fc-event-title">{eventInfo.event.title}</span>
             {isCompleted && <span className="fc-event-badge fc-event-badge--done">✓</span>}
             {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}
@@ -206,13 +209,13 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
               <span
                 className="fc-list-project-chip"
                 style={{
-                  borderColor: (eventInfo.event.extendedProps.projectColor || '#2563EB') + '60',
-                  color: isCompleted ? '#94A3B8' : (eventInfo.event.extendedProps.projectColor || '#2563EB'),
+                  borderColor: (eventInfo.event.extendedProps.projectColor || '#94A3B8') + '60',
+                  color: isCompleted ? '#94A3B8' : (eventInfo.event.extendedProps.projectColor || '#64748B'),
                 }}
               >
                 <span
                   className="fc-list-project-dot"
-                  style={{ background: isCompleted ? '#CBD5E1' : (eventInfo.event.extendedProps.projectColor || '#2563EB') }}
+                  style={{ background: isCompleted ? '#CBD5E1' : (eventInfo.event.extendedProps.projectColor || '#94A3B8') }}
                 />
                 {projectName}
               </span>
@@ -229,7 +232,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     return (
       <div className={`fc-event-content-wrapper${isCompleted ? ' fc-event--completed' : ''}`}>
         <div className="fc-event-title-row">
-          <span className="fc-event-priority-dot" style={{ background: isCompleted ? 'rgba(255,255,255,0.5)' : priorityDot }} />
+          {showPriority && <span className={priorityClass}>{priorityLabel}</span>}
           <span className="fc-event-title">{eventInfo.event.title}</span>
           {isCompleted && <span className="fc-event-badge fc-event-badge--done">✓</span>}
           {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}

@@ -11,6 +11,468 @@
   gap: 10px;
   padding: 10px 18px;
   background: white;
+  border: 1.5px solid #E2E8F0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  flex-wrap: wrap;
+}
+
+.calendar-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+
+.calendar-filter-select {
+  padding: 6px 30px 6px 10px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #475569;
+  background: white;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  outline: none;
+  min-width: 160px;
+}
+
+.calendar-filter-select:focus {
+  border-color: #94A3B8;
+}
+
+.calendar-filter-clear {
+  background: white;
+  color: #64748B;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.calendar-filter-clear:hover {
+  background: #F1F5F9;
+  color: #1E293B;
+  border-color: #94A3B8;
+}
+
+.calendar-container {
+  background: white;
+  border-radius: 0 0 8px 8px;
+  border: 1.5px solid #E2E8F0;
+  border-top: none;
+  overflow: hidden;
+}
+
+/* ── FullCalendar Core ── */
+.fc {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding: 20px;
+}
+
+.fc-event {
+  cursor: pointer;
+  border-radius: 4px !important;
+  padding: 2px 6px;
+  border: none !important;
+  transition: opacity 0.15s ease;
+}
+
+.fc-event:hover {
+  opacity: 0.88;
+}
+
+.fc-event-content-wrapper {
+  padding: 1px 0;
+}
+
+/* Completed task: muted text */
+.fc-event--completed .fc-event-title {
+  opacity: 0.75;
+  text-decoration: line-through;
+}
+
+/* ── List view extras ── */
+.fc-list-event-wrapper {
+  width: 100%;
+}
+
+.fc-list-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.fc-list-project-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1.5px solid;
+  white-space: nowrap;
+}
+
+.fc-list-project-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fc-event-assignee-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1.5px solid #E2E8F0;
+  color: #64748B;
+  background: #F8FAFC;
+  white-space: nowrap;
+}
+
+.fc-event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+}
+
+/* Priority badge — H / M / L text label */
+.fc-priority-badge {
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+
+.fc-priority-badge--high {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.fc-priority-badge--medium {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.fc-priority-badge--low {
+  background: #F1F5F9;
+  color: #94A3B8;
+}
+
+.fc-event-title {
+  font-weight: 600;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.fc-event-badge {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.fc-event-assignee {
+  font-size: 10px;
+  opacity: 0.85;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fc-daygrid-event {
+  white-space: normal !important;
+}
+
+.fc-h-event .fc-event-main {
+  color: white;
+}
+
+/* ── Toolbar & Navigation ── */
+.fc-toolbar-title {
+  font-size: 1.35em !important;
+  font-weight: 700 !important;
+  color: #1E293B !important;
+  letter-spacing: -0.4px;
+}
+
+.fc-button {
+  background: #334155 !important;
+  border-color: #334155 !important;
+  border-radius: 6px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  padding: 6px 14px !important;
+  box-shadow: none !important;
+  text-transform: capitalize;
+  transition: background 0.15s ease !important;
+}
+
+.fc-button:hover {
+  background: #1E293B !important;
+  border-color: #1E293B !important;
+}
+
+.fc-button-active {
+  background: #1E293B !important;
+  border-color: #1E293B !important;
+}
+
+.fc-today-button {
+  background: #F97316 !important;
+  border-color: #F97316 !important;
+}
+
+.fc-today-button:hover {
+  background: #EA580C !important;
+  border-color: #EA580C !important;
+}
+
+.fc-today-button:disabled {
+  opacity: 0.5;
+}
+
+/* ── Day cells ── */
+.fc-day-today {
+  background: #FFF7ED !important;
+}
+
+/* Selected day (Day Panel) highlight */
+.fc-day--selected {
+  background: #F1F5F9 !important;
+  outline: 2px solid #475569;
+  outline-offset: -2px;
+}
+
+/* Today + selected */
+.fc-day-today.fc-day--selected {
+  background: #FFF7ED !important;
+  outline: 2px solid #F97316;
+  outline-offset: -2px;
+}
+
+/* Double-click hint on day cell hover */
+.fc-daygrid-day:hover .fc-daygrid-day-number::after {
+  content: ' +';
+  color: #F97316;
+  font-weight: 700;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.fc-col-header-cell-cushion {
+  font-weight: 600;
+  color: #64748B;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none !important;
+}
+
+.fc-daygrid-day-number {
+  color: #64748B;
+  font-weight: 500;
+  font-size: 13px;
+  text-decoration: none !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  background: #F97316;
+  color: white;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ── List View ── */
+.fc-list-event:hover td {
+  background: #F8FAFC;
+}
+
+.fc-list-event-title a {
+  color: #1E293B;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.fc-list-day-cushion {
+  background: #F1F5F9 !important;
+  font-weight: 700;
+  font-size: 13px;
+  color: #475569;
+}
+
+/* ── More events popover ── */
+.fc-more-popover {
+  border-radius: 6px !important;
+  border: 1.5px solid #E2E8F0 !important;
+  box-shadow: none !important;
+}
+
+.fc-popover-header {
+  background: #F8FAFC !important;
+  border-radius: 6px 6px 0 0 !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
+}
+
+/* ── Status Quick-Update Popup ── */
+.status-popup {
+  position: fixed;
+  z-index: 9999;
+  background: white;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  min-width: 200px;
+  padding: 10px 0 6px;
+  transform: translate(-10px, 8px);
+}
+
+.status-popup-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  padding: 2px 16px 8px;
+  border-bottom: 1px solid #F1F5F9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.status-popup-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 8px 16px 4px;
+}
+
+.status-popup-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1E293B;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.status-popup-option:hover {
+  background: #F8FAFC;
+}
+
+.status-popup-option.active {
+  background: #F8FAFC;
+  color: var(--status-color);
+}
+
+.status-popup-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-popup-check {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--status-color);
+  font-weight: 700;
+}
+
+.status-popup-divider {
+  height: 1px;
+  background: #F1F5F9;
+  margin: 6px 0;
+}
+
+.status-popup-edit {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.status-popup-edit:hover {
+  background: #F1F5F9;
+  color: #1E293B;
+}
+
+.status-popup-delete {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #DC2626;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.status-popup-delete:hover {
+  background: #FEF2F2;
+}
+
+/* ── Calendar Project Filter Bar ── */
+.calendar-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: white;
   border: 2px solid #BFDBFE;
   border-bottom: none;
   border-radius: 8px 8px 0 0;

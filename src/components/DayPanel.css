@@ -1,10 +1,10 @@
-/* ── Day Panel — flat design, matches app design system ── */
+/* ── Day Panel — flat design, neutral slate palette ── */
 
 .day-panel {
   display: flex;
   flex-direction: column;
   background: white;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
   border-radius: 8px;
   overflow: hidden;
   height: 100%;
@@ -17,8 +17,8 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 18px 20px 14px;
-  background: #EFF6FF;
-  border-bottom: 1px solid #BFDBFE;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
   gap: 12px;
 }
 
@@ -39,7 +39,7 @@
 
 .day-panel-sub {
   font-size: 12px;
-  color: #64748B;
+  color: #94A3B8;
   font-weight: 500;
 }
 
@@ -50,7 +50,7 @@
   padding: 7px 14px;
   background: #F97316;
   color: white;
-  border: 2px solid #F97316;
+  border: 1.5px solid #F97316;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 700;
@@ -85,13 +85,13 @@
 }
 
 .day-summary-chip--total {
-  background: #EFF6FF;
-  color: #2563EB;
+  background: #F1F5F9;
+  color: #475569;
 }
 
 .day-summary-chip--progress {
-  background: #EFF6FF;
-  color: #3B82F6;
+  background: #FEF3C7;
+  color: #D97706;
 }
 
 .day-summary-chip--done {
@@ -129,21 +129,22 @@
   align-items: center;
   gap: 6px;
   padding: 8px 18px;
-  background: #EFF6FF;
-  color: #2563EB;
-  border: 2px solid #BFDBFE;
+  background: white;
+  color: #475569;
+  border: 1.5px solid #E2E8F0;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 700;
   font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
   margin-top: 4px;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .day-panel-add-first:hover {
-  background: #DBEAFE;
-  border-color: #2563EB;
+  background: #F97316;
+  border-color: #F97316;
+  color: white;
 }
 
 /* ── Section ── */
@@ -194,19 +195,19 @@
   align-items: flex-start;
   gap: 10px;
   padding: 8px 16px 8px 12px;
-  border-left: 3px solid #BFDBFE;
+  border-left: 3px solid #E2E8F0;
   margin: 2px 12px;
   border-radius: 6px;
-  background: #FAFCFF;
+  background: #FAFAFA;
   transition: background 0.12s;
 }
 
 .day-task-row:hover {
-  background: #EFF6FF;
+  background: #F8FAFC;
 }
 
 .day-task-row--done {
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 /* ── Status toggle button ── */
@@ -220,12 +221,12 @@
   justify-content: center;
   flex-shrink: 0;
   margin-top: 2px;
-  color: #94A3B8;
+  color: #CBD5E1;
   transition: color 0.15s;
 }
 
 .day-status-btn:hover {
-  color: #2563EB;
+  color: #64748B;
 }
 
 .day-status-icon {
@@ -237,7 +238,7 @@
 }
 
 .day-status-icon--progress {
-  color: #3B82F6;
+  color: #F59E0B;
 }
 
 .day-status-icon--done {
@@ -281,8 +282,8 @@
   font-weight: 600;
   padding: 1px 8px;
   border-radius: 4px;
-  border: 1px solid #BFDBFE;
-  color: #2563EB;
+  border: 1px solid #E2E8F0;
+  color: #475569;
   background: white;
   white-space: nowrap;
 }
@@ -301,11 +302,25 @@
 
 .day-priority-badge {
   font-size: 10px;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 4px;
-  text-transform: capitalize;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 3px;
   letter-spacing: 0.3px;
+}
+
+.day-priority-badge--high {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.day-priority-badge--medium {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.day-priority-badge--low {
+  background: #F1F5F9;
+  color: #94A3B8;
 }
 
 /* ── Task action buttons ── */
@@ -335,12 +350,12 @@
 }
 
 .day-action-btn--edit {
-  color: #64748B;
+  color: #94A3B8;
 }
 
 .day-action-btn--edit:hover {
-  background: #EFF6FF;
-  color: #2563EB;
+  background: #F1F5F9;
+  color: #475569;
 }
 
 .day-action-btn--delete {
