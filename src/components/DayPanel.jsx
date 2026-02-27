@@ -3,8 +3,7 @@ import { FaPlus, FaCircle, FaCheckCircle, FaSpinner, FaTrash, FaEdit } from 'rea
 import './DayPanel.css';
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
-const PRIORITY_COLOR = { high: '#DC2626', medium: '#F59E0B', low: '#10B981' };
-const PRIORITY_BG    = { high: '#FEF2F2', medium: '#FFFBEB', low: '#F0FDF4' };
+const PRIORITY_LABEL = { high: 'H', medium: 'M', low: 'L' };
 
 function toLocalDateStr(date) {
   // Accepts a Date object or YYYY-MM-DD string, always returns YYYY-MM-DD in local time
@@ -78,7 +77,7 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
       <div
         key={task.id}
         className={`day-task-row${isCompleted ? ' day-task-row--done' : ''}`}
-        style={{ borderLeftColor: project?.color || '#BFDBFE' }}
+        style={{ borderLeftColor: project?.color || '#E2E8F0' }}
       >
         {/* Status toggle button */}
         <button
@@ -101,11 +100,8 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
                 {project.name}
               </span>
             )}
-            <span
-              className="day-priority-badge"
-              style={{ background: PRIORITY_BG[task.priority], color: PRIORITY_COLOR[task.priority] }}
-            >
-              {task.priority}
+            <span className={`day-priority-badge day-priority-badge--${task.priority || 'low'}`}>
+              {PRIORITY_LABEL[task.priority] || 'L'}
             </span>
             {assignees && (
               <span className="day-meta-chip day-meta-chip--assignee">{assignees}</span>

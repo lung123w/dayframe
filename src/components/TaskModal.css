@@ -16,7 +16,7 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
 }
 
 .modal-header {
@@ -82,7 +82,7 @@
 .form-group textarea {
   width: 100%;
   padding: 10px 14px;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
   border-radius: 6px;
   font-size: 14px;
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -100,8 +100,8 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #2563EB;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #94A3B8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
 }
 
 .form-group select {
@@ -134,14 +134,14 @@
 }
 
 .toggle-group:hover {
-  border-color: #2563EB;
-  background: #EFF6FF;
+  border-color: #94A3B8;
+  background: #F8FAFC;
 }
 
 .toggle-group input[type="checkbox"] {
   width: 17px;
   height: 17px;
-  accent-color: #2563EB;
+  accent-color: #475569;
   cursor: pointer;
 }
 
@@ -162,7 +162,7 @@
 .image-preview {
   position: relative;
   width: 100%;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
   border-radius: 10px;
   overflow: hidden;
   background: #F8FAFC;
@@ -198,18 +198,18 @@
 
 /* ── Recurrence panel ── */
 .recurrence-options {
-  background: #EFF6FF;
+  background: #F8FAFC;
   padding: 20px;
   border-radius: 6px;
   margin-top: 8px;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
 }
 
 .recurrence-options h3 {
   margin: 0 0 16px 0;
   font-size: 12px;
   font-weight: 700;
-  color: #2563EB;
+  color: #64748B;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
@@ -226,13 +226,13 @@
   justify-content: center;
   padding: 7px 12px;
   background: white;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
   border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  color: #1E40AF;
+  color: #475569;
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
@@ -241,9 +241,9 @@
 }
 
 .day-checkbox:has(input:checked) {
-  background: #2563EB;
+  background: #334155;
   color: white;
-  border-color: #2563EB;
+  border-color: #334155;
 }
 
 .recurrence-description {
@@ -300,13 +300,14 @@
 
 .btn-secondary {
   background: white;
-  color: #2563EB;
-  border: 2px solid #BFDBFE;
+  color: #475569;
+  border: 1.5px solid #E2E8F0;
 }
 
 .btn-secondary:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
+  background: #F1F5F9;
+  border-color: #94A3B8;
+  color: #1E293B;
 }
 
 .btn-danger {
@@ -323,7 +324,7 @@
 
 input[type="checkbox"] {
   cursor: pointer;
-  accent-color: #2563EB;
+  accent-color: #475569;
 }
 
 /* ── Multi-select Assignee ── */
@@ -334,7 +335,7 @@ input[type="checkbox"] {
   gap: 6px;
   min-height: 42px;
   padding: 8px 10px;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
   border-radius: 6px;
   background: white;
   transition: border-color 0.15s ease;
@@ -342,7 +343,7 @@ input[type="checkbox"] {
 }
 
 .assignee-chips:focus-within {
-  border-color: #2563EB;
+  border-color: #94A3B8;
 }
 
 .assignee-placeholder {
@@ -355,20 +356,20 @@ input[type="checkbox"] {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: #EFF6FF;
-  border: 1.5px solid #BFDBFE;
+  background: #F1F5F9;
+  border: 1.5px solid #E2E8F0;
   border-radius: 20px;
   padding: 3px 8px 3px 4px;
   font-size: 13px;
   font-weight: 600;
-  color: #1E40AF;
+  color: #334155;
 }
 
 .assignee-chip-avatar {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #2563EB;
+  background: #475569;
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -408,25 +409,26 @@ input[type="checkbox"] {
   gap: 5px;
   padding: 4px 10px;
   background: white;
-  color: #2563EB;
-  border: 1.5px dashed #BFDBFE;
+  color: #64748B;
+  border: 1.5px dashed #E2E8F0;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
   font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
 .assignee-add-btn:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
+  background: #F1F5F9;
+  border-color: #94A3B8;
+  color: #1E293B;
 }
 
 /* ── Assignee Dropdown ── */
 .assignee-dropdown {
   margin-top: 4px;
-  border: 2px solid #BFDBFE;
+  border: 1.5px solid #E2E8F0;
   border-radius: 6px;
   background: white;
   overflow: hidden;
@@ -461,11 +463,11 @@ input[type="checkbox"] {
 }
 
 .assignee-dropdown-item:hover {
-  background: #EFF6FF;
+  background: #F8FAFC;
 }
 
 .assignee-dropdown-item.selected {
-  background: #EFF6FF;
+  background: #F8FAFC;
 }
 
 .assignee-dropdown-name {
@@ -485,7 +487,7 @@ input[type="checkbox"] {
 }
 
 .assignee-dropdown-check {
-  color: #2563EB;
+  color: #475569;
   font-size: 12px;
   flex-shrink: 0;
 }
@@ -505,7 +507,7 @@ input[type="checkbox"] {
 
 .assignee-dropdown-done {
   padding: 6px 16px;
-  background: #2563EB;
+  background: #334155;
   color: white;
   border: none;
   border-radius: 5px;
@@ -517,7 +519,7 @@ input[type="checkbox"] {
 }
 
 .assignee-dropdown-done:hover {
-  background: #1D4ED8;
+  background: #1E293B;
 }
 
 /* ── Image enlarge button ── */
@@ -528,8 +530,8 @@ input[type="checkbox"] {
 .enlarge-image-btn {
   position: absolute;
   top: 6px;
-  right: 38px; /* sits to the left of the delete button */
-  background: rgba(37, 99, 235, 0.85);
+  right: 38px;
+  background: rgba(51, 65, 85, 0.85);
   color: white;
   border: none;
   border-radius: 6px;
@@ -544,7 +546,7 @@ input[type="checkbox"] {
 }
 
 .enlarge-image-btn:hover {
-  background: rgba(37, 99, 235, 1);
+  background: rgba(51, 65, 85, 1);
 }
 
 /* ── Lightbox ── */
