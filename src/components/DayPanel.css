@@ -438,3 +438,49 @@
   color: #64748B;
   font-style: italic;
 }
+
+/* ── Subtask checklist in task rows ── */
+
+.day-subtask-section {
+  margin-top: 4px;
+  margin-left: 2px;
+}
+
+.day-subtask-summary {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  letter-spacing: 0.3px;
+}
+
+.day-subtask-list {
+  list-style: none;
+  margin: 2px 0 0 0;
+  padding: 0;
+}
+
+.day-subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.day-subtask-checkbox {
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  accent-color: #16A34A;
+  flex-shrink: 0;
+}
+
+.day-subtask-title {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.3;
+}
+
+.day-subtask-item--done .day-subtask-title {
+  text-decoration: line-through;
+  color: #CBD5E1;
+}

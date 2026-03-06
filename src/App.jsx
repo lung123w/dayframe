@@ -195,6 +195,16 @@ function App() {
     await loadData();
   };
 
+  // Toggle a subtask's completed state directly from DayPanel
+  const handleSubtaskToggle = async (subtaskId) => {
+    try {
+      await subtaskService.toggleCompleted(subtaskId);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to toggle subtask:', err);
+    }
+  };
+
   // Assign a due date to an outstanding (unscheduled) task
   const handleAssignDate = async (task, date) => {
     try {
@@ -453,6 +463,8 @@ function App() {
                   tasks={tasks}
                   projects={projects}
                   teamMembers={teamMembers}
+                  subtasks={subtasks}
+                  onSubtaskToggle={handleSubtaskToggle}
                   onTaskClick={handleTaskClick}
                   onStatusUpdate={handleStatusUpdate}
                   onNewTask={handleNewTaskForDay}
