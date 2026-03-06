@@ -5,7 +5,7 @@ import ProjectModal from './components/ProjectModal';
 import TeamManagement from './components/TeamManagement';
 import OutstandingTasks from './components/OutstandingTasks';
 import DayPanel from './components/DayPanel';
-import { taskService, teamMemberService, projectService, subtaskService } from './db';
+import { taskService, teamMemberService, projectService, subtaskService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
 import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle, FaDownload } from 'react-icons/fa';
 
