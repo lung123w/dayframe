@@ -19,6 +19,15 @@ vi.mock('../db', () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn()
+  },
+  subtaskService: {
+    getAll: vi.fn(() => Promise.resolve([])),
+    getByTaskId: vi.fn(() => Promise.resolve([])),
+    create: vi.fn(() => Promise.resolve(1)),
+    update: vi.fn(() => Promise.resolve()),
+    delete: vi.fn(() => Promise.resolve()),
+    deleteByTaskId: vi.fn(() => Promise.resolve()),
+    toggleCompleted: vi.fn(() => Promise.resolve())
   }
 }));
 
