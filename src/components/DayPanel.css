@@ -366,3 +366,75 @@
   background: #FEF2F2;
   color: #DC2626;
 }
+
+/* ── Rich text description in day panel ── */
+
+.day-task-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748B;
+  margin-top: 4px;
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-task-description p {
+  margin: 0 0 4px 0;
+}
+
+.day-task-description a {
+  color: #3B82F6;
+  text-decoration: none;
+}
+
+.day-task-description a:hover {
+  text-decoration: underline;
+}
+
+.day-task-description h1,
+.day-task-description h2,
+.day-task-description h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 0 2px 0;
+  color: #1E293B;
+}
+
+.day-task-description ul,
+.day-task-description ol {
+  padding-left: 16px;
+  margin: 2px 0;
+}
+
+.day-task-description code {
+  background: #F1F5F9;
+  border-radius: 3px;
+  padding: 1px 3px;
+  font-size: 11px;
+  color: #E11D48;
+}
+
+.day-task-description pre {
+  background: #1E293B;
+  color: #E2E8F0;
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin: 4px 0;
+  font-size: 11px;
+  overflow-x: auto;
+}
+
+.day-task-description pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.day-task-description blockquote {
+  border-left: 2px solid #E2E8F0;
+  padding-left: 8px;
+  margin: 4px 0;
+  color: #64748B;
+  font-style: italic;
+}
