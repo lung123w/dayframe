@@ -26,6 +26,14 @@ db.version(2).stores({
   }
 });
 
+// Version 3 — add subtasks table
+db.version(3).stores({
+  tasks: '++id, title, description, dueDate, priority, status, projectId, assignedTo, createdAt, updatedAt, isRecurring, recurrencePattern',
+  teamMembers: '++id, name, email, role, createdAt',
+  projects: '++id, name, color, createdAt',
+  subtasks: '++id, parentTaskId, title, completed, sortOrder, createdAt, updatedAt'
+});
+
 // Task model
 export class Task {
   constructor(data) {
@@ -44,6 +52,12 @@ export class Task {
     this.updatedAt = data.updatedAt || new Date().toISOString();
     this.isRecurring = data.isRecurring || false;
     this.recurrencePattern = data.recurrencePattern || null; // {type, interval, daysOfWeek, endDate}
+    // Per-instance status overrides for recurring tasks
+    // Maps instance ISO date string -> status value, e.g. { "2026-03-05T00:00:00.000Z": "completed" }
+    this.statusOverrides = data.statusOverrides || {};
+    // "This and all future" overrides: array of { fromDate: ISO string, status: string }
+    // Sorted by fromDate ascending. The latest matching entry wins.
+    this.statusFromOverrides = data.statusFromOverrides || [];
   }
 }
 
@@ -65,6 +79,19 @@ export class Project {
     this.name = data.name || '';
     this.color = data.color || '#3788d8';
     this.createdAt = data.createdAt || new Date().toISOString();
+  }
+}
+
+// Subtask model
+export class Subtask {
+  constructor(data = {}) {
+    this.id = data.id;
+    this.parentTaskId = data.parentTaskId;
+    this.title = data.title || '';
+    this.completed = data.completed || false;
+    this.sortOrder = data.sortOrder ?? 0;
+    this.createdAt = data.createdAt || new Date().toISOString();
+    this.updatedAt = data.updatedAt || new Date().toISOString();
   }
 }
 
@@ -155,5 +182,46 @@ export const projectService = {
 
   async delete(id) {
     await db.projects.delete(id);
+  }
+};
+
+export const subtaskService = {
+  async getAll() {
+    return await db.subtasks.toArray();
+  },
+
+  async getByTaskId(taskId) {
+    return await db.subtasks.where('parentTaskId').equals(taskId).sortBy('sortOrder');
+  },
+
+  async create(subtask) {
+    const newSubtask = new Subtask(subtask);
+    newSubtask.createdAt = new Date().toISOString();
+    newSubtask.updatedAt = new Date().toISOString();
+    const id = await db.subtasks.add(newSubtask);
+    return id;
+  },
+
+  async update(id, updates) {
+    updates.updatedAt = new Date().toISOString();
+    return await db.subtasks.update(id, updates);
+  },
+
+  async delete(id) {
+    return await db.subtasks.delete(id);
+  },
+
+  async deleteByTaskId(taskId) {
+    return await db.subtasks.where('parentTaskId').equals(taskId).delete();
+  },
+
+  async toggleCompleted(id) {
+    const subtask = await db.subtasks.get(id);
+    if (subtask) {
+      return await db.subtasks.update(id, {
+        completed: !subtask.completed,
+        updatedAt: new Date().toISOString()
+      });
+    }
   }
 };
