@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaTimes, FaTrash, FaUserPlus, FaCheck, FaSearchPlus } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
+import RichTextEditor from './RichTextEditor';
 import './TaskModal.css';
 
 export default function TaskModal({ task, projects, teamMembers, tasks, onSave, onClose, onDelete, selectedDate }) {
@@ -151,21 +152,11 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     }));
   };
 
-  const handleImagePaste = (e) => {
-    const items = e.clipboardData.items;
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        const blob = items[i].getAsFile();
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setFormData(prev => ({
-            ...prev,
-            descriptionImages: [...prev.descriptionImages, event.target.result]
-          }));
-        };
-        reader.readAsDataURL(blob);
-      }
-    }
+  const handleImagePaste = (base64Data) => {
+    setFormData(prev => ({
+      ...prev,
+      descriptionImages: [...prev.descriptionImages, base64Data]
+    }));
   };
 
   const removeImage = (index) => {
@@ -236,15 +227,11 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description (paste images with Ctrl+V)</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              onPaste={handleImagePaste}
-              rows="4"
-              placeholder="Task description..."
+            <label>Description (paste images with Ctrl+V)</label>
+            <RichTextEditor
+              content={formData.description}
+              onChange={(html) => setFormData(prev => ({ ...prev, description: html }))}
+              onImagePaste={handleImagePaste}
             />
             {formData.descriptionImages.length > 0 && (
               <div className="image-preview-container">
