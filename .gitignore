@@ -23,8 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# SQLite database files
-data/*.db
+# SQLite WAL/SHM files (temporary, not needed in git)
 data/*.db-shm
 data/*.db-wal
 
