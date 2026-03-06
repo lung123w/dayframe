@@ -594,3 +594,175 @@ input[type="checkbox"] {
 .lightbox-close:hover {
   background: rgba(255, 255, 255, 0.28);
 }
+
+/* ── Subtask Section ── */
+.subtask-section {
+  margin-bottom: 20px;
+}
+
+.subtask-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subtask-count {
+  font-weight: 500;
+  color: #94A3B8;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.subtask-save-hint {
+  font-size: 13px;
+  color: #94A3B8;
+  font-style: italic;
+  margin: 0;
+  padding: 10px 0;
+}
+
+.subtask-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.subtask-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.12s;
+}
+
+.subtask-row:hover {
+  background: #F8FAFC;
+}
+
+.subtask-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #F97316;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.subtask-title {
+  flex: 1;
+  font-size: 14px;
+  color: #1E293B;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.12s;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.subtask-title:hover {
+  background: #F1F5F9;
+}
+
+.subtask-row.completed .subtask-title {
+  text-decoration: line-through;
+  color: #94A3B8;
+}
+
+.subtask-edit-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1.5px solid #94A3B8;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1E293B;
+  outline: none;
+  min-width: 0;
+}
+
+.subtask-edit-input:focus {
+  border-color: #F97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.subtask-delete-btn {
+  background: none;
+  border: none;
+  color: #CBD5E1;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.12s, background 0.12s;
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.subtask-row:hover .subtask-delete-btn {
+  opacity: 1;
+}
+
+.subtask-delete-btn:hover {
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+.subtask-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.subtask-add-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1E293B;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.subtask-add-input:focus {
+  border-color: #94A3B8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+}
+
+.subtask-add-input::placeholder {
+  color: #CBD5E1;
+}
+
+.subtask-add-btn {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  color: #64748B;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+
+.subtask-add-btn:hover:not(:disabled) {
+  background: #F97316;
+  border-color: #F97316;
+  color: white;
+}
+
+.subtask-add-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
