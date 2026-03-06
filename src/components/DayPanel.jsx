@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { FaPlus, FaCircle, FaCheckCircle, FaSpinner, FaTrash, FaEdit } from 'react-icons/fa';
+import { generateRecurringTasks } from '../utils/recurrence';
 import './DayPanel.css';
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -51,9 +52,26 @@ const STATUS_LABEL = { todo: 'To Do', 'in-progress': 'In Progress', completed: '
 export default function DayPanel({ date, tasks, projects, teamMembers, onTaskClick, onStatusUpdate, onNewTask, onDeleteTask }) {
   const dayTasks = useMemo(() => {
     if (!date) return [];
-    return tasks
-      .filter(t => t.dueDate && toLocalDateStr(t.dueDate) === date)
-      .sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1));
+
+    // Build the start/end of the selected day for recurring expansion
+    const [y, m, d] = date.split('-').map(Number);
+    const dayStart = new Date(y, m - 1, d);
+    const dayEnd = new Date(y, m - 1, d + 1);
+
+    const result = [];
+    for (const task of tasks) {
+      if (task.isRecurring && task.dueDate) {
+        // Expand recurring task for this single day
+        const instances = generateRecurringTasks(task, dayStart, dayEnd);
+        result.push(...instances);
+      } else if (task.dueDate && toLocalDateStr(task.dueDate) === date) {
+        result.push(task);
+      }
+    }
+
+    return result.sort(
+      (a, b) => (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1)
+    );
   }, [tasks, date]);
 
   const getProject = id => projects.find(p => p.id === id);
@@ -75,7 +93,7 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
 
     return (
       <div
-        key={task.id}
+        key={task.isRecurringInstance ? `${task.id}-${task.instanceDate}` : task.id}
         className={`day-task-row${isCompleted ? ' day-task-row--done' : ''}`}
         style={{ borderLeftColor: project?.color || '#E2E8F0' }}
       >
@@ -83,7 +101,7 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
         <button
           className="day-status-btn"
           title={`Mark as ${STATUS_LABEL[STATUS_CYCLE[task.status]]}`}
-          onClick={() => onStatusUpdate(task, STATUS_CYCLE[task.status])}
+          onClick={() => onStatusUpdate(task, STATUS_CYCLE[task.status], task.isRecurringInstance ? 'single' : undefined)}
         >
           {STATUS_ICON[task.status]}
         </button>
@@ -93,6 +111,12 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
           <span className={`day-task-title${isCompleted ? ' day-task-title--done' : ''}`}>
             {task.title}
           </span>
+          {task.description && (
+            <div
+              className="day-task-description"
+              dangerouslySetInnerHTML={{ __html: task.description }}
+            />
+          )}
           <div className="day-task-meta">
             {project && (
               <span className="day-meta-chip" style={{ color: project.color, borderColor: project.color + '50' }}>
