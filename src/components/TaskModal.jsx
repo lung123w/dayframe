@@ -31,6 +31,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
 
   // ── Subtask state ──
   const [localSubtasks, setLocalSubtasks] = useState([]);
+  const [pendingSubtasks, setPendingSubtasks] = useState([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [editingSubtaskId, setEditingSubtaskId] = useState(null);
   const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
@@ -86,6 +87,47 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     const updated = await subtaskService.getByTaskId(task.id);
     setLocalSubtasks(updated);
     if (onSubtaskChange) onSubtaskChange();
+  };
+
+  // ── Pending subtask operations (create mode only) ──
+  const addPendingSubtask = () => {
+    const title = newSubtaskTitle.trim();
+    if (!title) return;
+    setPendingSubtasks(prev => [...prev, {
+      tempId: crypto.randomUUID(),
+      title,
+      completed: false,
+      sortOrder: prev.length,
+    }]);
+    setNewSubtaskTitle('');
+  };
+
+  const removePendingSubtask = (tempId) => {
+    setPendingSubtasks(prev => prev.filter(s => s.tempId !== tempId));
+  };
+
+  const startEditPendingSubtask = (subtask) => {
+    setEditingSubtaskId(subtask.tempId);
+    setEditingSubtaskTitle(subtask.title);
+  };
+
+  const saveEditPendingSubtask = () => {
+    const title = editingSubtaskTitle.trim();
+    if (!title || !editingSubtaskId) {
+      setEditingSubtaskId(null);
+      return;
+    }
+    setPendingSubtasks(prev => prev.map(s =>
+      s.tempId === editingSubtaskId ? { ...s, title } : s
+    ));
+    setEditingSubtaskId(null);
+    setEditingSubtaskTitle('');
+  };
+
+  const togglePendingSubtask = (tempId) => {
+    setPendingSubtasks(prev => prev.map(s =>
+      s.tempId === tempId ? { ...s, completed: !s.completed } : s
+    ));
   };
 
   // Close lightbox on Escape key
@@ -241,6 +283,13 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
           : null
       } : null
     };
+    // Attach pending subtasks for new tasks
+    if (!task?.id && pendingSubtasks.length > 0) {
+      taskData._pendingSubtasks = pendingSubtasks.map(({ title, completed, sortOrder }) => ({
+        title, completed, sortOrder
+      }));
+    }
+
     onSave(taskData);
   };
 
@@ -260,6 +309,9 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
   const orderedMembers = relevantMembers.length > 0
     ? [{ group: 'Project Members', members: relevantMembers }, { group: 'Other Members', members: otherMembers }]
     : [{ group: null, members: teamMembers }];
+
+  const isCreateMode = !task?.id;
+  const displaySubtasks = isCreateMode ? pendingSubtasks : localSubtasks;
 
   return (
     <>
@@ -330,82 +382,80 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
             <div className="subtask-header">
               <label>
                 Subtasks
-                {localSubtasks.length > 0 && (
+                {displaySubtasks.length > 0 && (
                   <span className="subtask-count">
-                    ({localSubtasks.filter(s => s.completed).length}/{localSubtasks.length})
+                    ({displaySubtasks.filter(s => s.completed).length}/{displaySubtasks.length})
                   </span>
                 )}
               </label>
             </div>
-            {!task?.id ? (
-              <p className="subtask-save-hint">Save the task first to add subtasks.</p>
-            ) : (
-              <>
-                {localSubtasks.length > 0 && (
-                  <ul className="subtask-list">
-                    {localSubtasks.map(st => (
-                      <li key={st.id} className={`subtask-row${st.completed ? ' completed' : ''}`}>
+            {displaySubtasks.length > 0 && (
+              <ul className="subtask-list">
+                {displaySubtasks.map(st => {
+                  const key = st.tempId || st.id;
+                  const editKey = st.tempId || st.id;
+                  return (
+                    <li key={key} className={`subtask-row${st.completed ? ' completed' : ''}`}>
+                      <input
+                        type="checkbox"
+                        className="subtask-checkbox"
+                        checked={st.completed}
+                        onChange={() => isCreateMode ? togglePendingSubtask(st.tempId) : toggleSubtask(st.id)}
+                      />
+                      {editingSubtaskId === editKey ? (
                         <input
-                          type="checkbox"
-                          className="subtask-checkbox"
-                          checked={st.completed}
-                          onChange={() => toggleSubtask(st.id)}
+                          type="text"
+                          className="subtask-edit-input"
+                          value={editingSubtaskTitle}
+                          onChange={(e) => setEditingSubtaskTitle(e.target.value)}
+                          onBlur={() => isCreateMode ? saveEditPendingSubtask() : saveEditSubtask()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') isCreateMode ? saveEditPendingSubtask() : saveEditSubtask();
+                            if (e.key === 'Escape') setEditingSubtaskId(null);
+                          }}
+                          autoFocus
                         />
-                        {editingSubtaskId === st.id ? (
-                          <input
-                            type="text"
-                            className="subtask-edit-input"
-                            value={editingSubtaskTitle}
-                            onChange={(e) => setEditingSubtaskTitle(e.target.value)}
-                            onBlur={saveEditSubtask}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') saveEditSubtask();
-                              if (e.key === 'Escape') setEditingSubtaskId(null);
-                            }}
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="subtask-title"
-                            onClick={() => startEditSubtask(st)}
-                            title="Click to edit"
-                          >
-                            {st.title}
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          className="subtask-delete-btn"
-                          onClick={() => deleteSubtask(st.id)}
-                          title="Delete subtask"
+                      ) : (
+                        <span
+                          className="subtask-title"
+                          onClick={() => isCreateMode ? startEditPendingSubtask(st) : startEditSubtask(st)}
+                          title="Click to edit"
                         >
-                          <FaTrash />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <div className="subtask-add-row">
-                  <input
-                    type="text"
-                    className="subtask-add-input"
-                    value={newSubtaskTitle}
-                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSubtask(); } }}
-                    placeholder="Add a subtask..."
-                  />
-                  <button
-                    type="button"
-                    className="subtask-add-btn"
-                    onClick={addSubtask}
-                    disabled={!newSubtaskTitle.trim()}
-                    title="Add subtask"
-                  >
-                    <FaPlus />
-                  </button>
-                </div>
-              </>
+                          {st.title}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="subtask-delete-btn"
+                        onClick={() => isCreateMode ? removePendingSubtask(st.tempId) : deleteSubtask(st.id)}
+                        title="Delete subtask"
+                      >
+                        <FaTrash />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
+            <div className="subtask-add-row">
+              <input
+                type="text"
+                className="subtask-add-input"
+                value={newSubtaskTitle}
+                onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); isCreateMode ? addPendingSubtask() : addSubtask(); } }}
+                placeholder="Add a subtask..."
+              />
+              <button
+                type="button"
+                className="subtask-add-btn"
+                onClick={() => isCreateMode ? addPendingSubtask() : addSubtask()}
+                disabled={!newSubtaskTitle.trim()}
+                title="Add subtask"
+              >
+                <FaPlus />
+              </button>
+            </div>
           </div>
 
           <div className="form-row">

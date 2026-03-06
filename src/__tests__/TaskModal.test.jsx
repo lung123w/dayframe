@@ -165,7 +165,7 @@ describe('TaskModal Component', () => {
 
   // ── Subtask-specific tests ──
 
-  it('shows "save first" message for new tasks (no id)', () => {
+  it('shows subtask add input for new tasks (create mode)', () => {
     render(
       <TaskModal
         task={null}
@@ -177,7 +177,93 @@ describe('TaskModal Component', () => {
       />
     );
 
-    expect(screen.getByText(/save the task first/i)).toBeInTheDocument();
+    // Should show add subtask input even for new tasks
+    expect(screen.getByPlaceholderText(/add a subtask/i)).toBeInTheDocument();
+    // Should NOT show save-first message
+    expect(screen.queryByText(/save the task first/i)).not.toBeInTheDocument();
+  });
+
+  it('adds pending subtasks in create mode and includes them in onSave', async () => {
+    // Mock crypto.randomUUID for deterministic keys
+    const originalRandomUUID = crypto.randomUUID;
+    let uuidCounter = 0;
+    crypto.randomUUID = () => `test-uuid-${++uuidCounter}`;
+
+    render(
+      <TaskModal
+        task={null}
+        projects={mockProjects}
+        teamMembers={mockTeamMembers}
+        onSave={mockOnSave}
+        onClose={mockOnClose}
+      />
+    );
+
+    // Fill in required title
+    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'New Task' } });
+
+    // Add a subtask
+    const addInput = screen.getByPlaceholderText(/add a subtask/i);
+    fireEvent.change(addInput, { target: { value: 'Subtask 1' } });
+    fireEvent.keyDown(addInput, { key: 'Enter' });
+
+    // Subtask should appear in the list
+    expect(screen.getByText('Subtask 1')).toBeInTheDocument();
+
+    // Add a second subtask
+    fireEvent.change(addInput, { target: { value: 'Subtask 2' } });
+    fireEvent.keyDown(addInput, { key: 'Enter' });
+
+    expect(screen.getByText('Subtask 2')).toBeInTheDocument();
+
+    // Progress count should show
+    expect(screen.getByText('(0/2)')).toBeInTheDocument();
+
+    // Submit the form
+    fireEvent.click(screen.getByText(/create/i));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          _pendingSubtasks: [
+            expect.objectContaining({ title: 'Subtask 1', completed: false, sortOrder: 0 }),
+            expect.objectContaining({ title: 'Subtask 2', completed: false, sortOrder: 1 }),
+          ]
+        })
+      );
+    });
+
+    crypto.randomUUID = originalRandomUUID;
+  });
+
+  it('removes a pending subtask in create mode', async () => {
+    const originalRandomUUID = crypto.randomUUID;
+    crypto.randomUUID = () => 'test-uuid-remove';
+
+    render(
+      <TaskModal
+        task={null}
+        projects={mockProjects}
+        teamMembers={mockTeamMembers}
+        onSave={mockOnSave}
+        onClose={mockOnClose}
+      />
+    );
+
+    // Add a subtask
+    const addInput = screen.getByPlaceholderText(/add a subtask/i);
+    fireEvent.change(addInput, { target: { value: 'To Remove' } });
+    fireEvent.keyDown(addInput, { key: 'Enter' });
+
+    expect(screen.getByText('To Remove')).toBeInTheDocument();
+
+    // Click the delete button
+    const deleteBtn = screen.getByTitle('Delete subtask');
+    fireEvent.click(deleteBtn);
+
+    expect(screen.queryByText('To Remove')).not.toBeInTheDocument();
+
+    crypto.randomUUID = originalRandomUUID;
   });
 
   it('shows subtask section with add input for existing tasks', async () => {
