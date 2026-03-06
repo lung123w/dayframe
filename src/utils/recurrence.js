@@ -1,6 +1,43 @@
 import { addDays, addWeeks, addMonths, addYears, isBefore, isAfter, startOfDay } from 'date-fns';
 
 /**
+ * Resolve the effective status for a single recurring instance.
+ *
+ * Priority order:
+ *   1. Exact per-instance override in statusOverrides[instanceDate]
+ *   2. The most recent "from date" override where fromDate <= instanceDate
+ *   3. The task's base status
+ */
+export function resolveInstanceStatus(task, instanceDateStr) {
+  // 1. Exact per-instance override
+  const overrides = task.statusOverrides || {};
+  if (overrides[instanceDateStr]) {
+    return overrides[instanceDateStr];
+  }
+
+  // 2. "This and all future" overrides — find the latest one that applies
+  const fromOverrides = task.statusFromOverrides || [];
+  if (fromOverrides.length > 0) {
+    const instanceTime = new Date(instanceDateStr).getTime();
+    let bestOverride = null;
+    for (const entry of fromOverrides) {
+      const fromTime = new Date(entry.fromDate).getTime();
+      if (fromTime <= instanceTime) {
+        if (!bestOverride || fromTime > new Date(bestOverride.fromDate).getTime()) {
+          bestOverride = entry;
+        }
+      }
+    }
+    if (bestOverride) {
+      return bestOverride.status;
+    }
+  }
+
+  // 3. Fall back to the task's base status
+  return task.status;
+}
+
+/**
  * Recurrence pattern structure:
  * {
  *   type: 'daily' | 'weekly' | 'monthly' | 'yearly',
@@ -36,12 +73,16 @@ export function generateRecurringTasks(task, startDate, endDate) {
   while (isBefore(currentDate, endDate) && occurrenceCount < maxOccurrences) {
     if (pattern.endDate && isAfter(currentDate, new Date(pattern.endDate))) break;
 
+    const instanceDateStr = currentDate.toISOString();
+    const resolvedStatus = resolveInstanceStatus(task, instanceDateStr);
+
     tasks.push({
       ...task,
-      dueDate: currentDate.toISOString(),
+      dueDate: instanceDateStr,
+      status: resolvedStatus,
       isRecurringInstance: true,
       recurringSourceId: task.id,
-      instanceDate: currentDate.toISOString()
+      instanceDate: instanceDateStr
     });
 
     currentDate = getNextOccurrence(currentDate, pattern);
