@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaTimes, FaTrash, FaUserPlus, FaCheck, FaSearchPlus } from 'react-icons/fa';
+import { FaTimes, FaTrash, FaUserPlus, FaCheck, FaSearchPlus, FaPlus } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
+import { subtaskService } from '../db';
 import RichTextEditor from './RichTextEditor';
 import './TaskModal.css';
 
-export default function TaskModal({ task, projects, teamMembers, tasks, onSave, onClose, onDelete, selectedDate }) {
+export default function TaskModal({ task, projects, teamMembers, tasks, onSave, onClose, onDelete, onSubtaskChange, selectedDate }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -27,6 +28,65 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
   const [showRecurrenceOptions, setShowRecurrenceOptions] = useState(false);
   const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState(null);
+
+  // ── Subtask state ──
+  const [localSubtasks, setLocalSubtasks] = useState([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [editingSubtaskId, setEditingSubtaskId] = useState(null);
+  const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
+
+  // Load subtasks when task changes
+  useEffect(() => {
+    if (task?.id) {
+      subtaskService.getByTaskId(task.id).then(setLocalSubtasks);
+    } else {
+      setLocalSubtasks([]);
+    }
+  }, [task?.id]);
+
+  const addSubtask = async () => {
+    const title = newSubtaskTitle.trim();
+    if (!title || !task?.id) return;
+    const sortOrder = localSubtasks.length;
+    await subtaskService.create({ parentTaskId: task.id, title, sortOrder });
+    setNewSubtaskTitle('');
+    const updated = await subtaskService.getByTaskId(task.id);
+    setLocalSubtasks(updated);
+    if (onSubtaskChange) onSubtaskChange();
+  };
+
+  const toggleSubtask = async (subtaskId) => {
+    await subtaskService.toggleCompleted(subtaskId);
+    const updated = await subtaskService.getByTaskId(task.id);
+    setLocalSubtasks(updated);
+    if (onSubtaskChange) onSubtaskChange();
+  };
+
+  const deleteSubtask = async (subtaskId) => {
+    await subtaskService.delete(subtaskId);
+    const updated = await subtaskService.getByTaskId(task.id);
+    setLocalSubtasks(updated);
+    if (onSubtaskChange) onSubtaskChange();
+  };
+
+  const startEditSubtask = (subtask) => {
+    setEditingSubtaskId(subtask.id);
+    setEditingSubtaskTitle(subtask.title);
+  };
+
+  const saveEditSubtask = async () => {
+    const title = editingSubtaskTitle.trim();
+    if (!title || !editingSubtaskId) {
+      setEditingSubtaskId(null);
+      return;
+    }
+    await subtaskService.update(editingSubtaskId, { title });
+    setEditingSubtaskId(null);
+    setEditingSubtaskTitle('');
+    const updated = await subtaskService.getByTaskId(task.id);
+    setLocalSubtasks(updated);
+    if (onSubtaskChange) onSubtaskChange();
+  };
 
   // Close lightbox on Escape key
   const handleKeyDown = useCallback((e) => {
@@ -262,6 +322,89 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          {/* ── Subtasks ── */}
+          <div className="form-group subtask-section">
+            <div className="subtask-header">
+              <label>
+                Subtasks
+                {localSubtasks.length > 0 && (
+                  <span className="subtask-count">
+                    ({localSubtasks.filter(s => s.completed).length}/{localSubtasks.length})
+                  </span>
+                )}
+              </label>
+            </div>
+            {!task?.id ? (
+              <p className="subtask-save-hint">Save the task first to add subtasks.</p>
+            ) : (
+              <>
+                {localSubtasks.length > 0 && (
+                  <ul className="subtask-list">
+                    {localSubtasks.map(st => (
+                      <li key={st.id} className={`subtask-row${st.completed ? ' completed' : ''}`}>
+                        <input
+                          type="checkbox"
+                          className="subtask-checkbox"
+                          checked={st.completed}
+                          onChange={() => toggleSubtask(st.id)}
+                        />
+                        {editingSubtaskId === st.id ? (
+                          <input
+                            type="text"
+                            className="subtask-edit-input"
+                            value={editingSubtaskTitle}
+                            onChange={(e) => setEditingSubtaskTitle(e.target.value)}
+                            onBlur={saveEditSubtask}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditSubtask();
+                              if (e.key === 'Escape') setEditingSubtaskId(null);
+                            }}
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="subtask-title"
+                            onClick={() => startEditSubtask(st)}
+                            title="Click to edit"
+                          >
+                            {st.title}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="subtask-delete-btn"
+                          onClick={() => deleteSubtask(st.id)}
+                          title="Delete subtask"
+                        >
+                          <FaTrash />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="subtask-add-row">
+                  <input
+                    type="text"
+                    className="subtask-add-input"
+                    value={newSubtaskTitle}
+                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSubtask(); } }}
+                    placeholder="Add a subtask..."
+                  />
+                  <button
+                    type="button"
+                    className="subtask-add-btn"
+                    onClick={addSubtask}
+                    disabled={!newSubtaskTitle.trim()}
+                    title="Add subtask"
+                  >
+                    <FaPlus />
+                  </button>
+                </div>
+              </>
             )}
           </div>
 
