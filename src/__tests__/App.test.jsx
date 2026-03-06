@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import App from '../App';
 
 // Mock the database
-vi.mock('../db', () => ({
+vi.mock('../api', () => ({
   taskService: {
     getAll: vi.fn(() => Promise.resolve([])),
     create: vi.fn(),
@@ -75,7 +75,7 @@ describe('App Integration Tests', () => {
   });
 
   it('should display task statistics', async () => {
-    const { taskService } = await import('../db');
+    const { taskService } = await import('../api');
     
     taskService.getAll.mockResolvedValue([
       { id: 1, title: 'Task 1', status: 'todo' },

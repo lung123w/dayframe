@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TaskModal from '../components/TaskModal';
 
 // Mock the subtaskService used by TaskModal
-vi.mock('../db', () => ({
+vi.mock('../api', () => ({
   subtaskService: {
     getByTaskId: vi.fn(() => Promise.resolve([])),
     create: vi.fn(() => Promise.resolve(1)),
@@ -15,7 +15,7 @@ vi.mock('../db', () => ({
 }));
 
 // Re-import after mock so we can reference it in tests
-import { subtaskService } from '../db';
+import { subtaskService } from '../api';
 
 describe('TaskModal Component', () => {
   const mockProjects = [
