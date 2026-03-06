@@ -116,10 +116,16 @@ function App() {
 
   const handleSaveTask = async (taskData) => {
     try {
+      const pendingSubtasks = taskData._pendingSubtasks || [];
+      delete taskData._pendingSubtasks;
+
       if (selectedTask) {
         await taskService.update(selectedTask.id, taskData);
       } else {
-        await taskService.create(taskData);
+        const newTask = await taskService.create(taskData);
+        for (const sub of pendingSubtasks) {
+          await subtaskService.create({ parentTaskId: newTask.id, ...sub });
+        }
       }
       await loadData();
       setShowTaskModal(false);
