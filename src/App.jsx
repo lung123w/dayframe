@@ -5,7 +5,7 @@ import ProjectModal from './components/ProjectModal';
 import TeamManagement from './components/TeamManagement';
 import OutstandingTasks from './components/OutstandingTasks';
 import DayPanel from './components/DayPanel';
-import { taskService, teamMemberService, projectService } from './db';
+import { taskService, teamMemberService, projectService, subtaskService } from './db';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
 import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle, FaDownload } from 'react-icons/fa';
 
@@ -35,6 +35,7 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [subtasks, setSubtasks] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -64,15 +65,17 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [tasksData, projectsData, membersData] = await Promise.all([
+      const [tasksData, projectsData, membersData, subtasksData] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
-        teamMemberService.getAll()
+        teamMemberService.getAll(),
+        subtaskService.getAll()
       ]);
 
       setTasks(sortTasks(tasksData));
       setProjects(projectsData);
       setTeamMembers(membersData);
+      setSubtasks(subtasksData);
 
       // Create default project if none exists
       if (projectsData.length === 0) {
@@ -130,6 +133,7 @@ function App() {
   const handleDeleteTask = async (taskId) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
+        await subtaskService.deleteByTaskId(taskId);
         await taskService.delete(taskId);
         await loadData();
         setShowTaskModal(false);
@@ -152,13 +156,43 @@ function App() {
   };
 
   // Update task status directly from calendar view
-  const handleStatusUpdate = async (task, newStatus) => {
+  const handleStatusUpdate = async (task, newStatus, scope) => {
     try {
-      await taskService.update(task.id, { status: newStatus });
+      if (task.isRecurringInstance) {
+        // Recurring instance — update overrides on the source task, not the base status
+        const sourceId = task.recurringSourceId || task.id;
+        const sourceTask = await taskService.getById(sourceId);
+        if (!sourceTask) {
+          console.error('Source task not found for recurring instance:', sourceId);
+          return;
+        }
+
+        if (scope === 'future') {
+          // "This and all future" — append to statusFromOverrides
+          const fromOverrides = sourceTask.statusFromOverrides || [];
+          // Remove any existing override for the exact same fromDate to avoid duplicates
+          const filtered = fromOverrides.filter(o => o.fromDate !== task.instanceDate);
+          filtered.push({ fromDate: task.instanceDate, status: newStatus });
+          await taskService.update(sourceId, { statusFromOverrides: filtered });
+        } else {
+          // "This instance only" — add to statusOverrides map
+          const overrides = { ...(sourceTask.statusOverrides || {}) };
+          overrides[task.instanceDate] = newStatus;
+          await taskService.update(sourceId, { statusOverrides: overrides });
+        }
+      } else {
+        // Non-recurring: update status directly
+        await taskService.update(task.id, { status: newStatus });
+      }
       await loadData();
     } catch (err) {
       console.error('Failed to update status:', err);
     }
+  };
+
+  // Refresh all data after subtask mutations (add/toggle/delete/edit)
+  const handleSubtaskChange = async () => {
+    await loadData();
   };
 
   // Assign a due date to an outstanding (unscheduled) task
@@ -236,10 +270,11 @@ function App() {
   // ── Backup: export all DB data as a JSON download ──
   const handleBackup = async () => {
     try {
-      const [allTasks, allProjects, allMembers] = await Promise.all([
+      const [allTasks, allProjects, allMembers, allSubtasks] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
         teamMemberService.getAll(),
+        subtaskService.getAll(),
       ]);
       const payload = {
         exportedAt: new Date().toISOString(),
@@ -247,6 +282,7 @@ function App() {
         tasks: allTasks,
         projects: allProjects,
         teamMembers: allMembers,
+        subtasks: allSubtasks,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -400,6 +436,7 @@ function App() {
                   tasks={tasks}
                   projects={projects}
                   teamMembers={teamMembers}
+                  subtasks={subtasks}
                   activeProjectFilters={activeProjectFilters}
                   selectedDayDate={selectedDayDate}
                   onTaskClick={handleTaskClick}
@@ -478,9 +515,11 @@ function App() {
           projects={projects}
           teamMembers={teamMembers}
           tasks={tasks}
+          subtasks={subtasks}
           selectedDate={selectedDate}
           onSave={handleSaveTask}
           onDelete={handleDeleteTask}
+          onSubtaskChange={handleSubtaskChange}
           onClose={() => {
             setShowTaskModal(false);
             setSelectedTask(null);
