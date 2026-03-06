@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaTimes, FaTrash, FaUserPlus, FaCheck, FaSearchPlus, FaPlus } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
-import { subtaskService } from '../db';
+import { subtaskService } from '../api';
 import RichTextEditor from './RichTextEditor';
 import './TaskModal.css';
 
