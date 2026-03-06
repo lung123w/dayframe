@@ -49,7 +49,7 @@ const STATUS_ICON = {
 };
 const STATUS_LABEL = { todo: 'To Do', 'in-progress': 'In Progress', completed: 'Done' };
 
-export default function DayPanel({ date, tasks, projects, teamMembers, onTaskClick, onStatusUpdate, onNewTask, onDeleteTask }) {
+export default function DayPanel({ date, tasks, projects, teamMembers, subtasks, onSubtaskToggle, onTaskClick, onStatusUpdate, onNewTask, onDeleteTask }) {
   const dayTasks = useMemo(() => {
     if (!date) return [];
 
@@ -74,6 +74,16 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
     );
   }, [tasks, date]);
 
+  const subtasksByTaskId = useMemo(() => {
+    const map = {};
+    (subtasks || []).forEach(st => {
+      if (!map[st.parentTaskId]) map[st.parentTaskId] = [];
+      map[st.parentTaskId].push(st);
+    });
+    Object.values(map).forEach(arr => arr.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
+    return map;
+  }, [subtasks]);
+
   const getProject = id => projects.find(p => p.id === id);
   const getAssigneeNames = assignedTo => {
     const ids = Array.isArray(assignedTo) ? assignedTo : (assignedTo != null ? [assignedTo] : []);
@@ -90,6 +100,9 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
     const project   = getProject(task.projectId);
     const assignees = getAssigneeNames(task.assignedTo);
     const isCompleted = task.status === 'completed';
+    const subtaskTaskId = task.isRecurringInstance ? (task.recurringSourceId || task.id) : task.id;
+    const taskSubtasks = subtasksByTaskId[subtaskTaskId] || [];
+    const completedSubtasks = taskSubtasks.filter(st => st.completed).length;
 
     return (
       <div
@@ -116,6 +129,25 @@ export default function DayPanel({ date, tasks, projects, teamMembers, onTaskCli
               className="day-task-description"
               dangerouslySetInnerHTML={{ __html: task.description }}
             />
+          )}
+          {/* Subtask checklist */}
+          {taskSubtasks.length > 0 && (
+            <div className="day-subtask-section" onClick={e => e.stopPropagation()}>
+              <span className="day-subtask-summary">[{completedSubtasks}/{taskSubtasks.length}]</span>
+              <ul className="day-subtask-list">
+                {taskSubtasks.map(st => (
+                  <li key={st.id} className={`day-subtask-item${st.completed ? ' day-subtask-item--done' : ''}`}>
+                    <input
+                      type="checkbox"
+                      className="day-subtask-checkbox"
+                      checked={st.completed}
+                      onChange={() => onSubtaskToggle(st.id)}
+                    />
+                    <span className="day-subtask-title">{st.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <div className="day-task-meta">
             {project && (
