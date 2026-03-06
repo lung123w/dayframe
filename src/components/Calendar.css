@@ -466,6 +466,20 @@
   background: #FEF2F2;
 }
 
+/* ── Subtask progress badge on calendar events ── */
+.fc-event-subtask-badge {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-left: 2px;
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: -0.3px;
+}
+
+.fc-list-event-wrapper .fc-event-subtask-badge {
+  color: #94A3B8;
+}
+
 /* ── Calendar Project Filter Bar ── */
 .calendar-filter-bar {
   display: flex;

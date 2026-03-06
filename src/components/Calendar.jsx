@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
@@ -6,14 +6,28 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { generateRecurringTasks } from '../utils/recurrence';
 import './Calendar.css';
 
-export default function Calendar({ tasks, projects, teamMembers, activeProjectFilters, selectedDayDate, onTaskClick, onDateSelect, onNewTask, onEventDrop, onStatusUpdate, onDeleteTask }) {
+export default function Calendar({ tasks, projects, teamMembers, subtasks, activeProjectFilters, selectedDayDate, onTaskClick, onDateSelect, onNewTask, onEventDrop, onStatusUpdate, onDeleteTask }) {
   const calendarRef = useRef(null);
   const lastClickRef = useRef({ dateStr: null, time: 0 });
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [statusPopup, setStatusPopup] = useState(null); // { task, x, y }
+  const [pendingStatus, setPendingStatus] = useState(null); // status value awaiting scope choice
   const [projectFilter, setProjectFilter] = useState(''); // '' = all projects
   // Track the visible date range so events re-generate on month navigation
   const [viewRange, setViewRange] = useState({ start: null, end: null });
+
+  // Build subtask completion counts per task for badge display
+  const subtaskCounts = useMemo(() => {
+    const counts = {};
+    (subtasks || []).forEach(st => {
+      if (!counts[st.parentTaskId]) {
+        counts[st.parentTaskId] = { completed: 0, total: 0 };
+      }
+      counts[st.parentTaskId].total++;
+      if (st.completed) counts[st.parentTaskId].completed++;
+    });
+    return counts;
+  }, [subtasks]);
 
   // Called by FullCalendar whenever the view or dates change
   const handleDatesSet = (dateInfo) => {
@@ -146,10 +160,29 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   };
 
   const handleStatusChange = (status) => {
-    if (statusPopup && onStatusUpdate) {
-      onStatusUpdate(statusPopup.task, status);
+    if (!statusPopup) return;
+    const task = statusPopup.task;
+
+    // For recurring instances, show a scope sub-menu before applying
+    if (task.isRecurringInstance) {
+      setPendingStatus(status);
+      return;
+    }
+
+    // Non-recurring: apply immediately
+    if (onStatusUpdate) {
+      onStatusUpdate(task, status);
     }
     setStatusPopup(null);
+    setPendingStatus(null);
+  };
+
+  const handleScopeChoice = (scope) => {
+    if (statusPopup && pendingStatus && onStatusUpdate) {
+      onStatusUpdate(statusPopup.task, pendingStatus, scope);
+    }
+    setStatusPopup(null);
+    setPendingStatus(null);
   };
 
   const handleOpenTaskEdit = () => {
@@ -157,12 +190,14 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
       onTaskClick(statusPopup.task);
     }
     setStatusPopup(null);
+    setPendingStatus(null);
   };
 
   const handleDeleteTask = () => {
     if (statusPopup && onDeleteTask) {
       const task = statusPopup.task;
       setStatusPopup(null);
+      setPendingStatus(null);
       onDeleteTask(task.id);
     }
   };
@@ -178,7 +213,7 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
   };
 
   const renderEventContent = (eventInfo) => {
-    const { assignee, priority, status, projectName } = eventInfo.event.extendedProps;
+    const { assignee, priority, status, projectName, task } = eventInfo.event.extendedProps;
     const isListView = eventInfo.view.type === 'listWeek';
     const isCompleted = status === 'completed';
 
@@ -188,12 +223,19 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
     // Don't show priority badge for completed tasks (de-emphasised)
     const showPriority = !isCompleted;
 
+    // Subtask progress badge — for recurring instances use the source task ID
+    const subtaskTaskId = task.isRecurringInstance ? (task.recurringSourceId || task.id) : task.id;
+    const stCount = subtaskCounts[subtaskTaskId];
+
     if (isListView) {
       return (
         <div className={`fc-event-content-wrapper fc-list-event-wrapper${isCompleted ? ' fc-event--completed' : ''}`}>
           <div className="fc-event-title-row">
             {showPriority && <span className={priorityClass}>{priorityLabel}</span>}
             <span className="fc-event-title">{eventInfo.event.title}</span>
+            {stCount && (
+              <span className="fc-event-subtask-badge">[{stCount.completed}/{stCount.total}]</span>
+            )}
             {isCompleted && <span className="fc-event-badge fc-event-badge--done">✓</span>}
             {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}
           </div>
@@ -227,6 +269,9 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
         <div className="fc-event-title-row">
           {showPriority && <span className={priorityClass}>{priorityLabel}</span>}
           <span className="fc-event-title">{eventInfo.event.title}</span>
+          {stCount && (
+            <span className="fc-event-subtask-badge">[{stCount.completed}/{stCount.total}]</span>
+          )}
           {isCompleted && <span className="fc-event-badge fc-event-badge--done">✓</span>}
           {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}
         </div>
@@ -266,8 +311,9 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
         )}
       </div>
 
-      <div className="calendar-container" onClick={() => setStatusPopup(null)}>
+      <div className="calendar-container" onClick={() => { setStatusPopup(null); setPendingStatus(null); }}>
         <FullCalendar
+          key={projects.map(p => `${p.id}:${p.color}`).join(',')}
           ref={calendarRef}
           plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -300,26 +346,57 @@ export default function Calendar({ tasks, projects, teamMembers, activeProjectFi
             onClick={e => e.stopPropagation()}
           >
             <div className="status-popup-title">{statusPopup.task.title}</div>
-            <div className="status-popup-section-label">Update Status</div>
-            {statusOptions.map(opt => (
-              <button
-                key={opt.value}
-                className={`status-popup-option ${statusPopup.task.status === opt.value ? 'active' : ''}`}
-                style={{ '--status-color': opt.color }}
-                onClick={() => handleStatusChange(opt.value)}
-              >
-                <span className="status-popup-dot" style={{ background: opt.color }} />
-                {opt.label}
-                {statusPopup.task.status === opt.value && <span className="status-popup-check">✓</span>}
-              </button>
-            ))}
-            <div className="status-popup-divider" />
-            <button className="status-popup-edit" onClick={handleOpenTaskEdit}>
-              Open &amp; Edit Task
-            </button>
-            <button className="status-popup-delete" onClick={handleDeleteTask}>
-              Delete Task
-            </button>
+
+            {/* Scope sub-menu: shown after choosing a status for a recurring instance */}
+            {pendingStatus && statusPopup.task.isRecurringInstance ? (
+              <>
+                <div className="status-popup-section-label">Apply to&hellip;</div>
+                <button
+                  className="status-popup-option"
+                  onClick={() => handleScopeChoice('single')}
+                >
+                  <span className="status-popup-dot" style={{ background: '#3B82F6' }} />
+                  This instance only
+                </button>
+                <button
+                  className="status-popup-option"
+                  onClick={() => handleScopeChoice('future')}
+                >
+                  <span className="status-popup-dot" style={{ background: '#8B5CF6' }} />
+                  This and all future
+                </button>
+                <div className="status-popup-divider" />
+                <button
+                  className="status-popup-option"
+                  onClick={() => setPendingStatus(null)}
+                >
+                  Back
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="status-popup-section-label">Update Status</div>
+                {statusOptions.map(opt => (
+                  <button
+                    key={opt.value}
+                    className={`status-popup-option ${statusPopup.task.status === opt.value ? 'active' : ''}`}
+                    style={{ '--status-color': opt.color }}
+                    onClick={() => handleStatusChange(opt.value)}
+                  >
+                    <span className="status-popup-dot" style={{ background: opt.color }} />
+                    {opt.label}
+                    {statusPopup.task.status === opt.value && <span className="status-popup-check">✓</span>}
+                  </button>
+                ))}
+                <div className="status-popup-divider" />
+                <button className="status-popup-edit" onClick={handleOpenTaskEdit}>
+                  Open &amp; Edit Task
+                </button>
+                <button className="status-popup-delete" onClick={handleDeleteTask}>
+                  Delete Task
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
