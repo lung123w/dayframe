@@ -44,3 +44,23 @@ export const subtaskService = {
   deleteByTaskId: (taskId) => request(`/api/subtasks/by-task/${taskId}`, { method: 'DELETE' }),
   toggleCompleted: (id) => request(`/api/subtasks/${id}/toggle`, { method: 'PUT' }),
 };
+
+export const habitService = {
+  getAll: () => request('/api/habits'),
+  getById: (id) => request(`/api/habits/${id}`),
+  create: (habit) => request('/api/habits', { method: 'POST', body: JSON.stringify(habit) }),
+  update: (id, updates) => request(`/api/habits/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+  delete: (id) => request(`/api/habits/${id}`, { method: 'DELETE' }),
+};
+
+export const habitEntryService = {
+  getAll: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/api/habit-entries${qs ? '?' + qs : ''}`);
+  },
+  getByHabit: (habitId) => request(`/api/habit-entries/by-habit/${habitId}`),
+  create: (entry) => request('/api/habit-entries', { method: 'POST', body: JSON.stringify(entry) }),
+  update: (id, updates) => request(`/api/habit-entries/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+  delete: (id) => request(`/api/habit-entries/${id}`, { method: 'DELETE' }),
+  deleteByDate: (habitId, date) => request(`/api/habit-entries/by-date?habitId=${habitId}&date=${date}`, { method: 'DELETE' }),
+};
