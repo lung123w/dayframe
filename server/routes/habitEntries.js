@@ -59,16 +59,16 @@ router.put('/:id', (req, res) => {
   res.json(parseEntry(updated));
 });
 
-// DELETE /api/habit-entries/:id
-router.delete('/:id', (req, res) => {
-  db.prepare('DELETE FROM habit_entries WHERE id = ?').run(req.params.id);
-  res.status(204).end();
-});
-
 // DELETE /api/habit-entries/by-date?habitId=X&date=YYYY-MM-DD
 router.delete('/by-date', (req, res) => {
   const { habitId, date } = req.query;
   db.prepare('DELETE FROM habit_entries WHERE habitId = ? AND date = ?').run(habitId, date);
+  res.status(204).end();
+});
+
+// DELETE /api/habit-entries/:id
+router.delete('/:id', (req, res) => {
+  db.prepare('DELETE FROM habit_entries WHERE id = ?').run(req.params.id);
   res.status(204).end();
 });
 
