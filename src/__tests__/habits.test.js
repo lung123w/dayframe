@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent } from '../utils/habits';
+import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent, isDateApplicable } from '../utils/habits';
 
 describe('calculateCurrentStreak', () => {
   const daily = { type: 'daily' };
@@ -46,7 +46,7 @@ describe('calculateCurrentStreak', () => {
       }
     }
     const streak = calculateCurrentStreak(entries, freq);
-    expect(streak).toBeGreaterThanOrEqual(1);
+    expect(streak).toBe(3);
   });
 });
 
@@ -70,6 +70,65 @@ describe('calculateLongestStreak', () => {
       entries.push({ date: d.toISOString().slice(0, 10) });
     }
     expect(calculateLongestStreak(entries, { type: 'daily' })).toBe(5);
+  });
+});
+
+describe('isDateApplicable', () => {
+  it('returns true for any date with daily frequency', () => {
+    const daily = { type: 'daily' };
+    // Monday
+    expect(isDateApplicable('2026-03-02', daily)).toBe(true);
+    // Saturday
+    expect(isDateApplicable('2026-03-07', daily)).toBe(true);
+    // Sunday
+    expect(isDateApplicable('2026-03-08', daily)).toBe(true);
+  });
+
+  it('returns true for Mon-Fri and false for Sat/Sun with weekdays [1,2,3,4,5]', () => {
+    const weekdays = { type: 'weekdays', days: [1, 2, 3, 4, 5] };
+    // 2026-03-02 = Monday (ISO day 1)
+    expect(isDateApplicable('2026-03-02', weekdays)).toBe(true);
+    // 2026-03-03 = Tuesday (ISO day 2)
+    expect(isDateApplicable('2026-03-03', weekdays)).toBe(true);
+    // 2026-03-04 = Wednesday (ISO day 3)
+    expect(isDateApplicable('2026-03-04', weekdays)).toBe(true);
+    // 2026-03-05 = Thursday (ISO day 4)
+    expect(isDateApplicable('2026-03-05', weekdays)).toBe(true);
+    // 2026-03-06 = Friday (ISO day 5)
+    expect(isDateApplicable('2026-03-06', weekdays)).toBe(true);
+    // 2026-03-07 = Saturday (ISO day 6)
+    expect(isDateApplicable('2026-03-07', weekdays)).toBe(false);
+    // 2026-03-08 = Sunday (ISO day 7)
+    expect(isDateApplicable('2026-03-08', weekdays)).toBe(false);
+  });
+
+  it('returns true only for custom days with weekdays frequency', () => {
+    // Mon, Wed, Fri
+    const customDays = { type: 'weekdays', days: [1, 3, 5] };
+    // 2026-03-02 = Monday (ISO day 1) - included
+    expect(isDateApplicable('2026-03-02', customDays)).toBe(true);
+    // 2026-03-03 = Tuesday (ISO day 2) - not included
+    expect(isDateApplicable('2026-03-03', customDays)).toBe(false);
+    // 2026-03-04 = Wednesday (ISO day 3) - included
+    expect(isDateApplicable('2026-03-04', customDays)).toBe(true);
+    // 2026-03-05 = Thursday (ISO day 4) - not included
+    expect(isDateApplicable('2026-03-05', customDays)).toBe(false);
+    // 2026-03-06 = Friday (ISO day 5) - included
+    expect(isDateApplicable('2026-03-06', customDays)).toBe(true);
+    // 2026-03-07 = Saturday (ISO day 6) - not included
+    expect(isDateApplicable('2026-03-07', customDays)).toBe(false);
+    // 2026-03-08 = Sunday (ISO day 7) - not included
+    expect(isDateApplicable('2026-03-08', customDays)).toBe(false);
+  });
+
+  it('returns true for any date with weekly frequency', () => {
+    const weekly = { type: 'weekly', timesPerWeek: 3 };
+    // Monday
+    expect(isDateApplicable('2026-03-02', weekly)).toBe(true);
+    // Saturday
+    expect(isDateApplicable('2026-03-07', weekly)).toBe(true);
+    // Sunday
+    expect(isDateApplicable('2026-03-08', weekly)).toBe(true);
   });
 });
 
