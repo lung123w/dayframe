@@ -62,8 +62,9 @@ export function calculateCurrentStreak(entries, frequency) {
     }
   }
 
-  // Count consecutive days backward
-  while (true) {
+  // Count consecutive days backward (safeguard: max 2 years to prevent infinite loop)
+  let iterations = 0;
+  while (iterations++ < 730) {
     const dateStr = format(checkDate, 'yyyy-MM-dd');
 
     // For weekdays frequency, skip non-applicable days

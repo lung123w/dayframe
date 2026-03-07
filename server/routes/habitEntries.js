@@ -30,6 +30,9 @@ router.get('/by-habit/:habitId', (req, res) => {
 // POST /api/habit-entries
 router.post('/', (req, res) => {
   const { habitId, date, timeSpentSeconds } = req.body;
+  if (!habitId || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: 'habitId and a valid date (YYYY-MM-DD) are required' });
+  }
   const now = new Date().toISOString();
   try {
     const result = db.prepare(
