@@ -57,6 +57,27 @@ db.exec(`
     updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (parentTaskId) REFERENCES tasks(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS habits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    color TEXT NOT NULL DEFAULT '#10B981',
+    frequency TEXT NOT NULL DEFAULT '{"type":"daily"}',
+    isArchived INTEGER NOT NULL DEFAULT 0,
+    sortOrder INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS habit_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    habitId INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    timeSpentSeconds INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE,
+    UNIQUE(habitId, date)
+  );
 `);
 
 export default db;
