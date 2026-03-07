@@ -1,0 +1,97 @@
+.habit-heatmap {
+  position: relative;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.heatmap-month-labels {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #64748B;
+}
+
+.heatmap-day-label-spacer {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.heatmap-month-cell {
+  width: 12px;
+  text-align: left;
+  font-size: 10px;
+}
+
+.heatmap-grid-container {
+  display: flex;
+  gap: 4px;
+}
+
+.heatmap-day-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  width: 28px;
+}
+
+.heatmap-day-label {
+  height: 12px;
+  font-size: 10px;
+  color: #64748B;
+  line-height: 12px;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 2px;
+}
+
+.heatmap-week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heatmap-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+}
+
+.heatmap-cell.future {
+  background: #F1F5F9;
+}
+
+.heatmap-cell.not-applicable {
+  background: transparent;
+  border: 1px solid #E2E8F0;
+}
+
+.heatmap-cell.missed {
+  /* Color set via inline style with opacity */
+}
+
+.heatmap-cell.completed {
+  /* Color set via inline style */
+}
+
+.heatmap-tooltip {
+  position: fixed;
+  background: #1E293B;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
