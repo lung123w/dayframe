@@ -43,7 +43,6 @@ export default function HabitTracker() {
   }, []);
 
   useEffect(() => {
-    // Initial data load - async fetch that sets state via callback
     let cancelled = false;
     (async () => {
       try {
@@ -80,20 +79,24 @@ export default function HabitTracker() {
   }, [timerHabitId]);
 
   const handleToggleToday = async (habit) => {
-    const entries = entriesByHabit[habit.id] || [];
-    const todayEntry = entries.find(e => e.date === today);
+    try {
+      const entries = entriesByHabit[habit.id] || [];
+      const todayEntry = entries.find(e => e.date === today);
 
-    if (todayEntry) {
-      await habitEntryService.deleteByDate(habit.id, today);
-    } else {
-      await habitEntryService.create({ habitId: habit.id, date: today, timeSpentSeconds: 0 });
+      if (todayEntry) {
+        await habitEntryService.deleteByDate(habit.id, today);
+      } else {
+        await habitEntryService.create({ habitId: habit.id, date: today, timeSpentSeconds: 0 });
+      }
+      await loadData();
+    } catch (err) {
+      console.error('Failed to toggle today:', err);
     }
-    await loadData();
   };
 
-  const handleStartTimer = (habitId) => {
+  const handleStartTimer = async (habitId) => {
     if (timerHabitId) {
-      handleStopTimer();
+      await handleStopTimer();
     }
     setTimerHabitId(habitId);
     setTimerSeconds(0);
@@ -106,78 +109,98 @@ export default function HabitTracker() {
       return;
     }
 
-    const entries = entriesByHabit[timerHabitId] || [];
-    const todayEntry = entries.find(e => e.date === today);
+    try {
+      const entries = entriesByHabit[timerHabitId] || [];
+      const todayEntry = entries.find(e => e.date === today);
 
-    if (todayEntry) {
-      await habitEntryService.update(todayEntry.id, {
-        timeSpentSeconds: todayEntry.timeSpentSeconds + timerSeconds,
-      });
-    } else {
-      await habitEntryService.create({
-        habitId: timerHabitId,
-        date: today,
-        timeSpentSeconds: timerSeconds,
-      });
+      if (todayEntry) {
+        await habitEntryService.update(todayEntry.id, {
+          timeSpentSeconds: todayEntry.timeSpentSeconds + timerSeconds,
+        });
+      } else {
+        await habitEntryService.create({
+          habitId: timerHabitId,
+          date: today,
+          timeSpentSeconds: timerSeconds,
+        });
+      }
+
+      clearInterval(timerRef.current);
+      setTimerHabitId(null);
+      setTimerSeconds(0);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to stop timer:', err);
     }
-
-    clearInterval(timerRef.current);
-    setTimerHabitId(null);
-    setTimerSeconds(0);
-    await loadData();
   };
 
   const handleLogManualTime = async (habitId) => {
     const minutes = parseInt(manualMinutes);
     if (!minutes || minutes <= 0) return;
 
-    const entries = entriesByHabit[habitId] || [];
-    const todayEntry = entries.find(e => e.date === today);
-    const secondsToAdd = minutes * 60;
+    try {
+      const entries = entriesByHabit[habitId] || [];
+      const todayEntry = entries.find(e => e.date === today);
+      const secondsToAdd = minutes * 60;
 
-    if (todayEntry) {
-      await habitEntryService.update(todayEntry.id, {
-        timeSpentSeconds: todayEntry.timeSpentSeconds + secondsToAdd,
-      });
-    } else {
-      await habitEntryService.create({
-        habitId,
-        date: today,
-        timeSpentSeconds: secondsToAdd,
-      });
+      if (todayEntry) {
+        await habitEntryService.update(todayEntry.id, {
+          timeSpentSeconds: todayEntry.timeSpentSeconds + secondsToAdd,
+        });
+      } else {
+        await habitEntryService.create({
+          habitId,
+          date: today,
+          timeSpentSeconds: secondsToAdd,
+        });
+      }
+
+      setManualMinutes('');
+      await loadData();
+    } catch (err) {
+      console.error('Failed to log manual time:', err);
     }
-
-    setManualMinutes('');
-    await loadData();
   };
 
   const handleSaveHabit = async (habitData) => {
-    if (editingHabit) {
-      await habitService.update(editingHabit.id, habitData);
-    } else {
-      await habitService.create(habitData);
+    try {
+      if (editingHabit) {
+        await habitService.update(editingHabit.id, habitData);
+      } else {
+        await habitService.create(habitData);
+      }
+      setShowModal(false);
+      setEditingHabit(null);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to save habit:', err);
     }
-    setShowModal(false);
-    setEditingHabit(null);
-    await loadData();
   };
 
   const handleDeleteHabit = async (id) => {
     if (window.confirm('Delete this habit and all its history?')) {
-      await habitService.delete(id);
-      setShowModal(false);
-      setEditingHabit(null);
-      await loadData();
+      try {
+        await habitService.delete(id);
+        setShowModal(false);
+        setEditingHabit(null);
+        await loadData();
+      } catch (err) {
+        console.error('Failed to delete habit:', err);
+      }
     }
   };
 
   const handleArchiveHabit = async (id) => {
-    const habit = habits.find(h => h.id === id);
-    if (!habit) return;
-    await habitService.update(id, { isArchived: !habit.isArchived });
-    setShowModal(false);
-    setEditingHabit(null);
-    await loadData();
+    try {
+      const habit = habits.find(h => h.id === id);
+      if (!habit) return;
+      await habitService.update(id, { isArchived: !habit.isArchived });
+      setShowModal(false);
+      setEditingHabit(null);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to archive habit:', err);
+    }
   };
 
   const openEditModal = (habit) => {
@@ -247,7 +270,7 @@ export default function HabitTracker() {
 
           return (
             <div key={habit.id} className={`habit-card ${isExpanded ? 'expanded' : ''}`}>
-              <div className="habit-card-header" onClick={() => setExpandedHabitId(isExpanded ? null : habit.id)}>
+              <div className="habit-card-header" onClick={() => { setExpandedHabitId(isExpanded ? null : habit.id); setManualMinutes(''); }}>
                 <div className="habit-card-info">
                   <span className="habit-color-dot" style={{ backgroundColor: habit.color }} />
                   <h3 className="habit-name">{habit.name}</h3>
