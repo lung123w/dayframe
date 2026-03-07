@@ -5,9 +5,10 @@ import ProjectModal from './components/ProjectModal';
 import TeamManagement from './components/TeamManagement';
 import OutstandingTasks from './components/OutstandingTasks';
 import DayPanel from './components/DayPanel';
-import { taskService, teamMemberService, projectService, subtaskService } from './api';
+import HabitTracker from './components/HabitTracker';
+import { taskService, teamMemberService, projectService, subtaskService, habitService, habitEntryService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
-import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle, FaDownload } from 'react-icons/fa';
+import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle, FaDownload, FaLink } from 'react-icons/fa';
 
 import './App.css';
 
@@ -286,19 +287,23 @@ function App() {
   // ── Backup: export all DB data as a JSON download ──
   const handleBackup = async () => {
     try {
-      const [allTasks, allProjects, allMembers, allSubtasks] = await Promise.all([
+      const [allTasks, allProjects, allMembers, allSubtasks, allHabits, allHabitEntries] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
         teamMemberService.getAll(),
         subtaskService.getAll(),
+        habitService.getAll(),
+        habitEntryService.getAll(),
       ]);
       const payload = {
         exportedAt: new Date().toISOString(),
-        version: 2,
+        version: 3,
         tasks: allTasks,
         projects: allProjects,
         teamMembers: allMembers,
         subtasks: allSubtasks,
+        habits: allHabits,
+        habitEntries: allHabitEntries,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -346,6 +351,12 @@ function App() {
             onClick={() => setActiveView('team')}
           >
             <FaUsers /> Team
+          </button>
+          <button
+            className={`nav-btn ${activeView === 'habits' ? 'active' : ''}`}
+            onClick={() => setActiveView('habits')}
+          >
+            <FaLink /> Habits
           </button>
           <button className="btn-icon" onClick={requestNotificationPermission} title="Enable Notifications">
             <FaBell />
@@ -524,6 +535,10 @@ function App() {
             onUpdateMember={handleUpdateMember}
             onDeleteMember={handleDeleteMember}
           />
+        )}
+
+        {activeView === 'habits' && (
+          <HabitTracker />
         )}
       </main>
 
