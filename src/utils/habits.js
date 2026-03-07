@@ -17,8 +17,9 @@ export function isDateApplicable(dateStr, frequency) {
 
   if (frequency.type === 'weekdays') {
     const day = getDay(parseISO(dateStr));
-    // 0 = Sunday, 6 = Saturday
-    return day >= 1 && day <= 5;
+    // Convert getDay (0=Sun, 6=Sat) to ISO day (1=Mon, 7=Sun)
+    const isoDay = day === 0 ? 7 : day;
+    return Array.isArray(frequency.days) && frequency.days.includes(isoDay);
   }
 
   return true;
