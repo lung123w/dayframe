@@ -2,12 +2,12 @@ import { format, subDays, startOfWeek, differenceInCalendarDays, getDay, parseIS
 
 /**
  * Check if a date is applicable for a given frequency type.
- * For 'weekdays' frequency, only Mon-Fri are applicable.
+ * For 'weekdays' frequency, only days listed in frequency.days (ISO: 1=Mon, 7=Sun) are applicable.
  * For 'daily', all days are applicable.
  * For 'weekly', all days are applicable (checked at week level).
  *
  * @param {string} dateStr - ISO date string (YYYY-MM-DD)
- * @param {{ type: string }} frequency - frequency object
+ * @param {{ type: string, days?: number[] }} frequency - frequency object
  * @returns {boolean}
  */
 export function isDateApplicable(dateStr, frequency) {
