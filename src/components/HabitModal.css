@@ -1,0 +1,99 @@
+.habit-modal {
+  max-width: 480px;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.color-swatch:hover {
+  border-color: #94A3B8;
+}
+
+.color-swatch.active {
+  border-color: #1E293B;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #1E293B;
+}
+
+.freq-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.freq-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.freq-option input[type="radio"] {
+  accent-color: #F97316;
+}
+
+.weekday-picker {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.weekday-btn {
+  padding: 6px 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 150ms ease;
+}
+
+.weekday-btn:hover {
+  border-color: #F97316;
+}
+
+.weekday-btn.active {
+  background: #F97316;
+  color: white;
+  border-color: #F97316;
+}
+
+.weekly-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.weekly-count input {
+  width: 60px;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
+}
+
+.modal-actions-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
