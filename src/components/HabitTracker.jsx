@@ -43,8 +43,29 @@ export default function HabitTracker() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    // Initial data load - async fetch that sets state via callback
+    let cancelled = false;
+    (async () => {
+      try {
+        const habitsData = await habitService.getAll();
+        if (cancelled) return;
+        setHabits(habitsData);
+
+        const entriesMap = {};
+        await Promise.all(
+          habitsData.map(async (h) => {
+            const entries = await habitEntryService.getByHabit(h.id);
+            entriesMap[h.id] = entries;
+          })
+        );
+        if (cancelled) return;
+        setEntriesByHabit(entriesMap);
+      } catch (err) {
+        console.error('Failed to load habits:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Timer tick
   useEffect(() => {
