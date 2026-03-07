@@ -1,29 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FaTimes, FaTrash, FaArchive } from 'react-icons/fa';
 import './HabitModal.css';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DEFAULT_COLORS = ['#10B981', '#3B82F6', '#F97316', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B'];
 
-export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose }) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [color, setColor] = useState('#10B981');
-  const [freqType, setFreqType] = useState('daily');
-  const [weekdays, setWeekdays] = useState([1, 2, 3, 4, 5]); // Mon-Fri
-  const [timesPerWeek, setTimesPerWeek] = useState(3);
+function getInitialFreq(habit) {
+  return habit?.frequency || { type: 'daily' };
+}
 
-  useEffect(() => {
-    if (habit) {
-      setName(habit.name || '');
-      setDescription(habit.description || '');
-      setColor(habit.color || '#10B981');
-      const freq = habit.frequency || { type: 'daily' };
-      setFreqType(freq.type);
-      if (freq.type === 'weekdays') setWeekdays(freq.days || [1, 2, 3, 4, 5]);
-      if (freq.type === 'weekly') setTimesPerWeek(freq.timesPerWeek || 3);
-    }
-  }, [habit]);
+export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose }) {
+  const initFreq = getInitialFreq(habit);
+  const [name, setName] = useState(habit?.name || '');
+  const [description, setDescription] = useState(habit?.description || '');
+  const [color, setColor] = useState(habit?.color || '#10B981');
+  const [freqType, setFreqType] = useState(initFreq.type);
+  const [weekdays, setWeekdays] = useState(initFreq.type === 'weekdays' ? (initFreq.days || [1, 2, 3, 4, 5]) : [1, 2, 3, 4, 5]);
+  const [timesPerWeek, setTimesPerWeek] = useState(initFreq.type === 'weekly' ? (initFreq.timesPerWeek || 3) : 3);
 
   const handleSubmit = (e) => {
     e.preventDefault();
