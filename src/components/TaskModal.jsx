@@ -22,7 +22,8 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       daysOfWeek: [],
       endDate: null,
       endAfterOccurrences: null
-    }
+    },
+    estimatedMinutes: '',
   });
 
   const [showRecurrenceOptions, setShowRecurrenceOptions] = useState(false);
@@ -159,6 +160,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
         ...task,
         assignedTo,
         descriptionImages: task.descriptionImages || [],
+        estimatedMinutes: task.estimatedMinutes ?? '',
         dueDate: task.dueDate ? (() => {
           const d = new Date(task.dueDate);
           return [
@@ -275,6 +277,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
       projectId: formData.projectId ? parseInt(formData.projectId) : null,
       assignedTo: formData.assignedTo.map(id => parseInt(id)),
+      estimatedMinutes: formData.estimatedMinutes ? parseInt(formData.estimatedMinutes, 10) : null,
       recurrencePattern: formData.isRecurring ? {
         ...formData.recurrencePattern,
         interval: parseInt(formData.recurrencePattern.interval) || 1,
@@ -482,6 +485,20 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
               </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="estimatedMinutes">Est. Time (min)</label>
+              <input
+                type="number"
+                id="estimatedMinutes"
+                min="0"
+                step="5"
+                placeholder="e.g. 30"
+                value={formData.estimatedMinutes}
+                onChange={(e) => setFormData({ ...formData, estimatedMinutes: e.target.value })}
+                className="form-input"
+              />
             </div>
           </div>
 
