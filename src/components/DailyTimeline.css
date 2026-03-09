@@ -1,0 +1,61 @@
+/* ── Daily Timeline ── */
+.tl-container {
+  width: 220px;
+  flex-shrink: 0;
+  background: white;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  position: sticky;
+  top: 84px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.tl-header {
+  padding: 12px 14px 8px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid #F1F5F9;
+}
+.tl-header-icon { color: #3B82F6; font-size: 14px; }
+.tl-header-title { font-size: 13px; font-weight: 700; color: #1E293B; }
+
+/* Untimed tasks */
+.tl-untimed { padding: 8px 12px; border-bottom: 1px solid #F1F5F9; }
+.tl-untimed-label { font-size: 10px; color: #94A3B8; font-weight: 600; display: block; margin-bottom: 4px; }
+.tl-untimed-task { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.tl-untimed-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.tl-untimed-name { font-size: 11px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Grid */
+.tl-grid {
+  position: relative;
+  height: 600px;
+  margin: 8px 0;
+}
+
+/* Hour lines */
+.tl-hour {
+  position: absolute; left: 0; right: 0;
+  display: flex; align-items: center; height: 0;
+}
+.tl-hour-label {
+  font-size: 9px; color: #94A3B8; font-weight: 600;
+  width: 28px; text-align: right; padding-right: 4px; flex-shrink: 0;
+}
+.tl-hour-line { flex: 1; height: 1px; background: #F1F5F9; }
+
+/* Task blocks */
+.tl-block {
+  position: absolute; left: 34px; right: 8px;
+  border-left: 3px solid; border-radius: 4px;
+  padding: 4px 8px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+  min-height: 18px;
+}
+.tl-block-title {
+  font-size: 11px; font-weight: 600; color: #1E293B;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tl-block-time { font-size: 9px; color: #64748B; }
