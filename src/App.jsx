@@ -258,7 +258,7 @@ function App() {
       const dateStr = new Date().toISOString().slice(0, 10);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `projectflow-backup-${dateStr}.json`;
+      a.download = `dayframe-backup-${dateStr}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -274,7 +274,7 @@ function App() {
       <header className="app-header">
         <div className="app-header-brand">
           <FaCalendar />
-          <h1>ProjectFlow</h1>
+          <h1>DayFrame</h1>
         </div>
         <nav className="app-nav">
           <button
