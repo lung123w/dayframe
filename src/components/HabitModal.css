@@ -1,5 +1,12 @@
 .habit-modal {
   max-width: 480px;
+  background: white;
+  border-radius: 12px;
+  padding: 24px 28px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .color-picker {

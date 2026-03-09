@@ -74,6 +74,12 @@ describe('HabitTracker', () => {
 
     fireEvent.click(screen.getByText('Mark Done'));
 
+    // Time popover appears — click "Skip" to complete without time
+    await waitFor(() => {
+      expect(screen.getByText('Skip')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Skip'));
+
     await waitFor(() => {
       expect(habitEntryService.create).toHaveBeenCalled();
     });

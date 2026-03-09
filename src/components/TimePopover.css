@@ -1,0 +1,88 @@
+/* ── Time Popover ── */
+
+.time-popover {
+  position: fixed;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 1100;
+  min-width: 180px;
+  animation: popover-fade-in 120ms ease-out;
+}
+
+@keyframes popover-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.time-popover-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.time-popover-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  text-align: center;
+  outline: none;
+  transition: border-color 150ms ease;
+  box-sizing: border-box;
+}
+
+.time-popover-input:focus {
+  border-color: #6366F1;
+}
+
+.time-popover-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.time-popover-btn {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #E2E8F0;
+  transition: all 150ms ease;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.time-popover-btn.skip {
+  background: white;
+  color: #64748B;
+}
+
+.time-popover-btn.skip:hover {
+  background: #F8FAFC;
+  color: #1E293B;
+}
+
+.time-popover-btn.save {
+  background: #6366F1;
+  color: white;
+  border-color: #6366F1;
+}
+
+.time-popover-btn.save:hover {
+  background: #4F46E5;
+}
