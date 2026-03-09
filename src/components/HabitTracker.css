@@ -3,14 +3,13 @@
 }
 
 .habit-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 800px;
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
 }
 
 .habit-empty {
+  grid-column: 1 / -1;
   text-align: center;
   color: #64748B;
   padding: 48px 24px;
@@ -90,6 +89,10 @@
   flex-wrap: wrap;
 }
 
+.mark-done-wrapper {
+  position: relative;
+}
+
 .btn-sm {
   padding: 4px 10px;
   font-size: 12px;
@@ -155,16 +158,31 @@
   margin-left: 4px;
 }
 
+.habit-card .btn-icon {
+  color: #94A3B8;
+}
+
+.habit-card .btn-icon:hover {
+  background: #F1F5F9;
+  color: #1E293B;
+}
+
+.habit-card-heatmap {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #F1F5F9;
+  overflow-x: auto;
+}
+
 .habit-card-expanded {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid #E2E8F0;
 }
 
 .habit-stats {
   display: flex;
   gap: 24px;
-  margin-top: 12px;
 }
 
 .habit-stat {
@@ -191,4 +209,42 @@
   font-size: 13px;
   color: #64748B;
   line-height: 1.5;
+}
+
+/* Undo delete toast */
+.undo-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1E293B;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  animation: toast-slide-up 200ms ease-out;
+}
+
+@keyframes toast-slide-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.undo-toast-btn {
+  background: transparent;
+  color: #60A5FA;
+  border: 1px solid #60A5FA;
+  cursor: pointer;
+  font-weight: 600;
 }

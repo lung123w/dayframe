@@ -1,13 +1,30 @@
 import React, { useMemo, useState } from 'react';
-import { format, subDays, startOfWeek, addDays } from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  addMonths,
+  subMonths,
+  isSameMonth,
+  isToday,
+  isFuture,
+  isSameWeek,
+} from 'date-fns';
 import { isDateApplicable, formatTimeSpent } from '../utils/habits';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import TimePopover from './TimePopover';
 import './HabitHeatmap.css';
 
-const WEEKS_TO_SHOW = 16;
-const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-export default function HabitHeatmap({ entries, frequency, color }) {
+export default function HabitHeatmap({ entries, frequency, color, onToggleDate }) {
   const [tooltip, setTooltip] = useState(null);
+  const [viewDate, setViewDate] = useState(new Date());
+  const [expanded, setExpanded] = useState(false);
+  const [cellPopover, setCellPopover] = useState(null); // { dateStr, x, y }
 
   const entryMap = useMemo(() => {
     const map = {};
@@ -17,104 +34,169 @@ export default function HabitHeatmap({ entries, frequency, color }) {
     return map;
   }, [entries]);
 
-  const grid = useMemo(() => {
+  // Build the calendar grid for the current month
+  const calendarDays = useMemo(() => {
+    const monthStart = startOfMonth(viewDate);
+    const monthEnd = endOfMonth(viewDate);
+    const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+    const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+
+    const days = [];
+    let current = gridStart;
+
+    while (current <= gridEnd) {
+      const dateStr = format(current, 'yyyy-MM-dd');
+      const inMonth = isSameMonth(current, viewDate);
+      const todayFlag = isToday(current);
+      const futureFlag = isFuture(current) && !todayFlag;
+      const applicable = isDateApplicable(dateStr, frequency);
+      const entry = entryMap[dateStr];
+
+      days.push({
+        dateStr,
+        date: new Date(current),
+        dayNum: current.getDate(),
+        inMonth,
+        isToday: todayFlag,
+        isFuture: futureFlag,
+        applicable,
+        entry,
+      });
+      current = addDays(current, 1);
+    }
+    return days;
+  }, [viewDate, entryMap, frequency]);
+
+  // Split into weeks (rows of 7)
+  const allWeeks = useMemo(() => {
+    const rows = [];
+    for (let i = 0; i < calendarDays.length; i += 7) {
+      rows.push(calendarDays.slice(i, i + 7));
+    }
+    return rows;
+  }, [calendarDays]);
+
+  // When collapsed, show only the current week
+  const weeks = useMemo(() => {
+    if (expanded) return allWeeks;
     const today = new Date();
-    const endOfGrid = today;
-    const startDay = subDays(startOfWeek(endOfGrid, { weekStartsOn: 1 }), (WEEKS_TO_SHOW - 1) * 7);
-
-    const weeks = [];
-    let currentDay = startDay;
-
-    for (let w = 0; w < WEEKS_TO_SHOW; w++) {
-      const week = [];
-      for (let d = 0; d < 7; d++) {
-        const dateStr = format(currentDay, 'yyyy-MM-dd');
-        const isFuture = currentDay > today;
-        const applicable = isDateApplicable(dateStr, frequency);
-        const entry = entryMap[dateStr];
-        week.push({ dateStr, isFuture, applicable, entry, date: new Date(currentDay) });
-        currentDay = addDays(currentDay, 1);
-      }
-      weeks.push(week);
-    }
-    return weeks;
-  }, [entryMap, frequency]);
-
-  const monthLabels = useMemo(() => {
-    const labels = [];
-    let lastMonth = -1;
-    for (let w = 0; w < grid.length; w++) {
-      const firstDayOfWeek = grid[w][0];
-      const month = firstDayOfWeek.date.getMonth();
-      if (month !== lastMonth) {
-        labels.push({ weekIndex: w, label: format(firstDayOfWeek.date, 'MMM') });
-        lastMonth = month;
-      }
-    }
-    return labels;
-  }, [grid]);
+    const currentWeekRow = allWeeks.find(week =>
+      week.some(cell => isSameWeek(cell.date, today, { weekStartsOn: 1 }))
+    );
+    return currentWeekRow ? [currentWeekRow] : [allWeeks[0]];
+  }, [allWeeks, expanded]);
 
   function getCellClass(cell) {
-    if (cell.isFuture) return 'heatmap-cell future';
-    if (!cell.applicable) return 'heatmap-cell not-applicable';
-    if (cell.entry) return 'heatmap-cell completed';
-    return 'heatmap-cell missed';
+    const classes = ['cal-cell'];
+    if (!cell.inMonth) classes.push('outside-month');
+    else if (cell.isFuture) classes.push('future');
+    else if (!cell.applicable) classes.push('not-applicable');
+    else if (cell.entry) classes.push('completed');
+    else classes.push('missed');
+
+    if (cell.isToday) classes.push('today');
+    return classes.join(' ');
   }
 
   function getCellStyle(cell) {
-    if (cell.entry) return { backgroundColor: color };
+    if (!cell.inMonth) return {};
+    if (cell.entry) {
+      return { '--habit-color': color, backgroundColor: color + '20' };
+    }
     if (!cell.applicable || cell.isFuture) return {};
-    return { backgroundColor: color + '20' };
+    return { backgroundColor: '#FEE2E2' };
   }
 
+  function getTodayBorderStyle(cell) {
+    if (cell.isToday && cell.inMonth) {
+      return { boxShadow: `inset 0 0 0 2px ${color}` };
+    }
+    return {};
+  }
+
+  const canClick = (cell) => cell.inMonth && !cell.isFuture && cell.applicable && onToggleDate;
+
+  const handleCellClick = (cell, e) => {
+    if (!canClick(cell)) return;
+    if (cell.entry) {
+      // Already completed — toggle off (delete), no popover
+      onToggleDate(cell.dateStr, 0);
+    } else {
+      // Show time popover
+      const rect = e.currentTarget.getBoundingClientRect();
+      setCellPopover({ dateStr: cell.dateStr, x: rect.right + 4, y: rect.top });
+    }
+  };
+
   return (
-    <div className="habit-heatmap">
-      <div className="heatmap-month-labels">
-        <div className="heatmap-day-label-spacer" />
-        {grid.map((_, w) => {
-          const label = monthLabels.find(l => l.weekIndex === w);
-          return (
-            <div key={w} className="heatmap-month-cell">
-              {label ? label.label : ''}
-            </div>
-          );
-        })}
-      </div>
-      <div className="heatmap-grid-container">
-        <div className="heatmap-day-labels">
-          {DAY_LABELS.map((label, i) => (
-            <div key={i} className="heatmap-day-label">{label}</div>
-          ))}
+    <div className="habit-calendar">
+      {expanded && (
+        <div className="cal-header">
+          <button className="cal-nav-btn" onClick={() => setViewDate(prev => subMonths(prev, 1))}>
+            <FaChevronLeft />
+          </button>
+          <span className="cal-month-title">{format(viewDate, 'MMMM yyyy')}</span>
+          <button className="cal-nav-btn" onClick={() => setViewDate(prev => addMonths(prev, 1))}>
+            <FaChevronRight />
+          </button>
         </div>
-        <div className="heatmap-grid">
-          {grid.map((week, w) => (
-            <div key={w} className="heatmap-week">
-              {week.map((cell, d) => (
-                <div
-                  key={d}
-                  className={getCellClass(cell)}
-                  style={getCellStyle(cell)}
-                  onMouseEnter={(e) => setTooltip({
-                    x: e.clientX,
-                    y: e.clientY,
-                    date: cell.dateStr,
-                    entry: cell.entry,
-                    applicable: cell.applicable,
-                  })}
-                  onMouseLeave={() => setTooltip(null)}
-                />
-              ))}
+      )}
+
+      <div className="cal-grid">
+        {DAY_HEADERS.map(d => (
+          <div key={d} className="cal-day-header">{d}</div>
+        ))}
+        {weeks.map((week, wi) =>
+          week.map((cell, di) => (
+            <div
+              key={`${wi}-${di}`}
+              className={getCellClass(cell)}
+              style={{ ...getCellStyle(cell), ...getTodayBorderStyle(cell) }}
+              onClick={(e) => handleCellClick(cell, e)}
+              onMouseEnter={(e) => cell.inMonth && setTooltip({
+                x: e.clientX,
+                y: e.clientY,
+                date: cell.dateStr,
+                entry: cell.entry,
+                applicable: cell.applicable,
+                isFuture: cell.isFuture,
+              })}
+              onMouseLeave={() => setTooltip(null)}
+            >
+              <span className="cal-day-num">{cell.dayNum}</span>
             </div>
-          ))}
-        </div>
+          ))
+        )}
       </div>
-      {tooltip && (
+
+      <button
+        className="cal-toggle-btn"
+        onClick={() => setExpanded(prev => !prev)}
+      >
+        {expanded ? 'Show week' : 'Show month'}
+      </button>
+
+      {cellPopover && (
+        <TimePopover
+          x={cellPopover.x}
+          y={cellPopover.y}
+          onSave={(seconds) => {
+            onToggleDate(cellPopover.dateStr, seconds);
+            setCellPopover(null);
+          }}
+          onClose={() => setCellPopover(null)}
+        />
+      )}
+
+      {tooltip && !cellPopover && (
         <div
-          className="heatmap-tooltip"
+          className="cal-tooltip"
           style={{ left: tooltip.x + 10, top: tooltip.y - 30 }}
         >
           <strong>{format(new Date(tooltip.date + 'T00:00:00'), 'MMM d, yyyy')}</strong>
-          {tooltip.entry ? (
+          {tooltip.isFuture ? (
+            <><br />Upcoming</>
+          ) : tooltip.entry ? (
             <>
               <br />Completed
               {tooltip.entry.timeSpentSeconds > 0 && (

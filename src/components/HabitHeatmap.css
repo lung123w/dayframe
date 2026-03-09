@@ -1,89 +1,169 @@
-.habit-heatmap {
+/* ── Habit Calendar (monthly grid) ── */
+
+.habit-calendar {
   position: relative;
-  overflow-x: auto;
   padding: 8px 0;
 }
 
-.heatmap-month-labels {
+/* Header: ◀ March 2026 ▶ */
+.cal-header {
   display: flex;
-  gap: 2px;
-  margin-bottom: 4px;
-  font-size: 11px;
-  color: #64748B;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
-.heatmap-day-label-spacer {
-  width: 28px;
-  flex-shrink: 0;
+.cal-month-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+  min-width: 140px;
+  text-align: center;
 }
 
-.heatmap-month-cell {
-  width: 12px;
-  text-align: left;
-  font-size: 10px;
-}
-
-.heatmap-grid-container {
-  display: flex;
-  gap: 4px;
-}
-
-.heatmap-day-labels {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex-shrink: 0;
-  width: 28px;
-}
-
-.heatmap-day-label {
-  height: 12px;
-  font-size: 10px;
-  color: #64748B;
-  line-height: 12px;
-}
-
-.heatmap-grid {
-  display: flex;
-  gap: 2px;
-}
-
-.heatmap-week {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.heatmap-cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
+.cal-nav-btn {
+  background: transparent;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 4px 8px;
   cursor: pointer;
-  transition: opacity 150ms ease;
+  color: #64748B;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  transition: all 150ms ease;
 }
 
-.heatmap-cell:hover {
+.cal-nav-btn:hover {
+  border-color: #CBD5E1;
+  color: #1E293B;
+  background: #F8FAFC;
+}
+
+/* 7-column grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+/* Day-of-week headers */
+.cal-day-header {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 0;
+}
+
+/* Base cell */
+.cal-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 150ms ease, background-color 150ms ease;
+}
+
+.cal-cell:hover {
   opacity: 0.8;
 }
 
-.heatmap-cell.future {
-  background: #F1F5F9;
+.cal-day-num {
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  position: relative;
+  z-index: 1;
 }
 
-.heatmap-cell.not-applicable {
+/* Outside-month cells (padding days) */
+.cal-cell.outside-month {
+  cursor: default;
+}
+
+.cal-cell.outside-month .cal-day-num {
+  color: #CBD5E1;
+}
+
+.cal-cell.outside-month:hover {
+  opacity: 1;
+}
+
+/* Future cells */
+.cal-cell.future {
+  background: #F8FAFC;
+  cursor: default;
+}
+
+.cal-cell.future .cal-day-num {
+  color: #94A3B8;
+}
+
+.cal-cell.future:hover {
+  opacity: 1;
+}
+
+/* Not-applicable cells (rest days) */
+.cal-cell.not-applicable {
   background: transparent;
-  border: 1px solid #E2E8F0;
+  border: 1px dashed #E2E8F0;
+  cursor: default;
 }
 
-.heatmap-cell.missed {
-  /* Color set via inline style with opacity */
+.cal-cell.not-applicable .cal-day-num {
+  color: #CBD5E1;
 }
 
-.heatmap-cell.completed {
-  /* Color set via inline style */
+.cal-cell.not-applicable:hover {
+  opacity: 1;
 }
 
-.heatmap-tooltip {
+/* Missed cells — fixed red/pink background */
+.cal-cell.missed {
+  background-color: #FEE2E2;
+}
+
+/* Completed cells — X mark */
+.cal-cell.completed {
+  /* Light tinted background set via inline style */
+}
+
+.cal-cell.completed::before,
+.cal-cell.completed::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--habit-color, #10B981);
+  z-index: 0;
+}
+
+.cal-cell.completed::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.cal-cell.completed::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Today highlight — ring border via box-shadow (set inline) */
+.cal-cell.today .cal-day-num {
+  font-weight: 700;
+  color: #1E293B;
+}
+
+/* Tooltip */
+.cal-tooltip {
   position: fixed;
   background: #1E293B;
   color: white;
@@ -94,4 +174,23 @@
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Toggle button: "Show month" / "Show week" */
+.cal-toggle-btn {
+  display: block;
+  margin: 6px auto 0;
+  background: transparent;
+  border: none;
+  color: #64748B;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.cal-toggle-btn:hover {
+  color: #1E293B;
+  background: #F1F5F9;
 }

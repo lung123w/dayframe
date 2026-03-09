@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format } from 'date-fns';
-import { FaPlus, FaFire, FaCheck, FaPlay, FaStop, FaClock, FaEdit } from 'react-icons/fa';
+import { FaPlus, FaFire, FaCheck, FaClock, FaEdit, FaUndo } from 'react-icons/fa';
 import HabitHeatmap from './HabitHeatmap';
 import HabitModal from './HabitModal';
+import TimePopover from './TimePopover';
 import { habitService, habitEntryService } from '../api';
 import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent } from '../utils/habits';
 import './HabitTracker.css';
@@ -14,13 +15,15 @@ export default function HabitTracker() {
   const [showModal, setShowModal] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
 
-  // Timer state
-  const [timerHabitId, setTimerHabitId] = useState(null);
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const timerRef = useRef(null);
-
   // Manual time input
   const [manualMinutes, setManualMinutes] = useState('');
+
+  // Undo delete state
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const deleteTimerRef = useRef(null);
+
+  // "Mark Done" popover state
+  const [todayPopover, setTodayPopover] = useState(null); // { habitId, x, y }
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -66,19 +69,14 @@ export default function HabitTracker() {
     return () => { cancelled = true; };
   }, []);
 
-  // Timer tick
+  // Cleanup delete timer on unmount
   useEffect(() => {
-    if (timerHabitId) {
-      timerRef.current = setInterval(() => {
-        setTimerSeconds(s => s + 1);
-      }, 1000);
-    }
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
     };
-  }, [timerHabitId]);
+  }, []);
 
-  const handleToggleToday = async (habit) => {
+  const handleToggleToday = async (habit, timeSpentSeconds = 0) => {
     try {
       const entries = entriesByHabit[habit.id] || [];
       const todayEntry = entries.find(e => e.date === today);
@@ -86,51 +84,11 @@ export default function HabitTracker() {
       if (todayEntry) {
         await habitEntryService.deleteByDate(habit.id, today);
       } else {
-        await habitEntryService.create({ habitId: habit.id, date: today, timeSpentSeconds: 0 });
+        await habitEntryService.create({ habitId: habit.id, date: today, timeSpentSeconds });
       }
       await loadData();
     } catch (err) {
       console.error('Failed to toggle today:', err);
-    }
-  };
-
-  const handleStartTimer = async (habitId) => {
-    if (timerHabitId) {
-      await handleStopTimer();
-    }
-    setTimerHabitId(habitId);
-    setTimerSeconds(0);
-  };
-
-  const handleStopTimer = async () => {
-    if (!timerHabitId || timerSeconds === 0) {
-      setTimerHabitId(null);
-      setTimerSeconds(0);
-      return;
-    }
-
-    try {
-      const entries = entriesByHabit[timerHabitId] || [];
-      const todayEntry = entries.find(e => e.date === today);
-
-      if (todayEntry) {
-        await habitEntryService.update(todayEntry.id, {
-          timeSpentSeconds: todayEntry.timeSpentSeconds + timerSeconds,
-        });
-      } else {
-        await habitEntryService.create({
-          habitId: timerHabitId,
-          date: today,
-          timeSpentSeconds: timerSeconds,
-        });
-      }
-
-      clearInterval(timerRef.current);
-      setTimerHabitId(null);
-      setTimerSeconds(0);
-      await loadData();
-    } catch (err) {
-      console.error('Failed to stop timer:', err);
     }
   };
 
@@ -178,15 +136,63 @@ export default function HabitTracker() {
   };
 
   const handleDeleteHabit = async (id) => {
-    if (window.confirm('Delete this habit and all its history?')) {
+    // Soft delete: hide from UI, show undo toast, delete after 5s
+    const habitToDelete = habits.find(h => h.id === id);
+    if (!habitToDelete) return;
+
+    // Clear any existing pending delete
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      // Execute the previous pending delete immediately
+      if (pendingDelete) {
+        habitService.delete(pendingDelete.id).catch(err => console.error('Failed to delete habit:', err));
+      }
+    }
+
+    setShowModal(false);
+    setEditingHabit(null);
+    setPendingDelete({ id, habit: habitToDelete });
+
+    // Hide from UI immediately
+    setHabits(prev => prev.filter(h => h.id !== id));
+
+    // Schedule permanent delete after 5 seconds
+    deleteTimerRef.current = setTimeout(async () => {
       try {
         await habitService.delete(id);
-        setShowModal(false);
-        setEditingHabit(null);
-        await loadData();
+        setPendingDelete(null);
+        deleteTimerRef.current = null;
       } catch (err) {
         console.error('Failed to delete habit:', err);
+        await loadData(); // Restore on failure
+        setPendingDelete(null);
       }
+    }, 5000);
+  };
+
+  const handleUndoDelete = async () => {
+    if (!pendingDelete) return;
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    setPendingDelete(null);
+    await loadData(); // Restore the habit from DB (it hasn't been deleted yet)
+  };
+
+  const handleToggleDate = async (habitId, dateStr, timeSpentSeconds = 0) => {
+    try {
+      const entries = entriesByHabit[habitId] || [];
+      const existing = entries.find(e => e.date === dateStr);
+
+      if (existing) {
+        await habitEntryService.deleteByDate(habitId, dateStr);
+      } else {
+        await habitEntryService.create({ habitId, date: dateStr, timeSpentSeconds });
+      }
+      await loadData();
+    } catch (err) {
+      console.error('Failed to toggle date:', err);
     }
   };
 
@@ -211,12 +217,6 @@ export default function HabitTracker() {
   const openCreateModal = () => {
     setEditingHabit(null);
     setShowModal(true);
-  };
-
-  const formatTimerDisplay = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
   const getFrequencyLabel = (freq) => {
@@ -266,7 +266,6 @@ export default function HabitTracker() {
           const totalCompletions = entries.length;
           const totalTime = entries.reduce((sum, e) => sum + (e.timeSpentSeconds || 0), 0);
           const isExpanded = expandedHabitId === habit.id;
-          const isTimerRunning = timerHabitId === habit.id;
 
           return (
             <div key={habit.id} className={`habit-card ${isExpanded ? 'expanded' : ''}`}>
@@ -293,29 +292,41 @@ export default function HabitTracker() {
               </div>
 
               <div className="habit-card-actions">
-                <button
-                  className={`btn btn-sm ${todayEntry ? 'btn-success' : 'btn-outline'}`}
-                  onClick={(e) => { e.stopPropagation(); handleToggleToday(habit); }}
-                >
-                  <FaCheck /> {todayEntry ? 'Done' : 'Mark Done'}
-                </button>
-
-                {isTimerRunning ? (
-                  <button className="btn btn-sm btn-danger" onClick={(e) => { e.stopPropagation(); handleStopTimer(); }}>
-                    <FaStop /> {formatTimerDisplay(timerSeconds)}
+                <div className="mark-done-wrapper" onClick={e => e.stopPropagation()}>
+                  <button
+                    className={`btn btn-sm ${todayEntry ? 'btn-success' : 'btn-outline'}`}
+                    onClick={(e) => {
+                      if (todayEntry) {
+                        // Already done — toggle off (delete), no popover
+                        handleToggleToday(habit);
+                      } else {
+                        // Show time popover
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setTodayPopover({ habitId: habit.id, x: rect.left, y: rect.bottom + 4 });
+                      }
+                    }}
+                  >
+                    <FaCheck /> {todayEntry ? 'Done' : 'Mark Done'}
                   </button>
-                ) : (
-                  <button className="btn btn-sm btn-outline" onClick={(e) => { e.stopPropagation(); handleStartTimer(habit.id); }}>
-                    <FaPlay /> Timer
-                  </button>
-                )}
+                  {todayPopover && todayPopover.habitId === habit.id && (
+                    <TimePopover
+                      x={todayPopover.x}
+                      y={todayPopover.y}
+                      onSave={(seconds) => {
+                        handleToggleToday(habit, seconds);
+                        setTodayPopover(null);
+                      }}
+                      onClose={() => setTodayPopover(null)}
+                    />
+                  )}
+                </div>
 
                 <div className="manual-time-input" onClick={e => e.stopPropagation()}>
                   <input
                     type="number"
                     min="1"
                     placeholder="min"
-                    value={expandedHabitId === habit.id ? manualMinutes : ''}
+                    value={manualMinutes}
                     onChange={e => setManualMinutes(e.target.value)}
                     className="time-input"
                   />
@@ -333,9 +344,12 @@ export default function HabitTracker() {
                 )}
               </div>
 
+              <div className="habit-card-heatmap">
+                <HabitHeatmap entries={entries} frequency={habit.frequency} color={habit.color} onToggleDate={(dateStr, timeSpentSeconds) => handleToggleDate(habit.id, dateStr, timeSpentSeconds)} />
+              </div>
+
               {isExpanded && (
                 <div className="habit-card-expanded">
-                  <HabitHeatmap entries={entries} frequency={habit.frequency} color={habit.color} />
                   <div className="habit-stats">
                     <div className="habit-stat">
                       <span className="habit-stat-value">{currentStreak}</span>
@@ -372,6 +386,15 @@ export default function HabitTracker() {
           onArchive={handleArchiveHabit}
           onClose={() => { setShowModal(false); setEditingHabit(null); }}
         />
+      )}
+
+      {pendingDelete && (
+        <div className="undo-toast">
+          <span>"{pendingDelete.habit.name}" deleted</span>
+          <button className="btn btn-sm undo-toast-btn" onClick={handleUndoDelete}>
+            <FaUndo /> Undo
+          </button>
+        </div>
       )}
     </div>
   );
