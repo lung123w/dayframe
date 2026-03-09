@@ -64,3 +64,19 @@ export const habitEntryService = {
   delete: (id) => request(`/api/habit-entries/${id}`, { method: 'DELETE' }),
   deleteByDate: (habitId, date) => request(`/api/habit-entries/by-date?habitId=${habitId}&date=${date}`, { method: 'DELETE' }),
 };
+
+export const weeklyObjectiveService = {
+  getByWeek: (weekStart) => request(`/api/weekly-objectives?weekStart=${weekStart}`),
+  upsert: (weekStart, objectives) => request('/api/weekly-objectives', {
+    method: 'PUT',
+    body: JSON.stringify({ weekStart, objectives }),
+  }),
+};
+
+export const dailyNoteService = {
+  getByDate: (date) => request(`/api/daily-notes?date=${date}`),
+  upsert: (data) => request('/api/daily-notes', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+};
