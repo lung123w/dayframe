@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Calendar from './components/Calendar';
 import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
 import TeamManagement from './components/TeamManagement';
-import OutstandingTasks from './components/OutstandingTasks';
-import DayPanel from './components/DayPanel';
 import HabitTracker from './components/HabitTracker';
+import DailyPlanner from './components/DailyPlanner';
 import { taskService, teamMemberService, projectService, subtaskService, habitService, habitEntryService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
-import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaTimes, FaEdit, FaExclamationCircle, FaDownload, FaLink } from 'react-icons/fa';
+import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaDownload, FaLink } from 'react-icons/fa';
 
 import './App.css';
 
@@ -23,15 +21,6 @@ function sortTasks(tasks) {
   });
 }
 
-function todayStr() {
-  const d = new Date();
-  return [
-    d.getFullYear(),
-    String(d.getMonth() + 1).padStart(2, '0'),
-    String(d.getDate()).padStart(2, '0'),
-  ].join('-');
-}
-
 function App() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -40,17 +29,11 @@ function App() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [activeView, setActiveView] = useState('calendar');
-
-  // Day panel: which date is selected (defaults to today)
-  const [selectedDayDate, setSelectedDayDate] = useState(todayStr);
+  const [activeView, setActiveView] = useState('planner');
 
   // Project management state
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-
-  // Project filter state: empty Set = show all, non-empty = show only selected
-  const [activeProjectFilters, setActiveProjectFilters] = useState(new Set());
 
   useEffect(() => {
     loadData();
@@ -95,12 +78,6 @@ function App() {
     setSelectedTask(task);
     setSelectedDate(null);
     setShowTaskModal(true);
-  };
-
-  const handleDateSelect = (dateStr) => {
-    // Update the day panel to show tasks for this date
-    setSelectedDayDate(dateStr);
-    // Do NOT open the task modal on plain date click — use New Task button instead
   };
 
   const handleNewTaskForDay = (dateStr) => {
@@ -148,17 +125,6 @@ function App() {
       } catch (err) {
         console.error('Failed to delete task:', err);
       }
-    }
-  };
-
-  const handleEventDrop = async (task, newDate) => {
-    try {
-      await taskService.update(task.id, {
-        dueDate: newDate.toISOString()
-      });
-      await loadData();
-    } catch (err) {
-      console.error('Failed to move task:', err);
     }
   };
 
@@ -215,7 +181,8 @@ function App() {
   // Assign a due date to an outstanding (unscheduled) task
   const handleAssignDate = async (task, date) => {
     try {
-      await taskService.update(task.id, { dueDate: date.toISOString() });
+      const d = typeof date === 'string' ? new Date(date) : date;
+      await taskService.update(task.id, { dueDate: d.toISOString() });
       await loadData();
     } catch (err) {
       console.error('Failed to assign date:', err);
@@ -245,29 +212,10 @@ function App() {
 
   const handleDeleteProject = async (projectId) => {
     await projectService.delete(projectId);
-    setActiveProjectFilters((prev) => {
-      const next = new Set(prev);
-      next.delete(projectId);
-      return next;
-    });
     await loadData();
     setShowProjectModal(false);
     setEditingProject(null);
   };
-
-  const toggleProjectFilter = (projectId) => {
-    setActiveProjectFilters((prev) => {
-      const next = new Set(prev);
-      if (next.has(projectId)) {
-        next.delete(projectId);
-      } else {
-        next.add(projectId);
-      }
-      return next;
-    });
-  };
-
-  const clearFilters = () => setActiveProjectFilters(new Set());
 
   const handleAddMember = async (memberData) => {
     await teamMemberService.create(memberData);
@@ -321,8 +269,6 @@ function App() {
     }
   };
 
-  const outstandingCount = tasks.filter(t => !t.dueDate).length;
-
   return (
     <div className="app">
       <header className="app-header">
@@ -332,19 +278,10 @@ function App() {
         </div>
         <nav className="app-nav">
           <button
-            className={`nav-btn ${activeView === 'calendar' ? 'active' : ''}`}
-            onClick={() => setActiveView('calendar')}
+            className={`nav-btn ${activeView === 'planner' ? 'active' : ''}`}
+            onClick={() => setActiveView('planner')}
           >
-            <FaCalendar /> Calendar
-          </button>
-          <button
-            className={`nav-btn ${activeView === 'outstanding' ? 'active' : ''}`}
-            onClick={() => setActiveView('outstanding')}
-          >
-            <FaExclamationCircle /> Outstanding
-            {outstandingCount > 0 && (
-              <span className="nav-badge">{outstandingCount}</span>
-            )}
+            <FaCalendar /> Planner
           </button>
           <button
             className={`nav-btn ${activeView === 'team' ? 'active' : ''}`}
@@ -368,7 +305,7 @@ function App() {
       </header>
 
       <main className="app-main">
-        {activeView === 'calendar' && (
+        {activeView === 'planner' && (
           <>
             {/* ── Toolbar ── */}
             <div className="toolbar">
@@ -398,132 +335,22 @@ function App() {
                       {tasks.filter((t) => t.status === 'in-progress').length}
                     </span>
                   </div>
-                  <div className="stat-card">
-                    <span className="stat-label">O/S</span>
-                    <span className="stat-value" style={{ color: '#F97316' }}>
-                      {outstandingCount}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Project Filter Bar ── */}
-            {projects.length > 0 && (
-              <div className="project-filter-bar">
-                <span className="project-filter-label">Projects</span>
-                {projects.map((project) => {
-                  const isActive = activeProjectFilters.has(project.id);
-                  return (
-                    <div
-                      key={project.id}
-                      role="button"
-                      tabIndex={0}
-                      className={`project-chip ${isActive ? 'active' : ''}`}
-                      style={
-                        isActive
-                          ? { background: project.color, borderColor: project.color }
-                          : { borderColor: project.color + '40' }
-                      }
-                      onClick={() => toggleProjectFilter(project.id)}
-                      onKeyDown={(e) => e.key === 'Enter' && toggleProjectFilter(project.id)}
-                    >
-                      <span
-                        className="project-chip-dot"
-                        style={{ background: isActive ? 'rgba(255,255,255,0.8)' : project.color }}
-                      />
-                      {project.name}
-                      <button
-                        className="project-chip-edit"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenProjectModal(project);
-                        }}
-                        title={`Edit ${project.name}`}
-                      >
-                        <FaEdit />
-                      </button>
-                    </div>
-                  );
-                })}
-                {activeProjectFilters.size > 0 && (
-                  <>
-                    <span className="filter-separator" />
-                    <button className="filter-clear-btn" onClick={clearFilters}>
-                      <FaTimes /> Clear
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            <div className="calendar-day-layout">
-              <div className="calendar-day-layout__calendar">
-                <Calendar
-                  tasks={tasks}
-                  projects={projects}
-                  teamMembers={teamMembers}
-                  subtasks={subtasks}
-                  activeProjectFilters={activeProjectFilters}
-                  selectedDayDate={selectedDayDate}
-                  onTaskClick={handleTaskClick}
-                  onDateSelect={handleDateSelect}
-                  onNewTask={handleNewTaskForDay}
-                  onEventDrop={handleEventDrop}
-                  onStatusUpdate={handleStatusUpdate}
-                  onDeleteTask={handleDeleteTask}
-                />
-              </div>
-              <div className="calendar-day-layout__panel">
-                <DayPanel
-                  date={selectedDayDate}
-                  tasks={tasks}
-                  projects={projects}
-                  teamMembers={teamMembers}
-                  subtasks={subtasks}
-                  onSubtaskToggle={handleSubtaskToggle}
-                  onTaskClick={handleTaskClick}
-                  onStatusUpdate={handleStatusUpdate}
-                  onNewTask={handleNewTaskForDay}
-                  onDeleteTask={handleDeleteTask}
-                />
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeView === 'outstanding' && (
-          <>
-            {/* ── Toolbar ── */}
-            <div className="toolbar">
-              <div className="toolbar-left">
-                <button className="btn btn-primary" onClick={handleNewTask}>
-                  <FaPlus /> New Task
-                </button>
-              </div>
-              <div className="toolbar-right">
-                <div className="task-stats">
-                  <div className="stat-card">
-                    <span className="stat-label">Total</span>
-                    <span className="stat-value">{tasks.length}</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-label">O/S</span>
-                    <span className="stat-value" style={{ color: '#F97316' }}>
-                      {outstandingCount}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <OutstandingTasks
+            <DailyPlanner
               tasks={tasks}
               projects={projects}
               teamMembers={teamMembers}
+              subtasks={subtasks}
               onTaskClick={handleTaskClick}
-              onAssignDate={handleAssignDate}
+              onStatusUpdate={handleStatusUpdate}
+              onNewTask={handleNewTaskForDay}
               onDeleteTask={handleDeleteTask}
+              onSubtaskToggle={handleSubtaskToggle}
+              onAssignDate={handleAssignDate}
+              onDataChange={loadData}
             />
           </>
         )}
