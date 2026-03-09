@@ -1,0 +1,52 @@
+/* ── Weekly Objectives ── */
+.wo-container {
+  background: white; border: 1.5px solid #E2E8F0; border-radius: 10px;
+  margin-bottom: 12px; overflow: hidden;
+}
+
+.wo-toggle {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 10px 14px; background: none; border: none; cursor: pointer;
+  font-family: inherit; text-align: left;
+  color: #64748B; font-size: 12px;
+}
+.wo-toggle:hover { background: #F8FAFC; }
+
+.wo-icon { color: #F97316; font-size: 14px; }
+.wo-title { font-size: 13px; font-weight: 700; color: #1E293B; flex: 1; }
+.wo-badge {
+  font-size: 10px; background: #FFF7ED; color: #F97316;
+  border-radius: 10px; padding: 1px 6px; font-weight: 700;
+}
+
+.wo-body { padding: 0 14px 12px; }
+.wo-loading { font-size: 12px; color: #94A3B8; padding: 8px 0; }
+.wo-empty { font-size: 12px; color: #94A3B8; padding: 4px 0; font-style: italic; }
+
+.wo-list { list-style: none; padding: 0; margin: 0 0 8px; }
+.wo-item {
+  display: flex; align-items: flex-start; gap: 6px; padding: 3px 0;
+  font-size: 13px; color: #1E293B;
+}
+.wo-bullet { color: #F97316; font-weight: 700; flex-shrink: 0; }
+.wo-text { flex: 1; }
+.wo-remove {
+  background: none; border: none; cursor: pointer; color: #CBD5E1;
+  font-size: 10px; padding: 2px; flex-shrink: 0;
+  transition: color 0.12s;
+}
+.wo-remove:hover { color: #DC2626; }
+
+.wo-add-row { display: flex; gap: 6px; }
+.wo-input {
+  flex: 1; padding: 5px 8px; border: 1.5px solid #E2E8F0; border-radius: 5px;
+  font-size: 12px; font-family: inherit; outline: none;
+}
+.wo-input:focus { border-color: #94A3B8; }
+.wo-add-btn {
+  background: #F97316; color: white; border: none; border-radius: 5px;
+  padding: 5px 10px; cursor: pointer; font-size: 12px;
+  transition: background 0.12s;
+}
+.wo-add-btn:disabled { background: #CBD5E1; cursor: default; }
+.wo-add-btn:hover:not(:disabled) { background: #EA580C; }

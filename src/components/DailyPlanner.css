@@ -1,0 +1,62 @@
+/* ── Daily Planner Layout ── */
+.dp-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.dp-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Day columns row */
+.dp-columns {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  overflow-x: auto;
+}
+
+/* Ensure mini columns are narrow */
+.dp-columns .dc-column:not(.dc-column--expanded) {
+  flex: 1;
+  min-width: 100px;
+  max-width: 140px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .dp-layout {
+    flex-direction: column;
+  }
+
+  .backlog-sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+
+  .tl-container {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+
+  .dp-columns {
+    flex-wrap: wrap;
+  }
+
+  .dp-columns .dc-column:not(.dc-column--expanded) {
+    max-width: none;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dp-columns .dc-column:not(.dc-column--expanded) {
+    display: none; /* Hide mini columns on mobile, just show expanded */
+  }
+}
