@@ -44,8 +44,9 @@ export default function DailyPlanner({
 
   // Get day tasks for the selected (expanded) day — needed for shutdown
   const expandedDayTasks = useMemo(() => {
-    const dayStart = new Date(y, m - 1, d);
-    const dayEnd = new Date(y, m - 1, d + 1);
+    const [py, pm, pd] = selectedDate.split('-').map(Number);
+    const dayStart = new Date(py, pm - 1, pd);
+    const dayEnd = new Date(py, pm - 1, pd + 1);
     const result = [];
     for (const task of tasks) {
       if (task.isRecurring && task.dueDate) {
@@ -55,7 +56,7 @@ export default function DailyPlanner({
       }
     }
     return result;
-  }, [tasks, selectedDate, y, m, d]);
+  }, [tasks, selectedDate]);
 
   // Week navigation
   const handlePrevWeek = () => {
@@ -91,7 +92,7 @@ export default function DailyPlanner({
           onAssignDate(task, new Date(dateStr));
         }
       }
-    } catch (err) {
+    } catch {
       // Invalid drag data
     }
   }, [tasks, onAssignDate]);

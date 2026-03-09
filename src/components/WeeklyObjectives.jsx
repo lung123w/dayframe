@@ -25,6 +25,7 @@ export default function WeeklyObjectives({ selectedDate }) {
     setLoading(false);
   }, [weekStart]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadObjectives(); }, [loadObjectives]);
 
   const save = async (updated) => {

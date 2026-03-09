@@ -16,7 +16,7 @@ export default function DailyShutdown({ dateStr, dayTasks, onDataChange }) {
   const [collapsed, setCollapsed] = useState(true);
   const [highlights, setHighlights] = useState('');
   const [savedHighlights, setSavedHighlights] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   const loadNote = useCallback(async () => {
     setLoading(true);
@@ -30,6 +30,7 @@ export default function DailyShutdown({ dateStr, dayTasks, onDataChange }) {
     setLoading(false);
   }, [dateStr]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadNote(); }, [loadNote]);
 
   // Compute stats
