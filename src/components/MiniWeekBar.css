@@ -1,0 +1,40 @@
+/* -- Mini Week Bar -- */
+.mini-week { margin-bottom: 16px; }
+.mini-week-nav {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: 8px;
+}
+.mini-week-arrow {
+  background: none; border: 1.5px solid #E2E8F0; border-radius: 6px;
+  padding: 4px 8px; cursor: pointer; color: #64748B; font-size: 12px;
+  transition: background 0.12s, border-color 0.12s;
+}
+.mini-week-arrow:hover { background: #F1F5F9; border-color: #94A3B8; }
+.mini-week-label { font-size: 13px; font-weight: 600; color: #1E293B; }
+
+.mini-week-days {
+  display: flex; gap: 4px;
+}
+.mini-week-day {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 8px 4px; border-radius: 8px; border: 1.5px solid transparent;
+  cursor: pointer; background: white; transition: all 0.12s;
+  font-family: inherit;
+}
+.mini-week-day:hover { background: #F8FAFC; border-color: #E2E8F0; }
+
+.mini-week-day--selected {
+  background: #FFF7ED; border-color: #F97316;
+}
+.mini-week-day--today .mini-week-day-num {
+  background: #F97316; color: white; border-radius: 50%;
+  width: 24px; height: 24px; display: flex; align-items: center;
+  justify-content: center;
+}
+
+.mini-week-day-name { font-size: 10px; color: #94A3B8; font-weight: 700; text-transform: uppercase; }
+.mini-week-day-num { font-size: 14px; font-weight: 700; color: #1E293B; margin: 2px 0; }
+.mini-week-day-dots {
+  font-size: 9px; background: #E2E8F0; color: #64748B;
+  border-radius: 8px; padding: 0 5px; font-weight: 700;
+}

@@ -1,0 +1,90 @@
+/* -- Backlog Sidebar -- */
+.backlog-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: white;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 84px;
+  max-height: calc(100vh - 100px);
+  overflow: hidden;
+}
+
+/* Header */
+.backlog-header { padding: 14px 16px 8px; }
+.backlog-title-row { display: flex; align-items: center; gap: 8px; }
+.backlog-icon { color: #F97316; font-size: 16px; }
+.backlog-title { font-size: 15px; font-weight: 700; color: #1E293B; }
+.backlog-count {
+  font-size: 11px; background: #F97316; color: white;
+  border-radius: 20px; padding: 1px 7px; font-weight: 700;
+}
+.backlog-subtitle { font-size: 11px; color: #94A3B8; margin: 4px 0 0; }
+
+/* Controls */
+.backlog-controls {
+  padding: 0 12px 8px; display: flex; gap: 6px; align-items: center;
+}
+.backlog-search {
+  flex: 1; padding: 5px 8px; border: 1.5px solid #E2E8F0; border-radius: 5px;
+  font-size: 12px; font-family: inherit; outline: none;
+  transition: border-color 0.12s;
+}
+.backlog-search:focus { border-color: #94A3B8; }
+.backlog-filter {
+  padding: 5px 6px; border: 1.5px solid #E2E8F0; border-radius: 5px;
+  font-size: 11px; font-family: inherit; background: white; cursor: pointer;
+  max-width: 100px;
+}
+.backlog-clear {
+  background: none; border: none; cursor: pointer; color: #94A3B8;
+  font-size: 12px; padding: 4px;
+}
+.backlog-clear:hover { color: #64748B; }
+
+/* Body */
+.backlog-body { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+
+/* Empty */
+.backlog-empty {
+  text-align: center; color: #94A3B8; font-size: 12px; padding: 24px 8px;
+}
+
+/* Group */
+.backlog-group { margin-bottom: 8px; }
+.backlog-group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 8px; font-size: 11px; font-weight: 700; color: #64748B;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-left: 3px solid; margin-bottom: 2px;
+}
+.backlog-group-count {
+  font-size: 10px; background: #F1F5F9; color: #64748B;
+  border-radius: 10px; padding: 0 6px; font-weight: 600;
+}
+
+/* Task item */
+.backlog-task {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px; border-radius: 5px; cursor: grab;
+  transition: background 0.12s;
+}
+.backlog-task:hover { background: #F8FAFC; }
+.backlog-task:active { cursor: grabbing; }
+
+.backlog-grip { color: #CBD5E1; font-size: 10px; flex-shrink: 0; }
+.backlog-task-title {
+  flex: 1; font-size: 13px; color: #1E293B; font-weight: 500;
+  cursor: pointer; word-break: break-word;
+}
+.backlog-task-title:hover { color: #3B82F6; }
+
+.backlog-priority {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.backlog-priority--high { background: #DC2626; }
+.backlog-priority--medium { background: #F59E0B; }
+.backlog-priority--low { background: #10B981; }
