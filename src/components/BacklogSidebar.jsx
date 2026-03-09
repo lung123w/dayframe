@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { FaInbox, FaTimes, FaGripVertical } from 'react-icons/fa';
 import './BacklogSidebar.css';
 
-export default function BacklogSidebar({ tasks, projects, onTaskClick, onAssignDate, onDeleteTask }) {
+export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
   const [filterProject, setFilterProject] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
