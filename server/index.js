@@ -7,6 +7,8 @@ import teamMembersRouter from './routes/teamMembers.js';
 import subtasksRouter from './routes/subtasks.js';
 import habitsRouter from './routes/habits.js';
 import habitEntriesRouter from './routes/habitEntries.js';
+import weeklyObjectivesRouter from './routes/weeklyObjectives.js';
+import dailyNotesRouter from './routes/dailyNotes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -21,6 +23,8 @@ app.use('/api/team-members', teamMembersRouter);
 app.use('/api/subtasks', subtasksRouter);
 app.use('/api/habits', habitsRouter);
 app.use('/api/habit-entries', habitEntriesRouter);
+app.use('/api/weekly-objectives', weeklyObjectivesRouter);
+app.use('/api/daily-notes', dailyNotesRouter);
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {

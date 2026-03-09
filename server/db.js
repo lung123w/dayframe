@@ -78,6 +78,32 @@ db.exec(`
     FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE,
     UNIQUE(habitId, date)
   );
+
+  CREATE TABLE IF NOT EXISTS weekly_objectives (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    weekStart TEXT NOT NULL,
+    objectives TEXT NOT NULL DEFAULT '[]',
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(weekStart)
+  );
+
+  CREATE TABLE IF NOT EXISTS daily_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    highlights TEXT NOT NULL DEFAULT '',
+    rolledOverTaskIds TEXT NOT NULL DEFAULT '[]',
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(date)
+  );
 `);
+
+// Migrations — add columns safely
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN estimatedMinutes INTEGER DEFAULT NULL`);
+} catch (e) {
+  // Column already exists — ignore
+}
 
 export default db;

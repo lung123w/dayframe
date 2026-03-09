@@ -37,8 +37,8 @@ router.post('/', (req, res) => {
   const stmt = db.prepare(`
     INSERT INTO tasks (title, description, descriptionImages, dueDate, priority, status,
       projectId, assignedTo, isRecurring, recurrencePattern, statusOverrides, statusFromOverrides,
-      createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      estimatedMinutes, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = stmt.run(
     b.title || '',
@@ -53,6 +53,7 @@ router.post('/', (req, res) => {
     b.recurrencePattern ? JSON.stringify(b.recurrencePattern) : null,
     JSON.stringify(b.statusOverrides || {}),
     JSON.stringify(b.statusFromOverrides || []),
+    b.estimatedMinutes ?? null,
     now,
     now
   );
@@ -72,7 +73,7 @@ router.put('/:id', (req, res) => {
   const stmt = db.prepare(`
     UPDATE tasks SET title=?, description=?, descriptionImages=?, dueDate=?, priority=?, status=?,
       projectId=?, assignedTo=?, isRecurring=?, recurrencePattern=?, statusOverrides=?,
-      statusFromOverrides=?, updatedAt=?
+      statusFromOverrides=?, estimatedMinutes=?, updatedAt=?
     WHERE id=?
   `);
   stmt.run(
@@ -88,6 +89,7 @@ router.put('/:id', (req, res) => {
     merged.recurrencePattern ? JSON.stringify(merged.recurrencePattern) : null,
     JSON.stringify(merged.statusOverrides || {}),
     JSON.stringify(merged.statusFromOverrides || []),
+    merged.estimatedMinutes !== undefined ? merged.estimatedMinutes : (existing.estimatedMinutes ?? null),
     now,
     req.params.id
   );
