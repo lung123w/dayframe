@@ -46,7 +46,7 @@ describe('App Integration Tests', () => {
     render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText(/projectflow/i)).toBeInTheDocument();
+      expect(screen.getByText(/dayframe/i)).toBeInTheDocument();
     });
   });
 

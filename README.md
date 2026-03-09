@@ -1,4 +1,4 @@
-# Project Management Tool
+# DayFrame
 
 A modern, feature-rich project management application built with React that helps you organize and track tasks across multiple projects. Features a beautiful calendar interface similar to Outlook, with support for recurring tasks, team member assignments, and browser notifications.
 
