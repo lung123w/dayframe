@@ -106,4 +106,22 @@ try {
   // Column already exists — ignore
 }
 
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN sortOrder INTEGER DEFAULT 0`);
+} catch (e) {
+  // Column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN startTime TEXT DEFAULT NULL`);
+} catch (e) {
+  // Column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN endTime TEXT DEFAULT NULL`);
+} catch (e) {
+  // Column already exists
+}
+
 export default db;
