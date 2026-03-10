@@ -196,3 +196,15 @@
   margin: 2px 8px;
   transition: opacity 0.15s;
 }
+
+/* Time badge */
+.dc-time-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #3B82F6;
+  background: #EFF6FF;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
