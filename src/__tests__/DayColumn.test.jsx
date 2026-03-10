@@ -364,7 +364,60 @@ describe('DayColumn', () => {
     });
   });
 
-  // ---- 7. Estimate editing ----
+  // ---- 7. Time badge ----
+
+  describe('time badge', () => {
+    it('shows time badge with startTime on expanded task card', () => {
+      const task = makeTask({ startTime: '09:00' });
+      renderColumn({ tasks: [task], expanded: true });
+
+      expect(screen.getByText('9a')).toBeInTheDocument();
+    });
+
+    it('shows time range when both startTime and endTime are set', () => {
+      const task = makeTask({ startTime: '09:00', endTime: '10:30' });
+      renderColumn({ tasks: [task], expanded: true });
+
+      expect(screen.getByText('9a - 10:30a')).toBeInTheDocument();
+    });
+
+    it('does not show time badge when startTime is not set', () => {
+      const task = makeTask();
+      renderColumn({ tasks: [task], expanded: true });
+
+      expect(screen.queryByText(/\da\b|\dp\b/)).not.toBeInTheDocument();
+    });
+
+    it('does not show time badge in mini mode', () => {
+      const task = makeTask({ startTime: '09:00' });
+      renderColumn({ tasks: [task], expanded: false });
+
+      expect(screen.queryByText('9a')).not.toBeInTheDocument();
+    });
+
+    it('formats PM times correctly', () => {
+      const task = makeTask({ startTime: '14:00', endTime: '15:45' });
+      renderColumn({ tasks: [task], expanded: true });
+
+      expect(screen.getByText('2p - 3:45p')).toBeInTheDocument();
+    });
+
+    it('formats 12:00 as 12p (noon)', () => {
+      const task = makeTask({ startTime: '12:00' });
+      renderColumn({ tasks: [task], expanded: true });
+
+      expect(screen.getByText('12p')).toBeInTheDocument();
+    });
+
+    it('formats 00:00 as 12a (midnight)', () => {
+      const task = makeTask({ startTime: '00:00' });
+      renderColumn({ tasks: [task], expanded: true });
+
+      expect(screen.getByText('12a')).toBeInTheDocument();
+    });
+  });
+
+  // ---- 8. Estimate editing ----
 
   describe('estimate editing', () => {
     it('shows estimate input when clock button is clicked', () => {

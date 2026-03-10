@@ -41,6 +41,14 @@ function formatMinutes(min) {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+function formatTimeDisplay(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const suffix = h >= 12 ? 'p' : 'a';
+  const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+  return m > 0 ? `${h12}:${String(m).padStart(2, '0')}${suffix}` : `${h12}${suffix}`;
+}
+
 export default function DayColumn({
   dateStr,
   tasks,
@@ -200,6 +208,12 @@ export default function DayColumn({
             <span className={`dc-task-title${isCompleted ? ' dc-task-title--done' : ''}`}>
               {task.title}
             </span>
+            {task.startTime && (
+              <span className="dc-time-badge">
+                {formatTimeDisplay(task.startTime)}
+                {task.endTime && ` - ${formatTimeDisplay(task.endTime)}`}
+              </span>
+            )}
             {isEditingEst ? (
               <span className="dc-estimate-edit" onClick={e => e.stopPropagation()}>
                 <input
