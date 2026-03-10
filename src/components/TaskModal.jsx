@@ -24,6 +24,8 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       endAfterOccurrences: null
     },
     estimatedMinutes: '',
+    startTime: '',
+    endTime: '',
   });
 
   const [showRecurrenceOptions, setShowRecurrenceOptions] = useState(false);
@@ -161,6 +163,8 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
         assignedTo,
         descriptionImages: task.descriptionImages || [],
         estimatedMinutes: task.estimatedMinutes ?? '',
+        startTime: task.startTime || '',
+        endTime: task.endTime || '',
         dueDate: task.dueDate ? (() => {
           const d = new Date(task.dueDate);
           return [
@@ -278,6 +282,8 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       projectId: formData.projectId ? parseInt(formData.projectId) : null,
       assignedTo: formData.assignedTo.map(id => parseInt(id)),
       estimatedMinutes: formData.estimatedMinutes ? parseInt(formData.estimatedMinutes, 10) : null,
+      startTime: formData.startTime || null,
+      endTime: formData.endTime || null,
       recurrencePattern: formData.isRecurring ? {
         ...formData.recurrencePattern,
         interval: parseInt(formData.recurrencePattern.interval) || 1,
@@ -497,6 +503,31 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
                 placeholder="e.g. 30"
                 value={formData.estimatedMinutes}
                 onChange={(e) => setFormData({ ...formData, estimatedMinutes: e.target.value })}
+                className="form-input"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="startTime">Start Time</label>
+              <input
+                type="time"
+                id="startTime"
+                name="startTime"
+                value={formData.startTime}
+                onChange={handleChange}
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="endTime">End Time</label>
+              <input
+                type="time"
+                id="endTime"
+                name="endTime"
+                value={formData.endTime}
+                onChange={handleChange}
                 className="form-input"
               />
             </div>
