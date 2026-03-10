@@ -72,7 +72,12 @@ export default function DayColumn({
         result.push(task);
       }
     }
-    return result.sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1));
+    return result.sort((a, b) => {
+      const orderA = a.sortOrder ?? 0;
+      const orderB = b.sortOrder ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
+    });
   }, [tasks, dateStr]);
 
   const subtasksByTaskId = useMemo(() => {
@@ -101,6 +106,22 @@ export default function DayColumn({
 
   const [editingEstimate, setEditingEstimate] = React.useState(null);
   const [estimateValue, setEstimateValue] = React.useState('');
+  const [dragOverIndex, setDragOverIndex] = React.useState(-1);
+
+  const handleTaskDragOver = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    setDragOverIndex(e.clientY < midY ? index : index + 1);
+  };
+
+  const handleColumnDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDragOverIndex(-1);
+    }
+  };
 
   const handleEstimateSave = (task) => {
     const minutes = estimateValue ? parseInt(estimateValue, 10) : null;
@@ -128,6 +149,15 @@ export default function DayColumn({
           className={`dc-task dc-task--mini${isCompleted ? ' dc-task--done' : ''}`}
           style={{ borderLeftColor: project?.color || '#E2E8F0' }}
           title={task.title}
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.isRecurringInstance ? task.recurringSourceId : task.id, sourceDate: dateStr }));
+            e.dataTransfer.effectAllowed = 'move';
+            e.currentTarget.classList.add('dc-task--dragging');
+          }}
+          onDragEnd={(e) => {
+            e.currentTarget.classList.remove('dc-task--dragging');
+          }}
         >
           <button
             className="dc-status-btn"
@@ -147,6 +177,15 @@ export default function DayColumn({
         key={taskKey}
         className={`dc-task${isCompleted ? ' dc-task--done' : ''}`}
         style={{ borderLeftColor: project?.color || '#E2E8F0' }}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.isRecurringInstance ? task.recurringSourceId : task.id, sourceDate: dateStr }));
+          e.dataTransfer.effectAllowed = 'move';
+          e.currentTarget.classList.add('dc-task--dragging');
+        }}
+        onDragEnd={(e) => {
+          e.currentTarget.classList.remove('dc-task--dragging');
+        }}
       >
         <button
           className="dc-status-btn"
@@ -230,9 +269,10 @@ export default function DayColumn({
 
   return (
     <div
-      className={`dc-column${expanded ? ' dc-column--expanded' : ''}${isTodayDate ? ' dc-column--today' : ''}`}
+      className={`dc-column${expanded ? ' dc-column--expanded' : ''}${isTodayDate ? ' dc-column--today' : ''}${dragOverIndex >= 0 ? ' dc-column--drag-over' : ''}`}
       onDragOver={onDragOver}
-      onDrop={onDrop}
+      onDrop={(e) => { setDragOverIndex(-1); if (onDrop) onDrop(e, dragOverIndex); }}
+      onDragLeave={handleColumnDragLeave}
       data-date={dateStr}
     >
       <div className="dc-header">
@@ -266,7 +306,18 @@ export default function DayColumn({
           </div>
         ) : (
           <>
-            {todoTasks.map(renderTask)}
+            {todoTasks.map((task, idx) => {
+              const key = task.isRecurringInstance ? `${task.id}-${task.instanceDate}` : task.id;
+              return (
+                <React.Fragment key={key}>
+                  {dragOverIndex === idx && <div className="dc-drop-indicator" />}
+                  <div onDragOver={(e) => handleTaskDragOver(e, idx)}>
+                    {renderTask(task)}
+                  </div>
+                </React.Fragment>
+              );
+            })}
+            {dragOverIndex === todoTasks.length && <div className="dc-drop-indicator" />}
             {doneTasks.length > 0 && expanded && (
               <div className="dc-done-section">
                 <div className="dc-done-divider">
