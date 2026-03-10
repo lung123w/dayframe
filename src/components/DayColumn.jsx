@@ -120,6 +120,28 @@ export default function DayColumn({
     const taskKey = task.isRecurringInstance ? `${task.id}-${task.instanceDate}` : task.id;
     const isEditingEst = editingEstimate === taskKey;
 
+    // Mini column: compact single-line display
+    if (!expanded) {
+      return (
+        <div
+          key={taskKey}
+          className={`dc-task dc-task--mini${isCompleted ? ' dc-task--done' : ''}`}
+          style={{ borderLeftColor: project?.color || '#E2E8F0' }}
+          title={task.title}
+        >
+          <button
+            className="dc-status-btn"
+            onClick={() => onStatusUpdate(task, STATUS_CYCLE[task.status], task.isRecurringInstance ? 'single' : undefined)}
+          >
+            {STATUS_ICON[task.status]}
+          </button>
+          <span className={`dc-task-title dc-task-title--mini${isCompleted ? ' dc-task-title--done' : ''}`}>
+            {task.title}
+          </span>
+        </div>
+      );
+    }
+
     return (
       <div
         key={taskKey}

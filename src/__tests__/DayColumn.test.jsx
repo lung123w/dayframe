@@ -111,13 +111,13 @@ describe('DayColumn', () => {
     });
 
     it('shows the project name as a meta chip', () => {
-      renderColumn({ tasks: [makeTask({ projectId: 2 })] });
+      renderColumn({ tasks: [makeTask({ projectId: 2 })], expanded: true });
 
       expect(screen.getByText('Project Beta')).toBeInTheDocument();
     });
 
     it('shows assignee names when task has assignedTo', () => {
-      renderColumn({ tasks: [makeTask({ assignedTo: [10, 20] })] });
+      renderColumn({ tasks: [makeTask({ assignedTo: [10, 20] })], expanded: true });
 
       expect(screen.getByText('Alice, Bob')).toBeInTheDocument();
     });
@@ -171,7 +171,7 @@ describe('DayColumn', () => {
   describe('status cycling', () => {
     it('calls onStatusUpdate with "in-progress" when a todo task status button is clicked', () => {
       const task = makeTask({ status: 'todo' });
-      renderColumn({ tasks: [task] });
+      renderColumn({ tasks: [task], expanded: true });
 
       fireEvent.click(screen.getByTitle('Cycle status'));
       expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'in-progress', undefined);
@@ -179,7 +179,7 @@ describe('DayColumn', () => {
 
     it('calls onStatusUpdate with "completed" when an in-progress task status button is clicked', () => {
       const task = makeTask({ status: 'in-progress' });
-      renderColumn({ tasks: [task] });
+      renderColumn({ tasks: [task], expanded: true });
 
       fireEvent.click(screen.getByTitle('Cycle status'));
       expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'completed', undefined);
@@ -201,7 +201,7 @@ describe('DayColumn', () => {
         recurringSourceId: 5,
         instanceDate: DATE_STR,
       });
-      renderColumn({ tasks: [task] });
+      renderColumn({ tasks: [task], expanded: true });
 
       fireEvent.click(screen.getByTitle('Cycle status'));
       expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'in-progress', 'single');
@@ -368,14 +368,14 @@ describe('DayColumn', () => {
 
   describe('estimate editing', () => {
     it('shows estimate input when clock button is clicked', () => {
-      renderColumn({ tasks: [makeTask()] });
+      renderColumn({ tasks: [makeTask()], expanded: true });
 
       fireEvent.click(screen.getByTitle('Set time estimate'));
       expect(screen.getByPlaceholderText('min')).toBeInTheDocument();
     });
 
     it('calls onEstimateChange when estimate is saved', () => {
-      renderColumn({ tasks: [makeTask()] });
+      renderColumn({ tasks: [makeTask()], expanded: true });
 
       fireEvent.click(screen.getByTitle('Set time estimate'));
       const input = screen.getByPlaceholderText('min');
