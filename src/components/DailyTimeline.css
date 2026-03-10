@@ -31,8 +31,9 @@
 /* Grid */
 .tl-grid {
   position: relative;
-  height: 600px;
+  height: 750px;
   margin: 8px 0;
+  overflow: hidden;
 }
 
 /* Hour lines */
@@ -59,3 +60,32 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tl-block-time { font-size: 9px; color: #64748B; }
+
+/* Current time indicator */
+.tl-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  height: 0;
+  z-index: 2;
+}
+.tl-now-dot {
+  width: 8px;
+  height: 8px;
+  background: #EF4444;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: 24px;
+}
+.tl-now-rule {
+  flex: 1;
+  height: 2px;
+  background: #EF4444;
+}
+
+.tl-block-duration {
+  font-size: 9px;
+  color: #64748B;
+}
