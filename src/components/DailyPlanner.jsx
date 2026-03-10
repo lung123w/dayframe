@@ -80,22 +80,53 @@ export default function DailyPlanner({
   }, [onDataChange]);
 
   // Drag-and-drop: drop onto a day column
-  const handleDrop = useCallback((e) => {
+  const handleDrop = useCallback(async (e, dropIndex) => {
     e.preventDefault();
     const dateStr = e.currentTarget.getAttribute('data-date');
     if (!dateStr) return;
     try {
       const data = JSON.parse(e.dataTransfer.getData('application/json'));
       if (data.taskId) {
-        const task = tasks.find(t => t.id === data.taskId);
-        if (task) {
-          onAssignDate(task, new Date(dateStr));
+        const taskId = data.taskId;
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        const sourceDate = data.sourceDate;
+
+        if (sourceDate && sourceDate === dateStr && dropIndex >= 0) {
+          // Same-day reorder
+          const toLocalDateStr2 = (date) => {
+            if (!date) return '';
+            if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+            const d = typeof date === 'string' ? new Date(date) : date;
+            return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+          };
+          const dayTasks = tasks
+            .filter(t => t.dueDate && toLocalDateStr2(t.dueDate) === dateStr && t.status !== 'completed')
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+          const currentIndex = dayTasks.findIndex(t => t.id === taskId);
+          if (currentIndex === -1 || currentIndex === dropIndex) return;
+
+          const reordered = [...dayTasks];
+          const [moved] = reordered.splice(currentIndex, 1);
+          reordered.splice(dropIndex > currentIndex ? dropIndex - 1 : dropIndex, 0, moved);
+
+          for (let i = 0; i < reordered.length; i++) {
+            if (reordered[i].sortOrder !== i) {
+              await taskService.update(reordered[i].id, { sortOrder: i });
+            }
+          }
+          if (onDataChange) onDataChange();
+        } else {
+          // Cross-day move or from backlog
+          onAssignDate(task, new Date(dateStr + 'T12:00:00'));
         }
       }
     } catch {
       // Invalid drag data
     }
-  }, [tasks, onAssignDate]);
+  }, [tasks, onAssignDate, onDataChange]);
 
   const handleDragOver = (e) => {
     e.preventDefault();

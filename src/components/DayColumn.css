@@ -55,7 +55,7 @@
   border-left: 3px solid #E2E8F0;
   margin-bottom: 4px;
   transition: background 0.12s ease;
-  cursor: default;
+  cursor: grab;
 }
 .dc-task:hover { background: #F8FAFC; }
 .dc-task--done { opacity: 0.6; }
@@ -164,7 +164,7 @@
   border-radius: 4px;
   border-left: 3px solid #E2E8F0;
   margin-bottom: 2px;
-  cursor: default;
+  cursor: grab;
 }
 .dc-task--mini:hover { background: #F8FAFC; }
 
@@ -177,4 +177,22 @@
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
+}
+
+/* Drag states */
+.dc-task--dragging {
+  opacity: 0.4;
+}
+
+.dc-column--drag-over {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+}
+
+.dc-drop-indicator {
+  height: 2px;
+  background: #3B82F6;
+  border-radius: 1px;
+  margin: 2px 8px;
+  transition: opacity 0.15s;
 }
