@@ -27,7 +27,7 @@ db.exec(`
     descriptionImages TEXT NOT NULL DEFAULT '[]',
     dueDate TEXT,
     priority TEXT NOT NULL DEFAULT 'medium',
-    status TEXT NOT NULL DEFAULT 'todo',
+    status TEXT NOT NULL DEFAULT 'pending',
     projectId INTEGER,
     assignedTo TEXT NOT NULL DEFAULT '[]',
     isRecurring INTEGER NOT NULL DEFAULT 0,
