@@ -9,6 +9,7 @@ import habitsRouter from './routes/habits.js';
 import habitEntriesRouter from './routes/habitEntries.js';
 import weeklyObjectivesRouter from './routes/weeklyObjectives.js';
 import dailyNotesRouter from './routes/dailyNotes.js';
+import yearlyGoalsRouter from './routes/yearlyGoals.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/habits', habitsRouter);
 app.use('/api/habit-entries', habitEntriesRouter);
 app.use('/api/weekly-objectives', weeklyObjectivesRouter);
 app.use('/api/daily-notes', dailyNotesRouter);
+app.use('/api/yearly-goals', yearlyGoalsRouter);
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {
