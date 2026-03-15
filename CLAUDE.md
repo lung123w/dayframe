@@ -38,6 +38,8 @@ Single-user project management application with Outlook-style calendar interface
 - [Calendar.jsx](src/components/Calendar.jsx) - FullCalendar integration with recurring task expansion
 - [TaskModal.jsx](src/components/TaskModal.jsx) - Task create/edit form with recurrence configuration
 - [TeamManagement.jsx](src/components/TeamManagement.jsx) - Team member CRUD interface
+- [BacklogSidebar.jsx](src/components/BacklogSidebar.jsx) - Collapsible sidebar showing all pending tasks
+- [YearlyGoals.jsx](src/components/YearlyGoals.jsx) - Annual goals panel with auto-save
 
 **`src/utils/`** - Business logic utilities
 - [recurrence.js](src/utils/recurrence.js) - Recurring task generation and date calculations
@@ -251,6 +253,6 @@ For detailed architectural patterns and conventions observed in this codebase:
 ## Development Notes
 
 - All dates stored as ISO strings for consistency
-- Status values: `'todo'`, `'in-progress'`, `'completed'`
+- Status values: `'pending'`, `'completed'`
 - Priority values: `'low'`, `'medium'`, `'high'`
 - Default project ('General') auto-created if none exists - [App.jsx](src/App.jsx#L42-L48)
