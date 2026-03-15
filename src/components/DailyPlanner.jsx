@@ -4,6 +4,7 @@ import { FaPlus } from 'react-icons/fa';
 import BacklogSidebar from './BacklogSidebar';
 import DayColumn from './DayColumn';
 import MiniWeekBar from './MiniWeekBar';
+import YearlyGoals from './YearlyGoals';
 import WeeklyObjectives from './WeeklyObjectives';
 import DailyTimeline from './DailyTimeline';
 import DailyShutdown from './DailyShutdown';
@@ -150,6 +151,9 @@ export default function DailyPlanner({
 
       {/* CENTER: Main Planner Area */}
       <div className="dp-center">
+        {/* Yearly Goals */}
+        <YearlyGoals />
+
         {/* Weekly Objectives */}
         <WeeklyObjectives selectedDate={selectedDate} />
 
