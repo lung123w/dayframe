@@ -97,6 +97,21 @@ db.exec(`
     updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(date)
   );
+
+  CREATE TABLE IF NOT EXISTS yearly_goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    year INTEGER NOT NULL,
+    goals TEXT NOT NULL DEFAULT '',
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(year)
+  );
+`);
+
+// Migrate task status: todo/in-progress → pending
+db.exec(`
+  UPDATE tasks SET status = 'pending' WHERE status = 'todo';
+  UPDATE tasks SET status = 'pending' WHERE status = 'in-progress';
 `);
 
 // Migrations — add columns safely
