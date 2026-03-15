@@ -80,3 +80,11 @@ export const dailyNoteService = {
     body: JSON.stringify(data),
   }),
 };
+
+export const yearlyGoalService = {
+  getByYear: (year) => request(`/api/yearly-goals?year=${year}`),
+  upsert: (data) => request('/api/yearly-goals', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+};
