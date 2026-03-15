@@ -330,9 +330,9 @@ function App() {
                     </span>
                   </div>
                   <div className="stat-card">
-                    <span className="stat-label">Active</span>
+                    <span className="stat-label">Pending</span>
                     <span className="stat-value" style={{ color: '#6366F1' }}>
-                      {tasks.filter((t) => t.status === 'in-progress').length}
+                      {tasks.filter((t) => t.status === 'pending').length}
                     </span>
                   </div>
                 </div>
