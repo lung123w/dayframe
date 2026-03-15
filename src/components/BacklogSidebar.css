@@ -88,3 +88,46 @@
 .backlog-priority--high { background: #DC2626; }
 .backlog-priority--medium { background: #F59E0B; }
 .backlog-priority--low { background: #10B981; }
+
+.backlog-view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0 0.75rem;
+}
+
+.view-toggle-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.813rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-toggle-btn:hover {
+  background: #f3f4f6;
+}
+
+.view-toggle-btn.active {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+}
+
+.backlog-task.overdue {
+  background-color: #fef2f2;
+  border-left: 3px solid #ef4444;
+}
+
+.overdue-badge {
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
