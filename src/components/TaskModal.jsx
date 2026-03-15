@@ -12,7 +12,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     descriptionImages: [],
     dueDate: '',
     priority: 'medium',
-    status: 'todo',
+    status: 'pending',
     projectId: null,
     assignedTo: [], // array of team member ids
     isRecurring: false,
@@ -542,8 +542,7 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
                 value={formData.status}
                 onChange={handleChange}
               >
-                <option value="todo">To Do</option>
-                <option value="in-progress">In Progress</option>
+                <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
               </select>
             </div>
