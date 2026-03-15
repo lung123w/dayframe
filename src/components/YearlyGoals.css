@@ -1,0 +1,78 @@
+.yearly-goals {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.yearly-goals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.yearly-goals-header:hover {
+  background-color: #f9fafb;
+}
+
+.yearly-goals-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.yearly-goals-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.yearly-goals-saving {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.yearly-goals-toggle {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.yearly-goals-toggle:hover {
+  color: #1f2937;
+}
+
+.yearly-goals-body {
+  padding: 1rem;
+}
+
+.yearly-goals-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.yearly-goals-textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.yearly-goals-textarea::placeholder {
+  color: #9ca3af;
+}
