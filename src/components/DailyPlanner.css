@@ -14,17 +14,20 @@
 
 /* Day columns row */
 .dp-columns {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 8px;
   align-items: flex-start;
-  overflow-x: auto;
 }
 
 /* Ensure mini columns are narrow */
 .dp-columns .dc-column:not(.dc-column--expanded) {
-  flex: 1;
-  min-width: 100px;
-  max-width: 140px;
+  min-width: 0;
+}
+
+/* Expanded column spans multiple grid cells */
+.dp-columns .dc-column--expanded {
+  grid-column: span 2;
 }
 
 /* Responsive */
