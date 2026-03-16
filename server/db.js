@@ -109,6 +109,26 @@ db.exec(`
   );
 `);
 
+// Migrate weekly objectives to object format
+try {
+  const objectives = db.prepare('SELECT * FROM weekly_objectives').all();
+  for (const row of objectives) {
+    try {
+      const parsed = JSON.parse(row.objectives);
+      // Check if already migrated (first item is object)
+      if (parsed.length > 0 && typeof parsed[0] === 'string') {
+        const migrated = parsed.map(text => ({ text, completed: false }));
+        db.prepare('UPDATE weekly_objectives SET objectives = ? WHERE id = ?')
+          .run(JSON.stringify(migrated), row.id);
+      }
+    } catch (e) {
+      // Skip if parsing fails
+    }
+  }
+} catch (e) {
+  // Table might not exist yet, skip migration
+}
+
 // Migrate task status: todo/in-progress → pending
 db.exec(`
   UPDATE tasks SET status = 'pending' WHERE status = 'todo';
