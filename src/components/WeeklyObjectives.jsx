@@ -18,7 +18,12 @@ export default function WeeklyObjectives({ selectedDate }) {
     setLoading(true);
     try {
       const data = await weeklyObjectiveService.getByWeek(weekStart);
-      setObjectives(data.objectives || []);
+      let objs = data.objectives || [];
+      // Ensure all items are objects (backward compatibility)
+      objs = objs.map(item => 
+        typeof item === 'string' ? { text: item, completed: false } : item
+      );
+      setObjectives(objs);
     } catch (e) {
       console.error('Failed to load weekly objectives:', e);
     }
@@ -39,12 +44,19 @@ export default function WeeklyObjectives({ selectedDate }) {
 
   const addGoal = () => {
     if (!newGoal.trim()) return;
-    save([...objectives, newGoal.trim()]);
+    save([...objectives, { text: newGoal.trim(), completed: false }]);
     setNewGoal('');
   };
 
   const removeGoal = (index) => {
     save(objectives.filter((_, i) => i !== index));
+  };
+
+  const toggleGoal = (index) => {
+    const updated = objectives.map((goal, i) => 
+      i === index ? { ...goal, completed: !goal.completed } : goal
+    );
+    save(updated);
   };
 
   const handleKeyDown = (e) => {
@@ -57,7 +69,11 @@ export default function WeeklyObjectives({ selectedDate }) {
         {collapsed ? <FaChevronRight /> : <FaChevronDown />}
         <FaBullseye className="wo-icon" />
         <span className="wo-title">Weekly Goals</span>
-        {objectives.length > 0 && <span className="wo-badge">{objectives.length}</span>}
+        {objectives.length > 0 && (
+          <span className="wo-badge">
+            {objectives.filter(g => g.completed).length}/{objectives.length}
+          </span>
+        )}
       </button>
 
       {!collapsed && (
@@ -71,9 +87,14 @@ export default function WeeklyObjectives({ selectedDate }) {
               )}
               <ul className="wo-list">
                 {objectives.map((goal, i) => (
-                  <li key={i} className="wo-item">
-                    <span className="wo-bullet">-</span>
-                    <span className="wo-text">{goal}</span>
+                  <li key={i} className={`wo-item ${goal.completed ? 'completed' : ''}`}>
+                    <input
+                      type="checkbox"
+                      className="wo-checkbox"
+                      checked={goal.completed}
+                      onChange={() => toggleGoal(i)}
+                    />
+                    <span className="wo-text">{goal.text}</span>
                     <button className="wo-remove" onClick={() => removeGoal(i)} title="Remove">
                       <FaTimes />
                     </button>
