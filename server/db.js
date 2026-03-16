@@ -102,6 +102,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     year INTEGER NOT NULL,
     goals TEXT NOT NULL DEFAULT '',
+    images TEXT NOT NULL DEFAULT '[]',
     createdAt TEXT NOT NULL DEFAULT (datetime('now')),
     updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(year)
@@ -135,6 +136,12 @@ try {
 
 try {
   db.exec(`ALTER TABLE tasks ADD COLUMN endTime TEXT DEFAULT NULL`);
+} catch (e) {
+  // Column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE yearly_goals ADD COLUMN images TEXT NOT NULL DEFAULT '[]'`);
 } catch (e) {
   // Column already exists
 }
