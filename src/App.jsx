@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
-import TeamManagement from './components/TeamManagement';
 import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
-import { taskService, teamMemberService, projectService, subtaskService, habitService, habitEntryService } from './api';
+import { taskService, projectService, subtaskService, habitService, habitEntryService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
-import { FaPlus, FaBell, FaUsers, FaCalendar, FaFolder, FaDownload, FaLink } from 'react-icons/fa';
+import { FaPlus, FaBell, FaCalendar, FaFolder, FaDownload, FaLink } from 'react-icons/fa';
 
 import './App.css';
 
@@ -24,7 +23,6 @@ function sortTasks(tasks) {
 function App() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [teamMembers, setTeamMembers] = useState([]);
   const [subtasks, setSubtasks] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -49,16 +47,14 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [tasksData, projectsData, membersData, subtasksData] = await Promise.all([
+      const [tasksData, projectsData, subtasksData] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
-        teamMemberService.getAll(),
         subtaskService.getAll()
       ]);
 
       setTasks(sortTasks(tasksData));
       setProjects(projectsData);
-      setTeamMembers(membersData);
       setSubtasks(subtasksData);
 
       // Create default project if none exists
@@ -217,28 +213,12 @@ function App() {
     setEditingProject(null);
   };
 
-  const handleAddMember = async (memberData) => {
-    await teamMemberService.create(memberData);
-    await loadData();
-  };
-
-  const handleUpdateMember = async (id, memberData) => {
-    await teamMemberService.update(id, memberData);
-    await loadData();
-  };
-
-  const handleDeleteMember = async (id) => {
-    await teamMemberService.delete(id);
-    await loadData();
-  };
-
   // ── Backup: export all DB data as a JSON download ──
   const handleBackup = async () => {
     try {
-      const [allTasks, allProjects, allMembers, allSubtasks, allHabits, allHabitEntries] = await Promise.all([
+      const [allTasks, allProjects, allSubtasks, allHabits, allHabitEntries] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
-        teamMemberService.getAll(),
         subtaskService.getAll(),
         habitService.getAll(),
         habitEntryService.getAll(),
@@ -248,7 +228,6 @@ function App() {
         version: 3,
         tasks: allTasks,
         projects: allProjects,
-        teamMembers: allMembers,
         subtasks: allSubtasks,
         habits: allHabits,
         habitEntries: allHabitEntries,
@@ -282,12 +261,6 @@ function App() {
             onClick={() => setActiveView('planner')}
           >
             <FaCalendar /> Planner
-          </button>
-          <button
-            className={`nav-btn ${activeView === 'team' ? 'active' : ''}`}
-            onClick={() => setActiveView('team')}
-          >
-            <FaUsers /> Team
           </button>
           <button
             className={`nav-btn ${activeView === 'habits' ? 'active' : ''}`}
@@ -342,7 +315,7 @@ function App() {
             <DailyPlanner
               tasks={tasks}
               projects={projects}
-              teamMembers={teamMembers}
+              teamMembers={[]}
               subtasks={subtasks}
               onTaskClick={handleTaskClick}
               onStatusUpdate={handleStatusUpdate}
@@ -355,15 +328,6 @@ function App() {
           </>
         )}
 
-        {activeView === 'team' && (
-          <TeamManagement
-            teamMembers={teamMembers}
-            onAddMember={handleAddMember}
-            onUpdateMember={handleUpdateMember}
-            onDeleteMember={handleDeleteMember}
-          />
-        )}
-
         {activeView === 'habits' && (
           <HabitTracker />
         )}
@@ -373,7 +337,7 @@ function App() {
         <TaskModal
           task={selectedTask}
           projects={projects}
-          teamMembers={teamMembers}
+          teamMembers={[]}
           tasks={tasks}
           subtasks={subtasks}
           selectedDate={selectedDate}
