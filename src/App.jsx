@@ -337,7 +337,6 @@ function App() {
         <TaskModal
           task={selectedTask}
           projects={projects}
-          teamMembers={[]}
           tasks={tasks}
           subtasks={subtasks}
           selectedDate={selectedDate}
