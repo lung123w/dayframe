@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaChevronDown, FaChevronUp, FaPlus, FaTimes } from 'react-icons/fa';
 import { yearlyGoalService } from '../api';
 import './YearlyGoals.css';
 
 export default function YearlyGoals() {
   const currentYear = new Date().getFullYear();
-  const [goals, setGoals] = useState('');
+  const [vision, setVision] = useState('');
+  const [goals, setGoals] = useState([]); // [{text, completed}]
   const [images, setImages] = useState([]);
+  const [newGoalText, setNewGoalText] = useState('');
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(
     localStorage.getItem('yearlyGoals.collapsed') === 'true'
   );
   const [isSaving, setIsSaving] = useState(false);
-  const saveTimeoutRef = useRef(null);
+  const visionSaveTimeoutRef = useRef(null);
 
-  // Load goals on mount
+  // Load on mount
   useEffect(() => {
     loadGoals();
   }, [currentYear]);
@@ -22,20 +24,35 @@ export default function YearlyGoals() {
   const loadGoals = async () => {
     try {
       const data = await yearlyGoalService.getByYear(currentYear);
-      setGoals(data.goals || '');
-      setImages(JSON.parse(data.images || '[]'));
+      setVision(data.vision || '');
+      try {
+        const parsedGoals = JSON.parse(data.goals || '[]');
+        setGoals(Array.isArray(parsedGoals) ? parsedGoals : []);
+      } catch {
+        setGoals([]);
+      }
+      try {
+        const parsedImages = JSON.parse(data.images || '[]');
+        setImages(Array.isArray(parsedImages) ? parsedImages : []);
+      } catch {
+        setImages([]);
+      }
     } catch (err) {
       console.error('Failed to load yearly goals:', err);
     }
   };
 
-  const saveGoals = async (goalsText, goalsImages) => {
+  const saveAll = async ({ visionVal, goalsVal, imagesVal } = {}) => {
+    const v = visionVal !== undefined ? visionVal : vision;
+    const g = goalsVal !== undefined ? goalsVal : goals;
+    const i = imagesVal !== undefined ? imagesVal : images;
     setIsSaving(true);
     try {
-      await yearlyGoalService.upsert({ 
-        year: currentYear, 
-        goals: goalsText,
-        images: JSON.stringify(goalsImages || images)
+      await yearlyGoalService.upsert({
+        year: currentYear,
+        vision: v,
+        goals: g,
+        images: JSON.stringify(i),
       });
     } catch (err) {
       console.error('Failed to save yearly goals:', err);
@@ -44,53 +61,64 @@ export default function YearlyGoals() {
     }
   };
 
-  const handleChange = (e) => {
-    const newGoals = e.target.value;
-    setGoals(newGoals);
-
-    // Auto-save after 2 seconds of inactivity
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    saveTimeoutRef.current = setTimeout(() => {
-      saveGoals(newGoals, images);
+  // --- Vision handlers (debounced auto-save) ---
+  const handleVisionChange = (e) => {
+    const newVision = e.target.value;
+    setVision(newVision);
+    if (visionSaveTimeoutRef.current) clearTimeout(visionSaveTimeoutRef.current);
+    visionSaveTimeoutRef.current = setTimeout(() => {
+      saveAll({ visionVal: newVision });
     }, 2000);
   };
 
-  const handleBlur = () => {
-    // Save immediately on blur
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    saveGoals(goals, images);
+  const handleVisionBlur = () => {
+    if (visionSaveTimeoutRef.current) clearTimeout(visionSaveTimeoutRef.current);
+    saveAll();
   };
 
+  // --- Goals handlers (immediate save) ---
+  const handleAddGoal = () => {
+    const text = newGoalText.trim();
+    if (!text) return;
+    const newGoals = [...goals, { text, completed: false }];
+    setGoals(newGoals);
+    setNewGoalText('');
+    saveAll({ goalsVal: newGoals });
+  };
+
+  const handleGoalKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddGoal();
+    }
+  };
+
+  const handleToggleGoal = (index) => {
+    const newGoals = goals.map((g, i) =>
+      i === index ? { ...g, completed: !g.completed } : g
+    );
+    setGoals(newGoals);
+    saveAll({ goalsVal: newGoals });
+  };
+
+  const handleDeleteGoal = (index) => {
+    const newGoals = goals.filter((_, i) => i !== index);
+    setGoals(newGoals);
+    saveAll({ goalsVal: newGoals });
+  };
+
+  // --- Image handlers ---
   const handleImagePaste = (base64Data) => {
     const newImages = [...images, base64Data];
     setImages(newImages);
-    saveGoals(goals, newImages);
+    saveAll({ imagesVal: newImages });
   };
 
   const removeImage = (index) => {
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
-    saveGoals(goals, newImages);
+    saveAll({ imagesVal: newImages });
   };
-
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape' && lightboxSrc) {
-      setLightboxSrc(null);
-    }
-  }, [lightboxSrc]);
-
-  useEffect(() => {
-    if (lightboxSrc) {
-      document.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxSrc, handleKeyDown]);
 
   const handlePaste = (e) => {
     const items = e.clipboardData?.items;
@@ -110,6 +138,20 @@ export default function YearlyGoals() {
     }
   };
 
+  // --- Lightbox ---
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape' && lightboxSrc) setLightboxSrc(null);
+  }, [lightboxSrc]);
+
+  useEffect(() => {
+    if (lightboxSrc) {
+      document.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxSrc, handleKeyDown]);
+
   const toggleCollapse = () => {
     const newCollapsed = !isCollapsed;
     setIsCollapsed(newCollapsed);
@@ -127,18 +169,73 @@ export default function YearlyGoals() {
           </button>
         </div>
       </div>
+
       {!isCollapsed && (
         <div className="yearly-goals-body">
+          {/* Vision textarea */}
           <div onPaste={handlePaste}>
+            <label className="yearly-goals-label">Vision</label>
             <textarea
               className="yearly-goals-textarea"
-              placeholder="What are your goals for this year? (Paste images with Ctrl+V)"
-              value={goals}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              rows={6}
+              placeholder="Describe your vision for this year... (Paste images with Ctrl+V)"
+              value={vision}
+              onChange={handleVisionChange}
+              onBlur={handleVisionBlur}
+              rows={4}
             />
           </div>
+
+          {/* Goals checklist */}
+          <div className="yearly-goals-goals-section">
+            <label className="yearly-goals-label">Goals</label>
+            <ul className="yearly-goals-list">
+              {goals.map((goal, index) => (
+                <li key={index} className="yearly-goals-list-item">
+                  <input
+                    type="checkbox"
+                    className="yearly-goals-checkbox"
+                    checked={goal.completed}
+                    onChange={() => handleToggleGoal(index)}
+                    id={`goal-${index}`}
+                  />
+                  <label
+                    htmlFor={`goal-${index}`}
+                    className={`yearly-goals-goal-text${goal.completed ? ' yearly-goals-goal-completed' : ''}`}
+                  >
+                    {goal.text}
+                  </label>
+                  <button
+                    type="button"
+                    className="yearly-goals-delete-goal"
+                    onClick={() => handleDeleteGoal(index)}
+                    title="Remove goal"
+                  >
+                    <FaTimes />
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="yearly-goals-add-row">
+              <input
+                type="text"
+                className="yearly-goals-add-input"
+                placeholder="Add a goal..."
+                value={newGoalText}
+                onChange={(e) => setNewGoalText(e.target.value)}
+                onKeyDown={handleGoalKeyDown}
+              />
+              <button
+                type="button"
+                className="yearly-goals-add-btn"
+                onClick={handleAddGoal}
+                title="Add goal"
+              >
+                <FaPlus />
+              </button>
+            </div>
+          </div>
+
+          {/* Image previews */}
           {images.length > 0 && (
             <div className="yearly-goals-images">
               {images.map((img, index) => (
