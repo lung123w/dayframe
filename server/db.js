@@ -166,4 +166,32 @@ try {
   // Column already exists
 }
 
+// Migrate yearly_goals: add vision column, move old goals text → vision, reset goals to '[]'
+try {
+  db.exec(`ALTER TABLE yearly_goals ADD COLUMN vision TEXT NOT NULL DEFAULT ''`);
+} catch (e) {
+  // Column already exists
+}
+
+try {
+  // Move any existing free-text goals value into vision (only when goals is not already a JSON array)
+  const yearlyRows = db.prepare('SELECT id, goals FROM yearly_goals').all();
+  for (const row of yearlyRows) {
+    let isJsonArray = false;
+    try {
+      const parsed = JSON.parse(row.goals);
+      isJsonArray = Array.isArray(parsed);
+    } catch (e) {
+      // Not JSON — treat as legacy free-text
+    }
+    if (!isJsonArray && row.goals) {
+      // Move free-text into vision, reset goals to empty array
+      db.prepare('UPDATE yearly_goals SET vision = ?, goals = \'[]\', updatedAt = datetime(\'now\') WHERE id = ?')
+        .run(row.goals, row.id);
+    }
+  }
+} catch (e) {
+  // Skip if something goes wrong
+}
+
 export default db;

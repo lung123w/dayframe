@@ -77,6 +77,129 @@
   color: #9ca3af;
 }
 
+/* Section label */
+.yearly-goals-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin-bottom: 0.4rem;
+}
+
+/* Goals section */
+.yearly-goals-goals-section {
+  margin-top: 1rem;
+}
+
+.yearly-goals-list {
+  list-style: none;
+  margin: 0 0 0.5rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.yearly-goals-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+}
+
+.yearly-goals-list-item:hover {
+  background: #f9fafb;
+}
+
+.yearly-goals-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: #6366f1;
+}
+
+.yearly-goals-goal-text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #1f2937;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.yearly-goals-goal-completed {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.yearly-goals-delete-goal {
+  background: none;
+  border: none;
+  color: #d1d5db;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.yearly-goals-list-item:hover .yearly-goals-delete-goal {
+  opacity: 1;
+}
+
+.yearly-goals-delete-goal:hover {
+  color: #ef4444;
+}
+
+/* Add goal row */
+.yearly-goals-add-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.yearly-goals-add-input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.yearly-goals-add-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.yearly-goals-add-input::placeholder {
+  color: #9ca3af;
+}
+
+.yearly-goals-add-btn {
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+
+.yearly-goals-add-btn:hover {
+  background: #4f46e5;
+}
+
 .yearly-goals-images {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
