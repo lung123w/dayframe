@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
+import ProjectsView from './components/ProjectsView';
 import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
 import { taskService, projectService, subtaskService, habitService, habitEntryService } from './api';
@@ -268,6 +269,12 @@ function App() {
           >
             <FaLink /> Habits
           </button>
+          <button
+            className={`nav-btn ${activeView === 'projects' ? 'active' : ''}`}
+            onClick={() => setActiveView('projects')}
+          >
+            <FaFolder /> Projects
+          </button>
           <button className="btn-icon" onClick={requestNotificationPermission} title="Enable Notifications">
             <FaBell />
           </button>
@@ -329,6 +336,15 @@ function App() {
 
         {activeView === 'habits' && (
           <HabitTracker />
+        )}
+
+        {activeView === 'projects' && (
+          <ProjectsView
+            projects={projects}
+            onCreateProject={() => handleOpenProjectModal()}
+            onEditProject={(project) => handleOpenProjectModal(project)}
+            onDeleteProject={handleDeleteProject}
+          />
         )}
       </main>
 
