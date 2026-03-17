@@ -18,11 +18,6 @@ const mockProjects = [
   { id: 2, name: 'Project Beta', color: '#28a745' },
 ];
 
-const mockTeamMembers = [
-  { id: 10, name: 'Alice', email: 'alice@test.com' },
-  { id: 20, name: 'Bob', email: 'bob@test.com' },
-];
-
 function makeTask(overrides = {}) {
   return {
     id: 1,
@@ -54,7 +49,6 @@ function renderColumn(props = {}) {
     dateStr: DATE_STR,
     tasks: [],
     projects: mockProjects,
-    teamMembers: mockTeamMembers,
     subtasks: [],
     expanded: false,
     ...defaultCallbacks,
@@ -114,12 +108,6 @@ describe('DayColumn', () => {
       renderColumn({ tasks: [makeTask({ projectId: 2 })], expanded: true });
 
       expect(screen.getByText('Project Beta')).toBeInTheDocument();
-    });
-
-    it('shows assignee names when task has assignedTo', () => {
-      renderColumn({ tasks: [makeTask({ assignedTo: [10, 20] })], expanded: true });
-
-      expect(screen.getByText('Alice, Bob')).toBeInTheDocument();
     });
 
     it('renders recurring tasks via generateRecurringTasks', () => {
