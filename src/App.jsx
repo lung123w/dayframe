@@ -315,7 +315,6 @@ function App() {
             <DailyPlanner
               tasks={tasks}
               projects={projects}
-              teamMembers={[]}
               subtasks={subtasks}
               onTaskClick={handleTaskClick}
               onStatusUpdate={handleStatusUpdate}

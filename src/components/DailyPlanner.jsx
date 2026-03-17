@@ -27,7 +27,6 @@ function toLocalDateStr(date) {
 export default function DailyPlanner({
   tasks,
   projects,
-  teamMembers,
   subtasks,
   onTaskClick,
   onStatusUpdate,
@@ -174,7 +173,6 @@ export default function DailyPlanner({
               dateStr={dayStr}
               tasks={tasks}
               projects={projects}
-              teamMembers={teamMembers}
               subtasks={subtasks}
               expanded={dayStr === selectedDate}
               onTaskClick={onTaskClick}
