@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaTimes, FaTrash, FaUserPlus, FaCheck, FaSearchPlus, FaPlus } from 'react-icons/fa';
+import { FaTimes, FaTrash, FaSearchPlus, FaPlus } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
 import { subtaskService } from '../api';
 import RichTextEditor from './RichTextEditor';
 import './TaskModal.css';
 
-export default function TaskModal({ task, projects, teamMembers, tasks, onSave, onClose, onDelete, onSubtaskChange, selectedDate }) {
+export default function TaskModal({ task, projects, tasks, onSave, onClose, onDelete, onSubtaskChange, selectedDate }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,7 +14,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     priority: 'medium',
     status: 'pending',
     projectId: null,
-    assignedTo: [], // array of team member ids
     isRecurring: false,
     recurrencePattern: {
       type: 'daily',
@@ -29,7 +28,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
   });
 
   const [showRecurrenceOptions, setShowRecurrenceOptions] = useState(false);
-  const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState(null);
 
   // ── Subtask state ──
@@ -146,21 +144,10 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [lightboxSrc, handleKeyDown]);
 
-  // Find Anderson's id (case-insensitive match on name containing "anderson")
-  const andersonMember = teamMembers.find(m =>
-    m.name.toLowerCase().includes('anderson')
-  );
-
   useEffect(() => {
     if (task) {
-      // Normalise assignedTo to array
-      const assignedTo = Array.isArray(task.assignedTo)
-        ? task.assignedTo
-        : (task.assignedTo != null ? [task.assignedTo] : []);
-
       setFormData({
         ...task,
-        assignedTo,
         descriptionImages: task.descriptionImages || [],
         estimatedMinutes: task.estimatedMinutes ?? '',
         startTime: task.startTime || '',
@@ -183,8 +170,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       });
       setShowRecurrenceOptions(task.isRecurring);
     } else {
-      // New task: default assignee = Anderson (if found in team)
-      const defaultAssignedTo = andersonMember ? [andersonMember.id] : [];
       if (selectedDate) {
         // selectedDate is already a local YYYY-MM-DD string from Calendar's dateClick
         const dueDateStr = typeof selectedDate === 'string'
@@ -196,14 +181,11 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
             ].join('-');
         setFormData(prev => ({
           ...prev,
-          assignedTo: defaultAssignedTo,
           dueDate: dueDateStr,
         }));
-      } else {
-        setFormData(prev => ({ ...prev, assignedTo: defaultAssignedTo }));
       }
     }
-  }, [task, selectedDate, teamMembers]);
+  }, [task, selectedDate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -240,26 +222,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
     }
   };
 
-  // Toggle a member in/out of assignedTo array
-  const toggleAssignee = (memberId) => {
-    setFormData(prev => {
-      const already = prev.assignedTo.includes(memberId);
-      return {
-        ...prev,
-        assignedTo: already
-          ? prev.assignedTo.filter(id => id !== memberId)
-          : [...prev.assignedTo, memberId]
-      };
-    });
-  };
-
-  const removeAssignee = (memberId) => {
-    setFormData(prev => ({
-      ...prev,
-      assignedTo: prev.assignedTo.filter(id => id !== memberId)
-    }));
-  };
-
   const handleImagePaste = (base64Data) => {
     setFormData(prev => ({
       ...prev,
@@ -280,7 +242,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
       ...formData,
       dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
       projectId: formData.projectId ? parseInt(formData.projectId) : null,
-      assignedTo: formData.assignedTo.map(id => parseInt(id)),
       estimatedMinutes: formData.estimatedMinutes ? parseInt(formData.estimatedMinutes, 10) : null,
       startTime: formData.startTime || null,
       endTime: formData.endTime || null,
@@ -303,21 +264,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
   };
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-  // Build the ordered member list: project-relevant first, then others
-  const selectedProjectId = formData.projectId ? parseInt(formData.projectId) : null;
-  const projectTasks = (tasks || []).filter(t =>
-    t.projectId === selectedProjectId && t.id !== task?.id
-  );
-  const relevantMemberIds = new Set([
-    ...projectTasks.flatMap(t => Array.isArray(t.assignedTo) ? t.assignedTo : (t.assignedTo ? [t.assignedTo] : [])),
-    ...formData.assignedTo
-  ]);
-  const relevantMembers = teamMembers.filter(m => relevantMemberIds.has(m.id));
-  const otherMembers = teamMembers.filter(m => !relevantMemberIds.has(m.id));
-  const orderedMembers = relevantMembers.length > 0
-    ? [{ group: 'Project Members', members: relevantMembers }, { group: 'Other Members', members: otherMembers }]
-    : [{ group: null, members: teamMembers }];
 
   const isCreateMode = !task?.id;
   const displaySubtasks = isCreateMode ? pendingSubtasks : localSubtasks;
@@ -563,91 +509,6 @@ export default function TaskModal({ task, projects, teamMembers, tasks, onSave, 
                 ))}
               </select>
             </div>
-          </div>
-
-          {/* ── Multi-select Assigned To ── */}
-          <div className="form-group">
-            <label>Assigned To</label>
-
-            {/* Selected assignee chips */}
-            <div className="assignee-chips">
-              {formData.assignedTo.length === 0 && (
-                <span className="assignee-placeholder">No one assigned</span>
-              )}
-              {formData.assignedTo.map(id => {
-                const member = teamMembers.find(m => m.id === id || m.id === parseInt(id));
-                if (!member) return null;
-                return (
-                  <span key={id} className="assignee-chip">
-                    <span className="assignee-chip-avatar">
-                      {member.name.charAt(0).toUpperCase()}
-                    </span>
-                    {member.name}
-                    <button
-                      type="button"
-                      className="assignee-chip-remove"
-                      onClick={() => removeAssignee(id)}
-                      title={`Remove ${member.name}`}
-                    >
-                      <FaTimes />
-                    </button>
-                  </span>
-                );
-              })}
-              <button
-                type="button"
-                className="assignee-add-btn"
-                onClick={() => setAssigneeDropdownOpen(prev => !prev)}
-                title="Add assignee"
-              >
-                <FaUserPlus /> {formData.assignedTo.length === 0 ? 'Assign' : 'Add'}
-              </button>
-            </div>
-
-            {/* Dropdown list */}
-            {assigneeDropdownOpen && (
-              <div className="assignee-dropdown">
-                {teamMembers.length === 0 && (
-                  <div className="assignee-dropdown-empty">No team members yet.</div>
-                )}
-                {orderedMembers.map(({ group, members }) => (
-                  members.length === 0 ? null : (
-                    <React.Fragment key={group || 'all'}>
-                      {group && <div className="assignee-dropdown-group">{group}</div>}
-                      {members.map(member => {
-                        const selected = formData.assignedTo.includes(member.id);
-                        return (
-                          <button
-                            key={member.id}
-                            type="button"
-                            className={`assignee-dropdown-item${selected ? ' selected' : ''}`}
-                            onClick={() => toggleAssignee(member.id)}
-                          >
-                            <span className="assignee-chip-avatar assignee-chip-avatar--sm">
-                              {member.name.charAt(0).toUpperCase()}
-                            </span>
-                            <span className="assignee-dropdown-name">
-                              {member.name}
-                              {member.role && <span className="assignee-dropdown-role">{member.role}</span>}
-                            </span>
-                            {selected && <FaCheck className="assignee-dropdown-check" />}
-                          </button>
-                        );
-                      })}
-                    </React.Fragment>
-                  )
-                ))}
-                <div className="assignee-dropdown-footer">
-                  <button
-                    type="button"
-                    className="assignee-dropdown-done"
-                    onClick={() => setAssigneeDropdownOpen(false)}
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="form-group">
