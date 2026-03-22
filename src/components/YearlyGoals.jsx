@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FaChevronDown, FaChevronUp, FaPlus, FaTimes } from 'react-icons/fa';
 import { yearlyGoalService } from '../api';
+import RichTextEditor from './RichTextEditor';
 import './YearlyGoals.css';
 
 export default function YearlyGoals() {
@@ -14,17 +15,16 @@ export default function YearlyGoals() {
     localStorage.getItem('yearlyGoals.collapsed') === 'true'
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isVisionLoaded, setIsVisionLoaded] = useState(false);
   const visionSaveTimeoutRef = useRef(null);
+  const latestVisionRef = useRef('');
 
-  // Load on mount
-  useEffect(() => {
-    loadGoals();
-  }, [currentYear]);
-
-  const loadGoals = async () => {
+  const loadGoals = useCallback(async () => {
     try {
       const data = await yearlyGoalService.getByYear(currentYear);
-      setVision(data.vision || '');
+      const loadedVision = data.vision || '';
+      setVision(loadedVision);
+      latestVisionRef.current = loadedVision;
       try {
         const parsedGoals = JSON.parse(data.goals || '[]');
         setGoals(Array.isArray(parsedGoals) ? parsedGoals : []);
@@ -39,8 +39,15 @@ export default function YearlyGoals() {
       }
     } catch (err) {
       console.error('Failed to load yearly goals:', err);
+    } finally {
+      setIsVisionLoaded(true);
     }
-  };
+  }, [currentYear]);
+
+  // Load on mount
+  useEffect(() => {
+    loadGoals();
+  }, [loadGoals]);
 
   const saveAll = async ({ visionVal, goalsVal, imagesVal } = {}) => {
     const v = visionVal !== undefined ? visionVal : vision;
@@ -62,9 +69,9 @@ export default function YearlyGoals() {
   };
 
   // --- Vision handlers (debounced auto-save) ---
-  const handleVisionChange = (e) => {
-    const newVision = e.target.value;
+  const handleVisionChange = (newVision) => {
     setVision(newVision);
+    latestVisionRef.current = newVision;
     if (visionSaveTimeoutRef.current) clearTimeout(visionSaveTimeoutRef.current);
     visionSaveTimeoutRef.current = setTimeout(() => {
       saveAll({ visionVal: newVision });
@@ -73,7 +80,7 @@ export default function YearlyGoals() {
 
   const handleVisionBlur = () => {
     if (visionSaveTimeoutRef.current) clearTimeout(visionSaveTimeoutRef.current);
-    saveAll();
+    saveAll({ visionVal: latestVisionRef.current });
   };
 
   // --- Goals handlers (immediate save) ---
@@ -120,24 +127,6 @@ export default function YearlyGoals() {
     saveAll({ imagesVal: newImages });
   };
 
-  const handlePaste = (e) => {
-    const items = e.clipboardData?.items;
-    if (items) {
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          e.preventDefault();
-          const file = item.getAsFile();
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => handleImagePaste(event.target.result);
-            reader.readAsDataURL(file);
-          }
-          return;
-        }
-      }
-    }
-  };
-
   // --- Lightbox ---
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape' && lightboxSrc) setLightboxSrc(null);
@@ -172,17 +161,17 @@ export default function YearlyGoals() {
 
       {!isCollapsed && (
         <div className="yearly-goals-body">
-          {/* Vision textarea */}
-          <div onPaste={handlePaste}>
+          {/* Vision editor */}
+          <div>
             <label className="yearly-goals-label">Vision</label>
-            <textarea
-              className="yearly-goals-textarea"
-              placeholder="Describe your vision for this year... (Paste images with Ctrl+V)"
-              value={vision}
-              onChange={handleVisionChange}
-              onBlur={handleVisionBlur}
-              rows={4}
-            />
+            {isVisionLoaded && (
+              <RichTextEditor
+                content={vision}
+                onChange={handleVisionChange}
+                onBlur={handleVisionBlur}
+                onImagePaste={handleImagePaste}
+              />
+            )}
           </div>
 
           {/* Goals checklist */}
@@ -265,11 +254,19 @@ export default function YearlyGoals() {
       {lightboxSrc && (
         <div
           className="yearly-goals-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
           onClick={() => setLightboxSrc(null)}
         >
           <button
+            type="button"
             className="yearly-goals-lightbox-close"
-            onClick={() => setLightboxSrc(null)}
+            aria-label="Close image preview"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxSrc(null);
+            }}
             title="Close (Esc)"
           >
             ×
