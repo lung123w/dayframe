@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { FaPlus } from 'react-icons/fa';
 import BacklogSidebar from './BacklogSidebar';
+import PlannerHabitsPanel from './PlannerHabitsPanel';
 import DayColumn from './DayColumn';
 import MiniWeekBar from './MiniWeekBar';
 import YearlyGoals from './YearlyGoals';
@@ -38,34 +39,33 @@ export default function DailyPlanner({
 }) {
   const [selectedDate, setSelectedDate] = useState(todayStr);
 
-  // Parse selected date
-  const [y, m, d] = selectedDate.split('-').map(Number);
-  const selectedDateObj = new Date(y, m - 1, d);
+  // Keep selected date constrained to currently visible week
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekDays = Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'));
+  const activeDate = weekDays.includes(selectedDate) ? selectedDate : todayStr();
 
   // Get day tasks for the selected (expanded) day — needed for shutdown
   const expandedDayTasks = useMemo(() => {
-    const [py, pm, pd] = selectedDate.split('-').map(Number);
+    const [py, pm, pd] = activeDate.split('-').map(Number);
     const dayStart = new Date(py, pm - 1, pd);
     const dayEnd = new Date(py, pm - 1, pd + 1);
     const result = [];
     for (const task of tasks) {
       if (task.isRecurring && task.dueDate) {
         result.push(...generateRecurringTasks(task, dayStart, dayEnd));
-      } else if (task.dueDate && toLocalDateStr(task.dueDate) === selectedDate) {
+      } else if (task.dueDate && toLocalDateStr(task.dueDate) === activeDate) {
         result.push(task);
       }
     }
     return result;
-  }, [tasks, selectedDate]);
+  }, [tasks, activeDate]);
 
   // Week navigation
   const handlePrevWeek = () => {
-    const newDate = addDays(selectedDateObj, -7);
-    setSelectedDate(format(newDate, 'yyyy-MM-dd'));
+    // Intentionally pinned to current week view
   };
   const handleNextWeek = () => {
-    const newDate = addDays(selectedDateObj, 7);
-    setSelectedDate(format(newDate, 'yyyy-MM-dd'));
+    // Intentionally pinned to current week view
   };
 
   // Handle estimate change (inline on task card)
@@ -133,20 +133,19 @@ export default function DailyPlanner({
     e.dataTransfer.dropEffect = 'move';
   };
 
-  // Get week days for mini-week display in center panel
-  const weekStart = startOfWeek(selectedDateObj, { weekStartsOn: 1 });
-  const weekDays = Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'));
-
   return (
     <div className="dp-layout">
       {/* LEFT: Backlog Sidebar */}
-      <BacklogSidebar
-        tasks={tasks}
-        projects={projects}
-        onTaskClick={onTaskClick}
-        onAssignDate={onAssignDate}
-        onDeleteTask={onDeleteTask}
-      />
+      <div className="dp-left-rail">
+        <BacklogSidebar
+          tasks={tasks}
+          projects={projects}
+          onTaskClick={onTaskClick}
+          onAssignDate={onAssignDate}
+          onDeleteTask={onDeleteTask}
+        />
+        <PlannerHabitsPanel onDataChange={onDataChange} />
+      </div>
 
       {/* CENTER: Main Planner Area */}
       <div className="dp-center">
@@ -154,11 +153,11 @@ export default function DailyPlanner({
         <YearlyGoals />
 
         {/* Weekly Objectives */}
-        <WeeklyObjectives selectedDate={selectedDate} />
+        <WeeklyObjectives selectedDate={activeDate} />
 
         {/* Mini Week Navigation */}
         <MiniWeekBar
-          selectedDate={selectedDate}
+          selectedDate={activeDate}
           onSelectDate={setSelectedDate}
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
@@ -174,7 +173,7 @@ export default function DailyPlanner({
               tasks={tasks}
               projects={projects}
               subtasks={subtasks}
-              expanded={dayStr === selectedDate}
+              expanded={dayStr === activeDate}
               onTaskClick={onTaskClick}
               onStatusUpdate={onStatusUpdate}
               onNewTask={onNewTask}
@@ -189,7 +188,7 @@ export default function DailyPlanner({
 
         {/* Daily Shutdown — inline at bottom */}
         <DailyShutdown
-          dateStr={selectedDate}
+          dateStr={activeDate}
           dayTasks={expandedDayTasks}
           onDataChange={onDataChange}
         />
@@ -197,7 +196,7 @@ export default function DailyPlanner({
 
       {/* RIGHT: Timeline */}
       <DailyTimeline
-        dateStr={selectedDate}
+        dateStr={activeDate}
         tasks={tasks}
         projects={projects}
       />

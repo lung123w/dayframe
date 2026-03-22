@@ -34,6 +34,14 @@ vi.mock('../api', () => ({
   dailyNoteService: {
     getByDate: vi.fn(() => Promise.resolve({ highlights: '', wins: '', improvements: '', tomorrowFocus: '' })),
     save: vi.fn(() => Promise.resolve())
+  },
+  habitService: {
+    getAll: vi.fn(() => Promise.resolve([]))
+  },
+  habitEntryService: {
+    getByHabit: vi.fn(() => Promise.resolve([])),
+    create: vi.fn(() => Promise.resolve({ id: 1 })),
+    deleteByDate: vi.fn(() => Promise.resolve())
   }
 }));
 

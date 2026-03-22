@@ -17,6 +17,8 @@ describe('MiniWeekBar Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 2, 9, 12, 0, 0));
   });
 
   afterEach(() => {
@@ -45,7 +47,6 @@ describe('MiniWeekBar Component', () => {
 
   it('should highlight today', () => {
     // Set fake time to Wednesday 2026-03-11
-    vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 2, 11, 12, 0, 0));
 
     render(<MiniWeekBar {...defaultProps} />);
@@ -72,7 +73,6 @@ describe('MiniWeekBar Component', () => {
   });
 
   it('should highlight both today and selected when they are the same day', () => {
-    vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 2, 9, 12, 0, 0));
 
     render(<MiniWeekBar {...defaultProps} />);
@@ -156,6 +156,14 @@ describe('MiniWeekBar Component', () => {
     // Thursday should be selected
     const thuButton = screen.getByText('Thu').closest('button');
     expect(thuButton).toHaveClass('mini-week-day--selected');
+  });
+
+  it('anchors displayed week to current week regardless of selectedDate', () => {
+    vi.setSystemTime(new Date(2026, 2, 10, 12, 0, 0)); // Tue Mar 10, 2026
+
+    render(<MiniWeekBar {...defaultProps} selectedDate="2026-04-20" />);
+
+    expect(screen.getByText('Mar 9 - Mar 15, 2026')).toBeInTheDocument();
   });
 
   it('should render day numbers for each day of the week', () => {
