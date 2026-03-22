@@ -18,17 +18,12 @@ const mockProjects = [
   { id: 2, name: 'Project Beta', color: '#28a745' },
 ];
 
-const mockTeamMembers = [
-  { id: 10, name: 'Alice', email: 'alice@test.com' },
-  { id: 20, name: 'Bob', email: 'bob@test.com' },
-];
-
 function makeTask(overrides = {}) {
   return {
     id: 1,
     title: 'Write tests',
     dueDate: DATE_STR,
-    status: 'todo',
+    status: 'pending',
     priority: 'medium',
     projectId: 1,
     assignedTo: null,
@@ -54,7 +49,6 @@ function renderColumn(props = {}) {
     dateStr: DATE_STR,
     tasks: [],
     projects: mockProjects,
-    teamMembers: mockTeamMembers,
     subtasks: [],
     expanded: false,
     ...defaultCallbacks,
@@ -116,10 +110,11 @@ describe('DayColumn', () => {
       expect(screen.getByText('Project Beta')).toBeInTheDocument();
     });
 
-    it('shows assignee names when task has assignedTo', () => {
-      renderColumn({ tasks: [makeTask({ assignedTo: [10, 20] })], expanded: true });
+    it('renders description html in expanded mode', () => {
+      const task = makeTask({ description: '<p>Task details</p>' });
+      renderColumn({ tasks: [task], expanded: true });
 
-      expect(screen.getByText('Alice, Bob')).toBeInTheDocument();
+      expect(screen.getByText('Task details')).toBeInTheDocument();
     });
 
     it('renders recurring tasks via generateRecurringTasks', () => {
@@ -169,34 +164,25 @@ describe('DayColumn', () => {
   // ---- 3. Status cycling ----
 
   describe('status cycling', () => {
-    it('calls onStatusUpdate with "in-progress" when a todo task status button is clicked', () => {
-      const task = makeTask({ status: 'todo' });
-      renderColumn({ tasks: [task], expanded: true });
-
-      fireEvent.click(screen.getByTitle('Cycle status'));
-      expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'in-progress', undefined);
-    });
-
-    it('calls onStatusUpdate with "completed" when an in-progress task status button is clicked', () => {
-      const task = makeTask({ status: 'in-progress' });
+    it('calls onStatusUpdate with "completed" when a pending task status button is clicked', () => {
+      const task = makeTask({ status: 'pending' });
       renderColumn({ tasks: [task], expanded: true });
 
       fireEvent.click(screen.getByTitle('Cycle status'));
       expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'completed', undefined);
     });
 
-    it('calls onStatusUpdate with "todo" when a completed task status button is clicked', () => {
+    it('calls onStatusUpdate with "pending" when a completed task status button is clicked', () => {
       const task = makeTask({ status: 'completed' });
       renderColumn({ tasks: [task], expanded: true });
 
-      // Completed tasks show in the "Completed" section — grab the cycle button
       fireEvent.click(screen.getByTitle('Cycle status'));
-      expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'todo', undefined);
+      expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'pending', undefined);
     });
 
     it('passes "single" scope for recurring instances', () => {
       const task = makeTask({
-        status: 'todo',
+        status: 'pending',
         isRecurringInstance: true,
         recurringSourceId: 5,
         instanceDate: DATE_STR,
@@ -204,7 +190,7 @@ describe('DayColumn', () => {
       renderColumn({ tasks: [task], expanded: true });
 
       fireEvent.click(screen.getByTitle('Cycle status'));
-      expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'in-progress', 'single');
+      expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'completed', 'single');
     });
   });
 
@@ -257,7 +243,7 @@ describe('DayColumn', () => {
 
     it('shows completed tasks section with divider in expanded mode', () => {
       const tasks = [
-        makeTask({ id: 1, title: 'Active task', status: 'todo' }),
+        makeTask({ id: 1, title: 'Active task', status: 'pending' }),
         makeTask({ id: 2, title: 'Done task', status: 'completed' }),
       ];
       renderColumn({ tasks, expanded: true });
@@ -269,7 +255,7 @@ describe('DayColumn', () => {
 
     it('shows "X done" summary in mini mode instead of completed section', () => {
       const tasks = [
-        makeTask({ id: 1, title: 'Active task', status: 'todo' }),
+        makeTask({ id: 1, title: 'Active task', status: 'pending' }),
         makeTask({ id: 2, title: 'Done task', status: 'completed' }),
       ];
       renderColumn({ tasks, expanded: false });

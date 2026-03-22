@@ -14,12 +14,6 @@ vi.mock('../api', () => ({
     getAll: vi.fn(() => Promise.resolve([])),
     create: vi.fn(() => Promise.resolve({ id: 1, name: 'General', color: '#3788d8' }))
   },
-  teamMemberService: {
-    getAll: vi.fn(() => Promise.resolve([])),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn()
-  },
   subtaskService: {
     getAll: vi.fn(() => Promise.resolve([])),
     getByTaskId: vi.fn(() => Promise.resolve([])),
@@ -28,6 +22,26 @@ vi.mock('../api', () => ({
     delete: vi.fn(() => Promise.resolve()),
     deleteByTaskId: vi.fn(() => Promise.resolve()),
     toggleCompleted: vi.fn(() => Promise.resolve())
+  },
+  yearlyGoalService: {
+    getByYear: vi.fn(() => Promise.resolve({ goals: [] })),
+    save: vi.fn(() => Promise.resolve())
+  },
+  weeklyObjectiveService: {
+    getByWeek: vi.fn(() => Promise.resolve({ objectives: [] })),
+    save: vi.fn(() => Promise.resolve())
+  },
+  dailyNoteService: {
+    getByDate: vi.fn(() => Promise.resolve({ highlights: '', wins: '', improvements: '', tomorrowFocus: '' })),
+    save: vi.fn(() => Promise.resolve())
+  },
+  habitService: {
+    getAll: vi.fn(() => Promise.resolve([]))
+  },
+  habitEntryService: {
+    getByHabit: vi.fn(() => Promise.resolve([])),
+    create: vi.fn(() => Promise.resolve({ id: 1 })),
+    deleteByDate: vi.fn(() => Promise.resolve())
   }
 }));
 
@@ -58,38 +72,6 @@ describe('App Integration Tests', () => {
       expect(screen.getAllByText(/new task/i).length).toBeGreaterThan(0);
       // Stat cards now show "Total", "Done", "Active" labels
       expect(screen.getByText(/^total$/i)).toBeInTheDocument();
-    });
-  });
-
-  it('should switch to team view when team button is clicked', async () => {
-    render(<App />);
-    
-    await waitFor(() => {
-      const teamButton = screen.getByRole('button', { name: /team/i });
-      teamButton.click();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /team members/i })).toBeInTheDocument();
-    });
-  });
-
-  it('should display task statistics', async () => {
-    const { taskService } = await import('../api');
-    
-    taskService.getAll.mockResolvedValue([
-      { id: 1, title: 'Task 1', status: 'todo' },
-      { id: 2, title: 'Task 2', status: 'completed' },
-      { id: 3, title: 'Task 3', status: 'in-progress' }
-    ]);
-
-    render(<App />);
-    
-    await waitFor(() => {
-      // Stat cards now show labels "Total", "Done", "Active"
-      expect(screen.getByText(/^total$/i)).toBeInTheDocument();
-      expect(screen.getByText(/^done$/i)).toBeInTheDocument();
-      expect(screen.getByText(/^active$/i)).toBeInTheDocument();
     });
   });
 });

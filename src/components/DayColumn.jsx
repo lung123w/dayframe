@@ -5,9 +5,15 @@ import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import './DayColumn.css';
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
-const STATUS_CYCLE = { todo: 'in-progress', 'in-progress': 'completed', completed: 'todo' };
+const STATUS_CYCLE = {
+  pending: 'completed',
+  completed: 'pending',
+  todo: 'completed',
+  'in-progress': 'completed',
+};
 const STATUS_ICON = {
-  'todo':        <FaCircle className="dc-status-icon dc-status-icon--todo" />,
+  pending:     <FaCircle className="dc-status-icon dc-status-icon--todo" />,
+  todo:        <FaCircle className="dc-status-icon dc-status-icon--todo" />,
   'in-progress': <FaSpinner className="dc-status-icon dc-status-icon--progress" />,
   'completed':   <FaCheckCircle className="dc-status-icon dc-status-icon--done" />,
 };
@@ -53,7 +59,6 @@ export default function DayColumn({
   dateStr,
   tasks,
   projects,
-  teamMembers,
   subtasks,
   expanded = false,
   onTaskClick,
@@ -99,10 +104,6 @@ export default function DayColumn({
   }, [subtasks]);
 
   const getProject = id => projects.find(p => p.id === id);
-  const getAssigneeNames = assignedTo => {
-    const ids = Array.isArray(assignedTo) ? assignedTo : (assignedTo != null ? [assignedTo] : []);
-    return ids.map(id => teamMembers.find(m => m.id === id)?.name).filter(Boolean).join(', ');
-  };
 
   const totalEstimated = dayTasks.reduce((sum, t) => sum + (t.estimatedMinutes || 0), 0);
   const todoTasks = dayTasks.filter(t => t.status !== 'completed');
@@ -141,7 +142,6 @@ export default function DayColumn({
 
   const renderTask = (task) => {
     const project = getProject(task.projectId);
-    const assignees = getAssigneeNames(task.assignedTo);
     const isCompleted = task.status === 'completed';
     const subtaskTaskId = task.isRecurringInstance ? (task.recurringSourceId || task.id) : task.id;
     const taskSubtasks = subtasksByTaskId[subtaskTaskId] || [];
@@ -241,6 +241,13 @@ export default function DayColumn({
             )}
           </div>
 
+          {expanded && task.description && (
+            <div
+              className="dc-task-description"
+              dangerouslySetInnerHTML={{ __html: task.description }}
+            />
+          )}
+
           {expanded && taskSubtasks.length > 0 && (
             <div className="dc-subtask-section" onClick={e => e.stopPropagation()}>
               <span className="dc-subtask-summary">[{completedSubtasks}/{taskSubtasks.length}]</span>
@@ -267,7 +274,6 @@ export default function DayColumn({
                 {project.name}
               </span>
             )}
-            {assignees && <span className="dc-meta-chip dc-meta-chip--assignee">{assignees}</span>}
           </div>
         </div>
 

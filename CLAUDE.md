@@ -256,3 +256,5 @@ For detailed architectural patterns and conventions observed in this codebase:
 - Status values: `'pending'`, `'completed'`
 - Priority values: `'low'`, `'medium'`, `'high'`
 - Default project ('General') auto-created if none exists - [App.jsx](src/App.jsx#L42-L48)
+- Yearly goals support image paste (Ctrl+V) - stored as base64 JSON array
+- Weekly goals stored as `{text: string, completed: boolean}[]` with checkbox UI
