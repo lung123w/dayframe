@@ -262,6 +262,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+   padding: 1rem;
   background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
@@ -292,8 +293,26 @@
 }
 
 .yearly-goals-lightbox-img {
-  max-width: 90vw;
-  max-height: 90vh;
+  max-width: min(100%, 1200px);
+  max-height: calc(100vh - 2rem);
   object-fit: contain;
   cursor: default;
+}
+
+@media (max-width: 640px) {
+  .yearly-goals-lightbox {
+    padding: 0.75rem;
+  }
+
+  .yearly-goals-lightbox-close {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+
+  .yearly-goals-lightbox-img {
+    max-height: calc(100vh - 1.5rem);
+  }
 }
