@@ -49,7 +49,7 @@ const STATUS_ICON = {
 };
 const STATUS_LABEL = { todo: 'To Do', 'in-progress': 'In Progress', completed: 'Done' };
 
-export default function DayPanel({ date, tasks, projects, teamMembers, subtasks, onSubtaskToggle, onTaskClick, onStatusUpdate, onNewTask, onDeleteTask }) {
+export default function DayPanel({ date, tasks, projects, subtasks, onSubtaskToggle, onTaskClick, onStatusUpdate, onNewTask, onDeleteTask }) {
   const dayTasks = useMemo(() => {
     if (!date) return [];
 
@@ -85,10 +85,6 @@ export default function DayPanel({ date, tasks, projects, teamMembers, subtasks,
   }, [subtasks]);
 
   const getProject = id => projects.find(p => p.id === id);
-  const getAssigneeNames = assignedTo => {
-    const ids = Array.isArray(assignedTo) ? assignedTo : (assignedTo != null ? [assignedTo] : []);
-    return ids.map(id => teamMembers.find(m => m.id === id)?.name).filter(Boolean).join(', ');
-  };
 
   const { label, sub } = date ? formatHeading(date) : { label: '—', sub: '' };
 
@@ -98,7 +94,6 @@ export default function DayPanel({ date, tasks, projects, teamMembers, subtasks,
 
   const renderTask = (task) => {
     const project   = getProject(task.projectId);
-    const assignees = getAssigneeNames(task.assignedTo);
     const isCompleted = task.status === 'completed';
     const subtaskTaskId = task.isRecurringInstance ? (task.recurringSourceId || task.id) : task.id;
     const taskSubtasks = subtasksByTaskId[subtaskTaskId] || [];
@@ -159,9 +154,6 @@ export default function DayPanel({ date, tasks, projects, teamMembers, subtasks,
             <span className={`day-priority-badge day-priority-badge--${task.priority || 'low'}`}>
               {PRIORITY_LABEL[task.priority] || 'L'}
             </span>
-            {assignees && (
-              <span className="day-meta-chip day-meta-chip--assignee">{assignees}</span>
-            )}
           </div>
         </div>
 

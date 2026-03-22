@@ -6,7 +6,7 @@ import './MiniWeekBar.css';
 export default function MiniWeekBar({ selectedDate, onSelectDate, onPrevWeek, onNextWeek, tasks }) {
   const [y, m, d] = selectedDate.split('-').map(Number);
   const selected = useMemo(() => new Date(y, m - 1, d), [y, m, d]);
-  const weekStart = useMemo(() => startOfWeek(selected, { weekStartsOn: 1 }), [selected]);
+  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
 
   const days = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {

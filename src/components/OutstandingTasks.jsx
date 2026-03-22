@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FaCalendarPlus, FaEdit, FaExclamationCircle, FaFilter, FaTimes, FaTrash } from 'react-icons/fa';
 import './OutstandingTasks.css';
 
-export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskClick, onAssignDate, onDeleteTask }) {
+export default function OutstandingTasks({ tasks, projects, onTaskClick, onAssignDate, onDeleteTask }) {
   const [filterProject, setFilterProject] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
   const [assigningTaskId, setAssigningTaskId] = useState(null);
@@ -18,15 +18,6 @@ export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskC
   });
 
   const getProject = (projectId) => projects.find(p => p.id === projectId);
-  const getAssigneeNames = (assignedTo) => {
-    const ids = Array.isArray(assignedTo)
-      ? assignedTo
-      : (assignedTo != null ? [assignedTo] : []);
-    return ids
-      .map(id => teamMembers.find(m => m.id === id)?.name)
-      .filter(Boolean)
-      .join(', ');
-  };
 
   const priorityColor = { high: '#DC2626', medium: '#F59E0B', low: '#10B981' };
   const statusLabel = { todo: 'To Do', 'in-progress': 'In Progress', completed: 'Completed' };
@@ -100,7 +91,6 @@ export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskC
         <div className="outstanding-list">
           {filteredTasks.map(task => {
             const project = getProject(task.projectId);
-            const assigneeNames = getAssigneeNames(task.assignedTo);
             const isAssigning = assigningTaskId === task.id;
 
             return (
@@ -134,11 +124,6 @@ export default function OutstandingTasks({ tasks, projects, teamMembers, onTaskC
                       <span className="outstanding-meta-chip" style={{ borderColor: project.color + '60', color: project.color }}>
                         <span className="outstanding-meta-dot" style={{ background: project.color }} />
                         {project.name}
-                      </span>
-                    )}
-                    {assigneeNames && (
-                      <span className="outstanding-meta-chip outstanding-meta-assignee">
-                        {assigneeNames}
                       </span>
                     )}
                     {task.description && (

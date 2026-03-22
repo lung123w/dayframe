@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { generateRecurringTasks } from '../utils/recurrence';
 import './Calendar.css';
 
-export default function Calendar({ tasks, projects, teamMembers, subtasks, activeProjectFilters, selectedDayDate, onTaskClick, onDateSelect, onNewTask, onEventDrop, onStatusUpdate, onDeleteTask }) {
+export default function Calendar({ tasks, projects, subtasks, activeProjectFilters, selectedDayDate, onTaskClick, onDateSelect, onNewTask, onEventDrop, onStatusUpdate, onDeleteTask }) {
   const calendarRef = useRef(null);
   const lastClickRef = useRef({ dateStr: null, time: 0 });
   const [calendarEvents, setCalendarEvents] = useState([]);
@@ -56,27 +56,18 @@ export default function Calendar({ tasks, projects, teamMembers, subtasks, activ
       if (task.isRecurring) {
         const recurringInstances = generateRecurringTasks(task, startDate, endDate);
         recurringInstances.forEach(instance => {
-          events.push(taskToEvent(instance, projects, teamMembers));
+          events.push(taskToEvent(instance, projects));
         });
       } else {
-        events.push(taskToEvent(task, projects, teamMembers));
+        events.push(taskToEvent(task, projects));
       }
     });
 
     setCalendarEvents(events);
-  }, [tasks, projects, teamMembers, activeProjectFilters, projectFilter, viewRange]);
+  }, [tasks, projects, activeProjectFilters, projectFilter, viewRange]);
 
-  const taskToEvent = (task, projects, teamMembers) => {
+  const taskToEvent = (task, projects) => {
     const project = projects.find(p => p.id === task.projectId);
-
-    // assignedTo is now an array of ids
-    const assignedIds = Array.isArray(task.assignedTo)
-      ? task.assignedTo
-      : (task.assignedTo != null ? [task.assignedTo] : []);
-    const assigneeNames = assignedIds
-      .map(id => teamMembers.find(m => m.id === id)?.name)
-      .filter(Boolean)
-      .join(', ');
 
     let backgroundColor;
     let borderColor;
@@ -103,7 +94,6 @@ export default function Calendar({ tasks, projects, teamMembers, subtasks, activ
       textColor,
       extendedProps: {
         task,
-        assignee: assigneeNames || null,
         priority: task.priority,
         status: task.status,
         projectColor: project?.color || null,
@@ -213,7 +203,7 @@ export default function Calendar({ tasks, projects, teamMembers, subtasks, activ
   };
 
   const renderEventContent = (eventInfo) => {
-    const { assignee, priority, status, projectName, task } = eventInfo.event.extendedProps;
+    const { priority, status, projectName, task } = eventInfo.event.extendedProps;
     const isListView = eventInfo.view.type === 'listWeek';
     const isCompleted = status === 'completed';
 
@@ -255,9 +245,6 @@ export default function Calendar({ tasks, projects, teamMembers, subtasks, activ
                 {projectName}
               </span>
             )}
-            {assignee && (
-              <span className="fc-event-assignee-chip">{assignee}</span>
-            )}
           </div>
         </div>
       );
@@ -275,9 +262,6 @@ export default function Calendar({ tasks, projects, teamMembers, subtasks, activ
           {isCompleted && <span className="fc-event-badge fc-event-badge--done">✓</span>}
           {status === 'in-progress' && <span className="fc-event-badge fc-event-badge--progress">●</span>}
         </div>
-        {assignee && (
-          <div className="fc-event-assignee">{assignee}</div>
-        )}
       </div>
     );
   };

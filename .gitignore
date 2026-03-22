@@ -30,3 +30,6 @@ data/*.db-wal
 # Backup files in backups/ are intentionally tracked in git.
 # Use the Backup button in the app to export a JSON, then move it here and commit.
 !backups/*.json
+
+# Local git worktrees
+.worktrees/

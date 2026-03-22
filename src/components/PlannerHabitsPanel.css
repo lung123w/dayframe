@@ -1,0 +1,87 @@
+.planner-habits-panel {
+  width: 260px;
+  flex-shrink: 0;
+  background: white;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+.planner-habits-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.planner-habits-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.planner-habits-icon {
+  color: #0EA5E9;
+}
+
+.planner-habits-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.planner-habits-count {
+  font-size: 11px;
+  background: #0EA5E9;
+  color: white;
+  border-radius: 20px;
+  padding: 1px 7px;
+  font-weight: 700;
+}
+
+.planner-habits-empty {
+  color: #94A3B8;
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+.planner-habits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.planner-habits-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.planner-habit-name {
+  font-size: 13px;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.planner-habit-toggle {
+  border: 1px solid #CBD5E1;
+  background: white;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.planner-habit-toggle.is-done {
+  background: #10B981;
+  border-color: #10B981;
+  color: white;
+}
