@@ -5,9 +5,15 @@ import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import './DayColumn.css';
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
-const STATUS_CYCLE = { todo: 'in-progress', 'in-progress': 'completed', completed: 'todo' };
+const STATUS_CYCLE = {
+  pending: 'completed',
+  completed: 'pending',
+  todo: 'completed',
+  'in-progress': 'completed',
+};
 const STATUS_ICON = {
-  'todo':        <FaCircle className="dc-status-icon dc-status-icon--todo" />,
+  pending:     <FaCircle className="dc-status-icon dc-status-icon--todo" />,
+  todo:        <FaCircle className="dc-status-icon dc-status-icon--todo" />,
   'in-progress': <FaSpinner className="dc-status-icon dc-status-icon--progress" />,
   'completed':   <FaCheckCircle className="dc-status-icon dc-status-icon--done" />,
 };
@@ -234,6 +240,13 @@ export default function DayColumn({
               </button>
             )}
           </div>
+
+          {expanded && task.description && (
+            <div
+              className="dc-task-description"
+              dangerouslySetInnerHTML={{ __html: task.description }}
+            />
+          )}
 
           {expanded && taskSubtasks.length > 0 && (
             <div className="dc-subtask-section" onClick={e => e.stopPropagation()}>

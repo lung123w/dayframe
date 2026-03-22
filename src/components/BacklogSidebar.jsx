@@ -2,14 +2,26 @@ import React, { useState, useMemo } from 'react';
 import { FaInbox, FaTimes, FaGripVertical } from 'react-icons/fa';
 import './BacklogSidebar.css';
 
+function toLocalDateStr(date) {
+  if (!date) return '';
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function isOverduePending(task) {
+  if (task.status !== 'pending' || !task.dueDate) return false;
+  return toLocalDateStr(task.dueDate) < toLocalDateStr(new Date());
+}
+
 export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
   const [filterProject, setFilterProject] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('all-pending'); // 'all-pending' | 'unscheduled'
 
   const displayTasks = useMemo(() => {
-    let result = viewMode === 'unscheduled' 
-      ? tasks.filter(t => !t.dueDate && t.status === 'pending')
+    let result = viewMode === 'unscheduled'
+      ? tasks.filter(t => t.status === 'pending' && (!t.dueDate || isOverduePending(t)))
       : tasks.filter(t => t.status === 'pending');
     
     if (filterProject) result = result.filter(t => String(t.projectId) === filterProject);
@@ -19,7 +31,7 @@ export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
     }
     
     // Sort by priority, then creation date
-    return result.sort((a, b) => {
+    return [...result].sort((a, b) => {
       const priorityOrder = { high: 0, medium: 1, low: 2 };
       const aPriority = priorityOrder[a.priority] ?? 1;
       const bPriority = priorityOrder[b.priority] ?? 1;
@@ -116,7 +128,7 @@ export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
                   <span className="backlog-group-count">{groupTasks.length}</span>
                 </div>
                 {groupTasks.map(task => {
-                  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status === 'pending';
+                  const isOverdue = isOverduePending(task);
                   return (
                     <div
                       key={task.id}
