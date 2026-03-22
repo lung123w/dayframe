@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -80,7 +81,7 @@ const MenuBar = ({ editor }) => {
   );
 };
 
-export default function RichTextEditor({ content, onChange, onImagePaste }) {
+export default function RichTextEditor({ content, onChange, onBlur, onImagePaste }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -101,6 +102,12 @@ export default function RichTextEditor({ content, onChange, onImagePaste }) {
       onChange(editor.getHTML());
     },
     editorProps: {
+      handleDOMEvents: {
+        blur: () => {
+          if (onBlur) onBlur();
+          return false;
+        },
+      },
       handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
         if (items) {
@@ -121,6 +128,14 @@ export default function RichTextEditor({ content, onChange, onImagePaste }) {
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    const nextContent = content || '';
+    if (nextContent !== editor.getHTML()) {
+      editor.commands.setContent(nextContent, false);
+    }
+  }, [editor, content]);
 
   return (
     <div className="rich-editor-container">
