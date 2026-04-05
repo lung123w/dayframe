@@ -5,7 +5,7 @@ import { subtaskService } from '../api';
 import RichTextEditor from './RichTextEditor';
 import './TaskModal.css';
 
-export default function TaskModal({ task, projects, tasks, onSave, onClose, onDelete, onSubtaskChange, selectedDate }) {
+export default function TaskModal({ task, projects, onSave, onClose, onDelete, onSubtaskChange, selectedDate }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -201,7 +201,7 @@ export default function TaskModal({ task, projects, tasks, onSave, onClose, onDe
   };
 
   const handleRecurrenceChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, checked } = e.target;
     if (name === 'daysOfWeek') {
       const day = parseInt(value);
       setFormData(prev => ({

@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 // Mock Notification API
-global.Notification = {
+globalThis.Notification = {
   permission: 'default',
   requestPermission: vi.fn(() => Promise.resolve('granted')),
 };

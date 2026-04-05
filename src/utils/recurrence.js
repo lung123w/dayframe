@@ -1,4 +1,4 @@
-import { addDays, addWeeks, addMonths, addYears, isBefore, isAfter, startOfDay } from 'date-fns';
+import { addDays, addWeeks, addMonths, addYears, isBefore, isAfter } from 'date-fns';
 
 /**
  * Resolve the effective status for a single recurring instance.

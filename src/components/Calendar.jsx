@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
@@ -34,39 +34,7 @@ export default function Calendar({ tasks, projects, subtasks, activeProjectFilte
     setViewRange({ start: dateInfo.start, end: dateInfo.end });
   };
 
-  useEffect(() => {
-    // Wait until FullCalendar has reported its visible range via datesSet
-    if (!viewRange.start || !viewRange.end) return;
-
-    const startDate = viewRange.start;
-    const endDate = viewRange.end;
-
-    // Apply project chip filters from parent (multi-select) OR internal dropdown (single)
-    let filteredTasks = tasks;
-    if (projectFilter) {
-      filteredTasks = tasks.filter(t => String(t.projectId) === projectFilter);
-    } else if (activeProjectFilters && activeProjectFilters.size > 0) {
-      filteredTasks = tasks.filter(t => activeProjectFilters.has(t.projectId));
-    }
-
-    // Generate events including recurring instances
-    const events = [];
-    filteredTasks.forEach(task => {
-      if (!task.dueDate) return; // skip unscheduled tasks
-      if (task.isRecurring) {
-        const recurringInstances = generateRecurringTasks(task, startDate, endDate);
-        recurringInstances.forEach(instance => {
-          events.push(taskToEvent(instance, projects));
-        });
-      } else {
-        events.push(taskToEvent(task, projects));
-      }
-    });
-
-    setCalendarEvents(events);
-  }, [tasks, projects, activeProjectFilters, projectFilter, viewRange]);
-
-  const taskToEvent = (task, projects) => {
+  const taskToEvent = useCallback((task, projects) => {
     const project = projects.find(p => p.id === task.projectId);
 
     let backgroundColor;
@@ -100,7 +68,39 @@ export default function Calendar({ tasks, projects, subtasks, activeProjectFilte
         projectName: project?.name || null,
       }
     };
-  };
+  }, []);
+
+  useEffect(() => {
+    // Wait until FullCalendar has reported its visible range via datesSet
+    if (!viewRange.start || !viewRange.end) return;
+
+    const startDate = viewRange.start;
+    const endDate = viewRange.end;
+
+    // Apply project chip filters from parent (multi-select) OR internal dropdown (single)
+    let filteredTasks = tasks;
+    if (projectFilter) {
+      filteredTasks = tasks.filter(t => String(t.projectId) === projectFilter);
+    } else if (activeProjectFilters && activeProjectFilters.size > 0) {
+      filteredTasks = tasks.filter(t => activeProjectFilters.has(t.projectId));
+    }
+
+    // Generate events including recurring instances
+    const events = [];
+    filteredTasks.forEach(task => {
+      if (!task.dueDate) return; // skip unscheduled tasks
+      if (task.isRecurring) {
+        const recurringInstances = generateRecurringTasks(task, startDate, endDate);
+        recurringInstances.forEach(instance => {
+          events.push(taskToEvent(instance, projects));
+        });
+      } else {
+        events.push(taskToEvent(task, projects));
+      }
+    });
+
+    setCalendarEvents(events);
+  }, [tasks, projects, activeProjectFilters, projectFilter, viewRange, subtaskCounts, taskToEvent]);
 
   const handleEventClick = (info) => {
     info.jsEvent.preventDefault();
