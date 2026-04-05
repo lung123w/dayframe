@@ -4,9 +4,10 @@ import ProjectModal from './components/ProjectModal';
 import ProjectsView from './components/ProjectsView';
 import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
+import Sidebar from './components/Sidebar';
 import { taskService, projectService, subtaskService, habitService, habitEntryService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
-import { FaPlus, FaBell, FaCalendar, FaFolder, FaDownload, FaLink } from 'react-icons/fa';
+import { FaPlus, FaFolder } from 'react-icons/fa';
 
 import './App.css';
 
@@ -34,18 +35,6 @@ function App() {
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
 
-  useEffect(() => {
-    loadData();
-    requestNotificationPermission();
-    
-    // Start notification service
-    const cleanup = startNotificationService(async () => {
-      return await taskService.getAll();
-    });
-
-    return cleanup;
-  }, []);
-
   const loadData = async () => {
     try {
       const [tasksData, projectsData, subtasksData] = await Promise.all([
@@ -70,6 +59,18 @@ function App() {
       console.error('Failed to load data:', err);
     }
   };
+
+  useEffect(() => {
+    loadData();
+    requestNotificationPermission();
+    
+    // Start notification service
+    const cleanup = startNotificationService(async () => {
+      return await taskService.getAll();
+    });
+
+    return cleanup;
+  }, []);
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
@@ -251,38 +252,12 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <div className="app-header-brand">
-          <FaCalendar />
-          <h1>DayFrame</h1>
-        </div>
-        <nav className="app-nav">
-          <button
-            className={`nav-btn ${activeView === 'planner' ? 'active' : ''}`}
-            onClick={() => setActiveView('planner')}
-          >
-            <FaCalendar /> Planner
-          </button>
-          <button
-            className={`nav-btn ${activeView === 'habits' ? 'active' : ''}`}
-            onClick={() => setActiveView('habits')}
-          >
-            <FaLink /> Habits
-          </button>
-          <button
-            className={`nav-btn ${activeView === 'projects' ? 'active' : ''}`}
-            onClick={() => setActiveView('projects')}
-          >
-            <FaFolder /> Projects
-          </button>
-          <button className="btn-icon" onClick={requestNotificationPermission} title="Enable Notifications">
-            <FaBell />
-          </button>
-          <button className="btn-icon" onClick={handleBackup} title="Backup data to JSON (save to repo/backups/)">
-            <FaDownload />
-          </button>
-        </nav>
-      </header>
+      <Sidebar
+        currentView={activeView}
+        onNavigate={setActiveView}
+        onNotifications={requestNotificationPermission}
+        onBackup={handleBackup}
+      />
 
       <main className="app-main">
         {activeView === 'planner' && (
