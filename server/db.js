@@ -161,6 +161,12 @@ try {
 }
 
 try {
+  db.exec(`ALTER TABLE tasks ADD COLUMN scheduledTime TEXT DEFAULT NULL`);
+} catch (e) {
+  // Column already exists — ignore
+}
+
+try {
   db.exec(`ALTER TABLE yearly_goals ADD COLUMN images TEXT NOT NULL DEFAULT '[]'`);
 } catch (e) {
   // Column already exists
