@@ -26,6 +26,27 @@
   align-items: flex-start;
 }
 
+/* Horizontal scroll container for 21-day view */
+.daily-planner-scroll-container {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  gap: 8px;
+  scroll-behavior: smooth;
+  padding-bottom: 8px;
+}
+
+/* Fixed width for day columns in scroll view */
+.daily-planner-scroll-container .dc-column {
+  min-width: 280px;
+  flex-shrink: 0;
+}
+
+/* Expanded column in scroll view */
+.daily-planner-scroll-container .dc-column--expanded {
+  min-width: 400px;
+}
+
 /* Ensure mini columns are narrow */
 .dp-columns .dc-column:not(.dc-column--expanded) {
   min-width: 0;

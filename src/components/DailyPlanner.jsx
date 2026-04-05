@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { format, addDays, startOfWeek } from 'date-fns';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { format, addDays, startOfWeek, subWeeks } from 'date-fns';
 import { FaPlus } from 'react-icons/fa';
 import BacklogSidebar from './BacklogSidebar';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
@@ -37,12 +37,30 @@ export default function DailyPlanner({
   onAssignDate,
   onDataChange,
 }) {
+  const currentWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [weekStartDate, setWeekStartDate] = useState(currentWeekStart);
+  const scrollContainerRef = useRef(null);
 
-  // Keep selected date constrained to currently visible week
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekDays = Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'));
-  const activeDate = weekDays.includes(selectedDate) ? selectedDate : todayStr();
+  // Calculate 21-day range: 1 week before + current week + 1 week after
+  const weekDays = useMemo(() => {
+    const prevWeekStart = subWeeks(weekStartDate, 1);
+    return Array.from({ length: 21 }, (_, i) => format(addDays(prevWeekStart, i), 'yyyy-MM-dd'));
+  }, [weekStartDate]);
+  const activeDate = weekDays.includes(selectedDate) ? selectedDate : weekDays[7];
+
+  // Auto-scroll to current week (center) on mount
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      // Must match .daily-planner-scroll-container .dc-column min-width in CSS
+      const dayColumnWidth = 280;
+      // Current week starts at day index 7 (0-indexed), scroll to show it in center
+      const containerWidth = scrollContainerRef.current.offsetWidth;
+      const scrollPosition = (7 * dayColumnWidth) - (containerWidth / 2) + (dayColumnWidth / 2);
+      scrollContainerRef.current.scrollLeft = scrollPosition;
+    }
+  }, []);
+
 
   // Get day tasks for the selected (expanded) day — needed for shutdown
   const expandedDayTasks = useMemo(() => {
@@ -62,10 +80,18 @@ export default function DailyPlanner({
 
   // Week navigation
   const handlePrevWeek = () => {
-    // Intentionally pinned to current week view
+    setWeekStartDate(prev => addDays(prev, -7));
+    setSelectedDate(prev => {
+      const [y, m, d] = prev.split('-').map(Number);
+      return format(addDays(new Date(y, m - 1, d), -7), 'yyyy-MM-dd');
+    });
   };
   const handleNextWeek = () => {
-    // Intentionally pinned to current week view
+    setWeekStartDate(prev => addDays(prev, 7));
+    setSelectedDate(prev => {
+      const [y, m, d] = prev.split('-').map(Number);
+      return format(addDays(new Date(y, m - 1, d), 7), 'yyyy-MM-dd');
+    });
   };
 
   // Handle estimate change (inline on task card)
@@ -95,14 +121,8 @@ export default function DailyPlanner({
 
         if (sourceDate && sourceDate === dateStr && dropIndex >= 0) {
           // Same-day reorder
-          const toLocalDateStr2 = (date) => {
-            if (!date) return '';
-            if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
-            const d = typeof date === 'string' ? new Date(date) : date;
-            return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
-          };
           const dayTasks = tasks
-            .filter(t => t.dueDate && toLocalDateStr2(t.dueDate) === dateStr && t.status !== 'completed')
+            .filter(t => t.dueDate && toLocalDateStr(t.dueDate) === dateStr && t.status !== 'completed')
             .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
           const currentIndex = dayTasks.findIndex(t => t.id === taskId);
@@ -162,10 +182,11 @@ export default function DailyPlanner({
           onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
           tasks={tasks}
+          weekStartDate={weekStartDate}
         />
 
         {/* Day Columns: expanded selected day + mini others */}
-        <div className="dp-columns">
+        <div className="daily-planner-scroll-container" ref={scrollContainerRef}>
           {weekDays.map(dayStr => (
             <DayColumn
               key={dayStr}
