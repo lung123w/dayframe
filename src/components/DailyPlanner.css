@@ -34,6 +34,7 @@
   gap: 8px;
   scroll-behavior: smooth;
   padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Fixed width for day columns in scroll view */
@@ -92,5 +93,20 @@
 @media (max-width: 768px) {
   .dp-columns .dc-column:not(.dc-column--expanded) {
     display: none; /* Hide mini columns on mobile, just show expanded */
+  }
+
+  /* Reduce column width on mobile for better fit */
+  .daily-planner-scroll-container .dc-column {
+    min-width: 200px;
+  }
+
+  .daily-planner-scroll-container .dc-column--expanded {
+    min-width: 300px;
+  }
+
+  /* Ensure touch-friendly targets (minimum 44px) */
+  .dc-column button,
+  .dc-column .task-item {
+    min-height: 44px;
   }
 }
