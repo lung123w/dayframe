@@ -16,6 +16,7 @@ export default function Sidebar({ activeView, onViewChange, onNotifications, onB
           <button
             className={`sidebar-nav-item ${activeView === 'planner' ? 'active' : ''}`}
             onClick={() => onViewChange('planner')}
+            aria-label="Navigate to Planner view"
           >
             <FaCalendar />
             <span>Planner</span>
@@ -23,6 +24,7 @@ export default function Sidebar({ activeView, onViewChange, onNotifications, onB
           <button
             className={`sidebar-nav-item ${activeView === 'habits' ? 'active' : ''}`}
             onClick={() => onViewChange('habits')}
+            aria-label="Navigate to Habits view"
           >
             <FaLink />
             <span>Habits</span>
@@ -30,6 +32,7 @@ export default function Sidebar({ activeView, onViewChange, onNotifications, onB
           <button
             className={`sidebar-nav-item ${activeView === 'projects' ? 'active' : ''}`}
             onClick={() => onViewChange('projects')}
+            aria-label="Navigate to Projects view"
           >
             <FaFolder />
             <span>Projects</span>
@@ -38,11 +41,11 @@ export default function Sidebar({ activeView, onViewChange, onNotifications, onB
 
         <div className="sidebar-section">
           <div className="sidebar-section-header">TOOLS</div>
-          <button className="sidebar-nav-item" onClick={onNotifications}>
+          <button className="sidebar-nav-item" onClick={onNotifications} aria-label="Open notifications">
             <FaBell />
             <span>Notifications</span>
           </button>
-          <button className="sidebar-nav-item" onClick={onBackup}>
+          <button className="sidebar-nav-item" onClick={onBackup} aria-label="Backup data">
             <FaDownload />
             <span>Backup</span>
           </button>
