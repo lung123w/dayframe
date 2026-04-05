@@ -5,7 +5,6 @@ import {
   getRecurrenceDescription,
   resolveInstanceStatus
 } from '../utils/recurrence';
-import { addDays, addWeeks, addMonths } from 'date-fns';
 
 describe('Recurrence Utils', () => {
   describe('isRecurringPatternValid', () => {
