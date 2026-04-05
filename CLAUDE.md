@@ -40,6 +40,7 @@ Single-user project management application with Outlook-style calendar interface
 - [TeamManagement.jsx](src/components/TeamManagement.jsx) - Team member CRUD interface
 - [BacklogSidebar.jsx](src/components/BacklogSidebar.jsx) - Collapsible sidebar showing all pending tasks
 - [YearlyGoals.jsx](src/components/YearlyGoals.jsx) - Annual goals panel with auto-save
+- [Sidebar.jsx](src/components/Sidebar.jsx) - Vertical navigation sidebar for view switching (Projects/Calendar/Team/Goals)
 
 **`src/utils/`** - Business logic utilities
 - [recurrence.js](src/utils/recurrence.js) - Recurring task generation and date calculations
@@ -81,12 +82,13 @@ npm run lint         # Run ESLint
 
 ### Database Schema
 Three main tables defined in [db.js](src/db.js#L5-L9):
-- **tasks** - Task details with recurrence patterns and image support
+- **tasks** - Task details with recurrence patterns, image support, and scheduled time
 - **teamMembers** - Team member directory
 - **projects** - Project metadata with color coding
 
 ### Key Models
 - `Task` class - [db.js](src/db.js#L12-L28)
+  - `scheduledTime` field stores optional time-of-day for tasks (format: "HH:mm")
 - `TeamMember` class - [db.js](src/db.js#L31-L39)
 - `Project` class - [db.js](src/db.js#L42-L48)
 
@@ -105,7 +107,7 @@ CRUD operations exposed via service objects:
 
 ### Notifications
 - Permission request on app load - [App.jsx](src/App.jsx#L21-L27)
-- Background polling every 30 minutes - [notifications.js](src/notifications.js#L51-L64)
+- Background polling every 30 minutes - [notifications.js](src/utils/notifications.js#L51-L64)
 - Alerts for overdue, 1-hour warning, 24-hour reminder
 
 ### Image Support
@@ -116,6 +118,28 @@ CRUD operations exposed via service objects:
 ### Drag and Drop
 - FullCalendar drag events handled in [Calendar.jsx](src/components/Calendar.jsx#L78-L89)
 - Updates task due date via `taskService.update()`
+
+### Sidebar Navigation
+- Vertical sidebar component - [Sidebar.jsx](src/components/Sidebar.jsx)
+- Icon-based navigation: Projects, Calendar, Team, Goals
+- Active view highlighting with colored background
+- Mobile-responsive: auto-collapses to icon-only on screens <768px
+- Persistent state via `currentView` prop from [App.jsx](src/App.jsx)
+
+### Scheduled Time Blocks
+- Optional time-of-day field for tasks stored as "HH:mm" format
+- Time picker in [TaskModal.jsx](src/components/TaskModal.jsx) with "Add Time" checkbox
+- Tasks with `scheduledTime` display in day column grid at specified hour
+- Time blocks show task title, project color, and HH:mm label
+- Visual separation: scheduled tasks in grid, all-day tasks in top section
+
+### Horizontal Scrolling Week View
+- 21-day window (yesterday + today + 19 future days)
+- Auto-scroll to current day on mount using `scrollIntoView()`
+- Horizontal scroll container with fixed header row
+- Day columns show date, weekday, and task count badge
+- Drag-and-drop between day columns updates task due date
+- Mobile-responsive: single column on screens <768px
 
 ## State Management
 
@@ -131,8 +155,14 @@ Requires modern browser with:
 - Notification API (optional feature)
 - ES2015+ features
 
+### Mobile Responsive Design
+- Sidebar: auto-collapses to icon-only on screens <768px
+- Week view: switches to single column on screens <768px
+- Touch-friendly drag-and-drop for task scheduling
+- Responsive breakpoint defined at 768px width
+
 ## Adding New Features
-** IMPORTANT** : When you work on a new feauture/ bug , create a git branch first. Then work on change in that branch for the remainder of the session 
+**IMPORTANT**: When you work on a new feature/ bug , create a git branch first. Then work on change in that branch for the remainder of the session 
 
 ### Step-by-Step Process
 
