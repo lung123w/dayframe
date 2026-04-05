@@ -55,6 +55,14 @@ function formatTimeDisplay(timeStr) {
   return m > 0 ? `${h12}:${String(m).padStart(2, '0')}${suffix}` : `${h12}${suffix}`;
 }
 
+function formatScheduledTime(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const suffix = h >= 12 ? ' PM' : ' AM';
+  const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+  return m > 0 ? `${h12}:${String(m).padStart(2, '0')}${suffix}` : `${h12}${suffix}`;
+}
+
 export default function DayColumn({
   dateStr,
   tasks,
@@ -86,6 +94,21 @@ export default function DayColumn({
       }
     }
     return result.sort((a, b) => {
+      // Sort by scheduledTime first (earliest first)
+      const timeA = a.scheduledTime;
+      const timeB = b.scheduledTime;
+      
+      // Tasks with scheduledTime come before tasks without
+      if (timeA && !timeB) return -1;
+      if (!timeA && timeB) return 1;
+      
+      // Both have scheduledTime: sort by time
+      if (timeA && timeB) {
+        const compareTime = timeA.localeCompare(timeB);
+        if (compareTime !== 0) return compareTime;
+      }
+      
+      // Fall back to sortOrder, then priority
       const orderA = a.sortOrder ?? 0;
       const orderB = b.sortOrder ?? 0;
       if (orderA !== orderB) return orderA - orderB;
@@ -208,6 +231,11 @@ export default function DayColumn({
             <span className={`dc-task-title${isCompleted ? ' dc-task-title--done' : ''}`}>
               {task.title}
             </span>
+            {task.scheduledTime && (
+              <span className="dc-scheduled-time-badge">
+                {formatScheduledTime(task.scheduledTime)}
+              </span>
+            )}
             {task.startTime && (
               <span className="dc-time-badge">
                 {formatTimeDisplay(task.startTime)}
