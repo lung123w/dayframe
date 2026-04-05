@@ -11,6 +11,7 @@ export default function TaskModal({ task, projects, tasks, onSave, onClose, onDe
     description: '',
     descriptionImages: [],
     dueDate: '',
+    scheduledTime: '',
     priority: 'medium',
     status: 'pending',
     projectId: null,
@@ -152,6 +153,7 @@ export default function TaskModal({ task, projects, tasks, onSave, onClose, onDe
         estimatedMinutes: task.estimatedMinutes ?? '',
         startTime: task.startTime || '',
         endTime: task.endTime || '',
+        scheduledTime: task.scheduledTime || '',
         dueDate: task.dueDate ? (() => {
           const d = new Date(task.dueDate);
           return [
@@ -245,6 +247,7 @@ export default function TaskModal({ task, projects, tasks, onSave, onClose, onDe
       estimatedMinutes: formData.estimatedMinutes ? parseInt(formData.estimatedMinutes, 10) : null,
       startTime: formData.startTime || null,
       endTime: formData.endTime || null,
+      scheduledTime: formData.scheduledTime || null,
       recurrencePattern: formData.isRecurring ? {
         ...formData.recurrencePattern,
         interval: parseInt(formData.recurrencePattern.interval) || 1,
@@ -454,6 +457,20 @@ export default function TaskModal({ task, projects, tasks, onSave, onClose, onDe
             </div>
           </div>
 
+          <div className="form-group">
+            <label htmlFor="scheduledTime">
+              Scheduled Time <span className="optional-text">(optional)</span>
+            </label>
+            <input
+              type="time"
+              id="scheduledTime"
+              name="scheduledTime"
+              value={formData.scheduledTime}
+              onChange={handleChange}
+              className="form-input"
+            />
+          </div>
+
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="startTime">Start Time</label>
@@ -578,7 +595,9 @@ export default function TaskModal({ task, projects, tasks, onSave, onClose, onDe
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="endDate">End Date (optional)</label>
+                  <label htmlFor="endDate">
+                    End Date <span className="optional-text">(optional)</span>
+                  </label>
                   <input
                     type="date"
                     id="endDate"

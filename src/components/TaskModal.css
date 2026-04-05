@@ -75,6 +75,15 @@
   letter-spacing: 0.5px;
 }
 
+.optional-text {
+  font-weight: 400;
+  font-size: 11px;
+  color: #94A3B8;
+  text-transform: lowercase;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
 .form-group input[type="text"],
 .form-group input[type="date"],
 .form-group input[type="number"],
