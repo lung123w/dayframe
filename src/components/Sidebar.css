@@ -1,0 +1,87 @@
+.sidebar {
+  width: 220px;
+  height: 100vh;
+  background-color: #1E293B;
+  color: #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  border-right: 1px solid #334155;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 1px solid #334155;
+}
+
+.sidebar-brand-icon {
+  font-size: 24px;
+  color: #F97316;
+}
+
+.sidebar-brand h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: #F8FAFC;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  margin-bottom: 24px;
+}
+
+.sidebar-section-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  padding: 8px 20px;
+  margin-bottom: 4px;
+}
+
+.sidebar-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  color: #CBD5E1;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.sidebar-nav-item:hover {
+  background-color: #334155;
+  color: #F8FAFC;
+}
+
+.sidebar-nav-item.active {
+  background-color: #F97316;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+.sidebar-nav-item svg {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-item span {
+  flex: 1;
+}
