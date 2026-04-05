@@ -89,3 +89,10 @@
 .sidebar-nav-item span {
   flex: 1;
 }
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}

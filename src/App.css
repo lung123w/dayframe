@@ -318,6 +318,7 @@ body {
 
   .app-main {
     padding: 16px;
+    margin-left: 0;
   }
 
   .toolbar {
