@@ -13,6 +13,7 @@ describe('MiniWeekBar Component', () => {
     onPrevWeek: mockOnPrevWeek,
     onNextWeek: mockOnNextWeek,
     tasks: [],
+    weekStartDate: new Date(2026, 2, 9),
   };
 
   beforeEach(() => {
@@ -158,12 +159,16 @@ describe('MiniWeekBar Component', () => {
     expect(thuButton).toHaveClass('mini-week-day--selected');
   });
 
-  it('anchors displayed week to current week regardless of selectedDate', () => {
-    vi.setSystemTime(new Date(2026, 2, 10, 12, 0, 0)); // Tue Mar 10, 2026
+  it('uses provided weekStartDate regardless of selectedDate', () => {
+    render(
+      <MiniWeekBar
+        {...defaultProps}
+        selectedDate="2026-04-20"
+        weekStartDate={new Date(2026, 3, 20)}
+      />
+    );
 
-    render(<MiniWeekBar {...defaultProps} selectedDate="2026-04-20" />);
-
-    expect(screen.getByText('Mar 9 - Mar 15, 2026')).toBeInTheDocument();
+    expect(screen.getByText('Apr 20 - Apr 26, 2026')).toBeInTheDocument();
   });
 
   it('should render day numbers for each day of the week', () => {

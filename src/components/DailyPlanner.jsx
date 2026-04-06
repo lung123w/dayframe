@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { format, addDays, startOfWeek, subWeeks } from 'date-fns';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { format, addDays, startOfWeek } from 'date-fns';
 import { FaPlus } from 'react-icons/fa';
 import BacklogSidebar from './BacklogSidebar';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
@@ -40,25 +40,16 @@ export default function DailyPlanner({
   const currentWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [weekStartDate, setWeekStartDate] = useState(currentWeekStart);
-  const scrollContainerRef = useRef(null);
 
-  // Calculate 21-day range: 1 week before + current week + 1 week after
+  // Calculate 7-day week view
   const weekDays = useMemo(() => {
-    const prevWeekStart = subWeeks(weekStartDate, 1);
-    return Array.from({ length: 21 }, (_, i) => format(addDays(prevWeekStart, i), 'yyyy-MM-dd'));
+    return Array.from({ length: 7 }, (_, i) => format(addDays(weekStartDate, i), 'yyyy-MM-dd'));
   }, [weekStartDate]);
-  const activeDate = weekDays.includes(selectedDate) ? selectedDate : weekDays[7];
+  const activeDate = weekDays.includes(selectedDate) ? selectedDate : weekDays[0];
 
-  // Auto-scroll to current week (center) on mount
+  // Auto-scroll removed since we're using grid layout now
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      // Must match .daily-planner-scroll-container .dc-column min-width in CSS
-      const dayColumnWidth = 280;
-      // Current week starts at day index 7 (0-indexed), scroll to show it in center
-      const containerWidth = scrollContainerRef.current.offsetWidth;
-      const scrollPosition = (7 * dayColumnWidth) - (containerWidth / 2) + (dayColumnWidth / 2);
-      scrollContainerRef.current.scrollLeft = scrollPosition;
-    }
+    // Grid layout auto-fills the space, no scrolling needed
   }, []);
 
 
@@ -186,7 +177,7 @@ export default function DailyPlanner({
         />
 
         {/* Day Columns: expanded selected day + mini others */}
-        <div className="daily-planner-scroll-container" ref={scrollContainerRef}>
+        <div className="daily-planner-scroll-container">
           {weekDays.map(dayStr => (
             <DayColumn
               key={dayStr}
@@ -203,6 +194,7 @@ export default function DailyPlanner({
               onEstimateChange={handleEstimateChange}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
+              onDayClick={setSelectedDate}
             />
           ))}
         </div>

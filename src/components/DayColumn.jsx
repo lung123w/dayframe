@@ -77,6 +77,7 @@ export default function DayColumn({
   onEstimateChange,
   onDragOver,
   onDrop,
+  onDayClick,
 }) {
   const dayTasks = useMemo(() => {
     if (!dateStr) return [];
@@ -323,7 +324,7 @@ export default function DayColumn({
       onDragLeave={handleColumnDragLeave}
       data-date={dateStr}
     >
-      <div className="dc-header">
+      <div className="dc-header" onClick={() => onDayClick && onDayClick(dateStr)} style={{ cursor: onDayClick ? 'pointer' : 'default' }}>
         <div className="dc-header-label">
           <span className={`dc-day-name${isTodayDate ? ' dc-day-name--today' : ''}`}>{formatDayLabel(dateStr)}</span>
           <span className="dc-day-date">{formatDayDate(dateStr)}</span>
