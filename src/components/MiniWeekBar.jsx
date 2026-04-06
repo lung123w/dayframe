@@ -3,10 +3,15 @@ import { startOfWeek, addDays, format, isToday, isSameDay } from 'date-fns';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './MiniWeekBar.css';
 
-export default function MiniWeekBar({ selectedDate, onSelectDate, onPrevWeek, onNextWeek, tasks }) {
+export default function MiniWeekBar({ selectedDate, onSelectDate, onPrevWeek, onNextWeek, tasks, weekStartDate }) {
   const [y, m, d] = selectedDate.split('-').map(Number);
   const selected = useMemo(() => new Date(y, m - 1, d), [y, m, d]);
-  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
+  const weekStart = useMemo(() => {
+    if (weekStartDate instanceof Date && !Number.isNaN(weekStartDate.getTime())) {
+      return weekStartDate;
+    }
+    return startOfWeek(new Date(), { weekStartsOn: 1 });
+  }, [weekStartDate]);
 
   const days = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
