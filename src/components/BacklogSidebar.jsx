@@ -17,7 +17,7 @@ function isOverduePending(task) {
 export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
   const [filterProject, setFilterProject] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState('all-pending'); // 'all-pending' | 'unscheduled'
+  const [viewMode, setViewMode] = useState('unscheduled'); // 'all-pending' | 'unscheduled'
 
   const displayTasks = useMemo(() => {
     let result = viewMode === 'unscheduled'
@@ -119,35 +119,37 @@ export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
                   : 'No tasks match filters')}
           </div>
         ) : (
-          [...grouped.entries()].map(([projectId, groupTasks]) => {
-            const project = getProject(projectId);
-            return (
-              <div key={projectId} className="backlog-group">
-                <div className="backlog-group-header" style={{ borderLeftColor: project?.color || '#94A3B8' }}>
-                  <span className="backlog-group-name">{project?.name || 'No Project'}</span>
-                  <span className="backlog-group-count">{groupTasks.length}</span>
+          <div className="backlog-groups-row">
+            {[...grouped.entries()].map(([projectId, groupTasks]) => {
+              const project = getProject(projectId);
+              return (
+                <div key={projectId} className="backlog-group">
+                  <div className="backlog-group-header" style={{ borderLeftColor: project?.color || '#94A3B8' }}>
+                    <span className="backlog-group-name">{project?.name || 'No Project'}</span>
+                    <span className="backlog-group-count">{groupTasks.length}</span>
+                  </div>
+                  {groupTasks.map(task => {
+                    const isOverdue = isOverduePending(task);
+                    return (
+                      <div
+                        key={task.id}
+                        className={`backlog-task ${isOverdue ? 'overdue' : ''}`}
+                        draggable
+                        onDragStart={e => handleDragStart(e, task)}
+                      >
+                        <FaGripVertical className="backlog-grip" />
+                        <span className="backlog-task-title" onClick={() => onTaskClick(task)}>
+                          {task.title}
+                          {isOverdue && <span className="overdue-badge">Overdue</span>}
+                        </span>
+                        <span className={`backlog-priority backlog-priority--${task.priority}`} />
+                      </div>
+                    );
+                  })}
                 </div>
-                {groupTasks.map(task => {
-                  const isOverdue = isOverduePending(task);
-                  return (
-                    <div
-                      key={task.id}
-                      className={`backlog-task ${isOverdue ? 'overdue' : ''}`}
-                      draggable
-                      onDragStart={e => handleDragStart(e, task)}
-                    >
-                      <FaGripVertical className="backlog-grip" />
-                      <span className="backlog-task-title" onClick={() => onTaskClick(task)}>
-                        {task.title}
-                        {isOverdue && <span className="overdue-badge">Overdue</span>}
-                      </span>
-                      <span className={`backlog-priority backlog-priority--${task.priority}`} />
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

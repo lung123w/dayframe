@@ -1,22 +1,13 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { FaPlus } from 'react-icons/fa';
 import BacklogSidebar from './BacklogSidebar';
-import PlannerHabitsPanel from './PlannerHabitsPanel';
 import DayColumn from './DayColumn';
 import MiniWeekBar from './MiniWeekBar';
 import YearlyGoals from './YearlyGoals';
 import WeeklyObjectives from './WeeklyObjectives';
-import DailyTimeline from './DailyTimeline';
-import DailyShutdown from './DailyShutdown';
-import { generateRecurringTasks } from '../utils/recurrence';
 import { taskService } from '../api';
 import './DailyPlanner.css';
-
-function todayStr() {
-  const d = new Date();
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
-}
 
 function toLocalDateStr(date) {
   if (!date) return '';
@@ -38,51 +29,19 @@ export default function DailyPlanner({
   onDataChange,
 }) {
   const currentWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
-  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [weekStartDate, setWeekStartDate] = useState(currentWeekStart);
 
   // Calculate 7-day week view
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => format(addDays(weekStartDate, i), 'yyyy-MM-dd'));
   }, [weekStartDate]);
-  const activeDate = weekDays.includes(selectedDate) ? selectedDate : weekDays[0];
-
-  // Auto-scroll removed since we're using grid layout now
-  useEffect(() => {
-    // Grid layout auto-fills the space, no scrolling needed
-  }, []);
-
-
-  // Get day tasks for the selected (expanded) day — needed for shutdown
-  const expandedDayTasks = useMemo(() => {
-    const [py, pm, pd] = activeDate.split('-').map(Number);
-    const dayStart = new Date(py, pm - 1, pd);
-    const dayEnd = new Date(py, pm - 1, pd + 1);
-    const result = [];
-    for (const task of tasks) {
-      if (task.isRecurring && task.dueDate) {
-        result.push(...generateRecurringTasks(task, dayStart, dayEnd));
-      } else if (task.dueDate && toLocalDateStr(task.dueDate) === activeDate) {
-        result.push(task);
-      }
-    }
-    return result;
-  }, [tasks, activeDate]);
 
   // Week navigation
   const handlePrevWeek = () => {
     setWeekStartDate(prev => addDays(prev, -7));
-    setSelectedDate(prev => {
-      const [y, m, d] = prev.split('-').map(Number);
-      return format(addDays(new Date(y, m - 1, d), -7), 'yyyy-MM-dd');
-    });
   };
   const handleNextWeek = () => {
     setWeekStartDate(prev => addDays(prev, 7));
-    setSelectedDate(prev => {
-      const [y, m, d] = prev.split('-').map(Number);
-      return format(addDays(new Date(y, m - 1, d), 7), 'yyyy-MM-dd');
-    });
   };
 
   // Handle estimate change (inline on task card)
@@ -146,8 +105,13 @@ export default function DailyPlanner({
 
   return (
     <div className="dp-layout">
-      {/* LEFT: Backlog Sidebar */}
-      <div className="dp-left-rail">
+      {/* Top section: 2026 Goals full width */}
+      <div className="dp-top-goals">
+        <YearlyGoals />
+      </div>
+
+      {/* Backlog - full width, same as task grid */}
+      <div className="dp-top-backlog">
         <BacklogSidebar
           tasks={tasks}
           projects={projects}
@@ -155,64 +119,43 @@ export default function DailyPlanner({
           onAssignDate={onAssignDate}
           onDeleteTask={onDeleteTask}
         />
-        <PlannerHabitsPanel onDataChange={onDataChange} />
       </div>
 
-      {/* CENTER: Main Planner Area */}
-      <div className="dp-center">
-        {/* Yearly Goals */}
-        <YearlyGoals />
-
-        {/* Weekly Objectives */}
-        <WeeklyObjectives selectedDate={activeDate} />
-
-        {/* Mini Week Navigation */}
-        <MiniWeekBar
-          selectedDate={activeDate}
-          onSelectDate={setSelectedDate}
-          onPrevWeek={handlePrevWeek}
-          onNextWeek={handleNextWeek}
-          tasks={tasks}
-          weekStartDate={weekStartDate}
-        />
-
-        {/* Day Columns: expanded selected day + mini others */}
-        <div className="daily-planner-scroll-container">
-          {weekDays.map(dayStr => (
-            <DayColumn
-              key={dayStr}
-              dateStr={dayStr}
-              tasks={tasks}
-              projects={projects}
-              subtasks={subtasks}
-              expanded={dayStr === activeDate}
-              onTaskClick={onTaskClick}
-              onStatusUpdate={onStatusUpdate}
-              onNewTask={onNewTask}
-              onDeleteTask={onDeleteTask}
-              onSubtaskToggle={onSubtaskToggle}
-              onEstimateChange={handleEstimateChange}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onDayClick={setSelectedDate}
-            />
-          ))}
-        </div>
-
-        {/* Daily Shutdown — inline at bottom */}
-        <DailyShutdown
-          dateStr={activeDate}
-          dayTasks={expandedDayTasks}
-          onDataChange={onDataChange}
-        />
-      </div>
-
-      {/* RIGHT: Timeline */}
-      <DailyTimeline
-        dateStr={activeDate}
+      {/* Week Navigation */}
+      <MiniWeekBar
+        selectedDate={weekDays[0]}
+        onSelectDate={() => {}}
+        onPrevWeek={handlePrevWeek}
+        onNextWeek={handleNextWeek}
         tasks={tasks}
-        projects={projects}
+        weekStartDate={weekStartDate}
       />
+
+      {/* Weekly Objectives - right under week navigation */}
+      <WeeklyObjectives selectedDate={weekDays[0]} />
+
+      {/* Day Columns: All 7 days shown equally - FULL WIDTH */}
+      <div className="daily-planner-scroll-container">
+        {weekDays.map(dayStr => (
+          <DayColumn
+            key={dayStr}
+            dateStr={dayStr}
+            tasks={tasks}
+            projects={projects}
+            subtasks={subtasks}
+            expanded={true}
+            onTaskClick={onTaskClick}
+            onStatusUpdate={onStatusUpdate}
+            onNewTask={onNewTask}
+            onDeleteTask={onDeleteTask}
+            onSubtaskToggle={onSubtaskToggle}
+            onEstimateChange={handleEstimateChange}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onDayClick={() => {}}
+          />
+        ))}
+      </div>
     </div>
   );
 }

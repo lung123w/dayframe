@@ -324,8 +324,12 @@ export default function DayColumn({
       onDragLeave={handleColumnDragLeave}
       data-date={dateStr}
     >
-      <div className="dc-header" onClick={() => onDayClick && onDayClick(dateStr)} style={{ cursor: onDayClick ? 'pointer' : 'default' }}>
-        <div className="dc-header-label">
+      <div className="dc-header">
+        <div 
+          className="dc-header-label" 
+          onClick={() => onDayClick && onDayClick(dateStr)} 
+          style={{ cursor: onDayClick ? 'pointer' : 'default' }}
+        >
           <span className={`dc-day-name${isTodayDate ? ' dc-day-name--today' : ''}`}>{formatDayLabel(dateStr)}</span>
           <span className="dc-day-date">{formatDayDate(dateStr)}</span>
         </div>
@@ -337,6 +341,16 @@ export default function DayColumn({
           )}
           <span className="dc-task-count">{dayTasks.length}</span>
         </div>
+        <button 
+          className="dc-header-add-btn" 
+          onClick={(e) => {
+            e.stopPropagation();
+            onNewTask(dateStr);
+          }}
+          title="Add task"
+        >
+          <FaPlus />
+        </button>
       </div>
 
       <div className="dc-body">

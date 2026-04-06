@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCalendar, FaLink, FaFolder, FaBell, FaDownload } from 'react-icons/fa';
+import { FaCalendar, FaLink, FaFolder, FaBell, FaDownload, FaCalendarDay } from 'react-icons/fa';
 import './Sidebar.css';
 
 export default function Sidebar({ currentView, onNavigate, onNotifications, onBackup }) {
@@ -13,6 +13,14 @@ export default function Sidebar({ currentView, onNavigate, onNotifications, onBa
       <nav className="sidebar-nav">
         <div className="sidebar-section">
           <div className="sidebar-section-header">VIEWS</div>
+          <button
+            className={`sidebar-nav-item ${currentView === 'today' ? 'active' : ''}`}
+            onClick={() => onNavigate('today')}
+            aria-label="Navigate to Today view"
+          >
+            <FaCalendarDay />
+            <span>Today</span>
+          </button>
           <button
             className={`sidebar-nav-item ${currentView === 'planner' ? 'active' : ''}`}
             onClick={() => onNavigate('planner')}

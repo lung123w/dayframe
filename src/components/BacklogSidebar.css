@@ -1,15 +1,11 @@
 /* -- Backlog Sidebar -- */
 .backlog-sidebar {
-  width: 260px;
-  flex-shrink: 0;
+  width: 100%;
   background: white;
   border: 1.5px solid #E2E8F0;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 84px;
-  max-height: calc(100vh - 100px);
   overflow: hidden;
 }
 
@@ -45,16 +41,27 @@
 }
 .backlog-clear:hover { color: #64748B; }
 
-/* Body */
-.backlog-body { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+/* Body - horizontal multi-column layout */
+.backlog-body {
+  padding: 0 8px 8px;
+  overflow-x: auto;
+}
 
-/* Empty */
-.backlog-empty {
-  text-align: center; color: #94A3B8; font-size: 12px; padding: 24px 8px;
+.backlog-groups-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* Group */
-.backlog-group { margin-bottom: 8px; }
+.backlog-group {
+  flex: 1 1 200px;
+  min-width: 160px;
+  max-width: 280px;
+}
+.backlog-empty {
+  text-align: center; color: #94A3B8; font-size: 12px; padding: 16px 8px;
+}
 .backlog-group-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 4px 8px; font-size: 11px; font-weight: 700; color: #64748B;
