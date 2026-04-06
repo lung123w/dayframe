@@ -1,108 +1,50 @@
 /* ── Daily Planner Layout ── */
 .dp-layout {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.dp-left-rail {
-  display: flex;
   flex-direction: column;
   gap: 10px;
+  height: calc(100vh - 120px);
 }
 
-.dp-center {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+/* 2026 Goals - full width */
+.dp-top-goals {
+  width: 100%;
 }
 
-/* Day columns row */
-.dp-columns {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  align-items: flex-start;
+/* Backlog - full width, matches task grid */
+.dp-top-backlog {
+  width: 100%;
 }
 
-/* Grid container for week view - 8 columns to accommodate expanded day (2 cols) + 6 other days */
+/* Grid container for week view - 7 equal columns - FULL WIDTH */
 .daily-planner-scroll-container {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
   align-items: flex-start;
-  padding-bottom: 8px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Day columns in grid view */
 .daily-planner-scroll-container .dc-column {
   min-width: 0;
-  flex-shrink: 0;
-}
-
-/* Expanded column in grid view */
-.daily-planner-scroll-container .dc-column--expanded {
-  grid-column: span 2;
-}
-
-/* Ensure mini columns are narrow */
-.dp-columns .dc-column:not(.dc-column--expanded) {
-  min-width: 0;
-}
-
-/* Expanded column spans multiple grid cells */
-.dp-columns .dc-column--expanded {
-  grid-column: span 2;
+  height: 100%;
 }
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .dp-layout {
-    flex-direction: column;
-  }
-
-  .backlog-sidebar {
-    width: 100%;
-    position: static;
-    max-height: none;
-  }
-
-  .planner-habits-panel {
-    width: 100%;
-  }
-
-  .tl-container {
-    width: 100%;
-    position: static;
-    max-height: none;
-  }
-
-  .dp-columns {
-    flex-wrap: wrap;
-  }
-
-  .dp-columns .dc-column:not(.dc-column--expanded) {
-    max-width: none;
-    min-width: 120px;
+  .daily-planner-scroll-container {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .dp-columns .dc-column:not(.dc-column--expanded) {
-    display: none; /* Hide mini columns on mobile, just show expanded */
+  .daily-planner-scroll-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
-  /* Reduce column width on mobile for better fit */
-  .daily-planner-scroll-container .dc-column {
-    min-width: 200px;
-  }
-
-  .daily-planner-scroll-container .dc-column--expanded {
-    min-width: 300px;
-  }
-
-  /* Ensure touch-friendly targets (minimum 44px) */
   .dc-column button,
   .dc-column .task-item {
     min-height: 44px;

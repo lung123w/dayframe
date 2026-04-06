@@ -4,6 +4,7 @@ import ProjectModal from './components/ProjectModal';
 import ProjectsView from './components/ProjectsView';
 import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
+import TodayView from './components/TodayView';
 import Sidebar from './components/Sidebar';
 import { taskService, projectService, subtaskService, habitService, habitEntryService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
@@ -260,6 +261,17 @@ function App() {
       />
 
       <main className="app-main">
+        {activeView === 'today' && (
+          <TodayView
+            tasks={tasks}
+            projects={projects}
+            onTaskClick={handleTaskClick}
+            onNewTask={handleNewTaskForDay}
+            onStatusUpdate={handleStatusUpdate}
+            onDataChange={loadData}
+          />
+        )}
+
         {activeView === 'planner' && (
           <>
             {/* ── Toolbar ── */}

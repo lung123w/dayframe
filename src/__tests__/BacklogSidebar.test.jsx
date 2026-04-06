@@ -41,6 +41,9 @@ describe('BacklogSidebar', () => {
   it('shows pending tasks in all-pending mode including overdue scheduled tasks', () => {
     renderSidebar();
 
+    // Switch to all-pending mode (default is now unscheduled)
+    fireEvent.click(screen.getByRole('button', { name: 'All Pending' }));
+
     expect(screen.getByText('Unscheduled A')).toBeInTheDocument();
     expect(screen.getByText('Unscheduled B')).toBeInTheDocument();
     expect(screen.getByText('Future scheduled')).toBeInTheDocument();
