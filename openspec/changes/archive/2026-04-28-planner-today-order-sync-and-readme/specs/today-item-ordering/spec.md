@@ -22,14 +22,3 @@ The system SHALL allow users to reorder tasks displayed in the Today view via dr
 #### Scenario: Deleted task IDs are silently removed from order
 - **WHEN** a task referenced in the stored order no longer exists
 - **THEN** the Today view SHALL render without that task and without errors
-
-### Requirement: Touch users can reorder via arrow controls
-The system SHALL provide up/down arrow buttons on each Today task card as a fallback reorder mechanism for touch devices.
-
-#### Scenario: User taps up arrow on a task
-- **WHEN** the user taps the up arrow button on a task that is not already first
-- **THEN** the task SHALL move one position up in the Today list and the new order SHALL be persisted
-
-#### Scenario: Up arrow disabled on first item
-- **WHEN** a task is at the top of the Today list
-- **THEN** the up arrow button SHALL be visually disabled and non-interactive

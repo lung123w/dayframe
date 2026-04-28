@@ -1,9 +1,11 @@
-import React, { useMemo, useRef } from 'react';
-import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
+import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen } from 'react-icons/fa';
 import DailyTimeline from './DailyTimeline';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
+import DailyWorkflow from './DailyWorkflow';
 import { generateRecurringTasks } from '../utils/recurrence';
 import { mergeOrder } from '../utils/todayOrder';
+import { taskService } from '../api';
 import './TodayView.css';
 
 function toLocalDateStr(date) {
@@ -28,6 +30,19 @@ function getTaskKey(task) {
 export default function TodayView({ tasks, projects, todayOrder, onTodayOrderChange, onTaskClick, onNewTask, onStatusUpdate, onDataChange }) {
   const today = useMemo(() => toLocalDateStr(new Date()), []);
   const dragSrcKey = useRef(null);
+  const [captureText, setCaptureText] = useState('');
+
+  const handleCaptureKeyDown = useCallback(async (e) => {
+    if (e.key === 'Enter') {
+      const title = captureText.trim();
+      if (!title) return;
+      await taskService.create({ title, dueDate: today, status: 'pending' });
+      setCaptureText('');
+      if (onDataChange) onDataChange();
+    } else if (e.key === 'Escape') {
+      setCaptureText('');
+    }
+  }, [captureText, today, onDataChange]);
 
   const todayDate = useMemo(() => {
     const [y, m, d] = today.split('-').map(Number);
@@ -194,6 +209,16 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
             </button>
           </div>
         )}
+
+        {/* Edit button */}
+        <button
+          className="tv-edit-btn"
+          title="Edit task"
+          aria-label="Edit task"
+          onClick={e => { e.stopPropagation(); if (onTaskClick) onTaskClick(task); }}
+        >
+          <FaPen />
+        </button>
       </div>
     );
   };
@@ -226,6 +251,9 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
         </div>
 
         <div className="today-tasks-panel">
+          {/* Daily Workflow section */}
+          <DailyWorkflow today={today} />
+
           {/* Overdue section */}
           {overdueTasks.length > 0 && (
             <div className="tv-section">
@@ -241,9 +269,20 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
           <div className="tv-section">
             <div className="tv-section-header">
               <span>Today — {pendingToday.length} remaining</span>
-              <button className="tv-add-inline-btn" onClick={() => onNewTask && onNewTask(today)}>
-                <FaPlus /> Add task
-              </button>
+            </div>
+
+            {/* Quick capture input */}
+            <div className="tv-quick-capture">
+              <FaPlus className="tv-quick-capture-icon" />
+              <input
+                className="tv-quick-capture-input"
+                type="text"
+                placeholder="Capture a task… (press Enter)"
+                value={captureText}
+                onChange={e => setCaptureText(e.target.value)}
+                onKeyDown={handleCaptureKeyDown}
+                aria-label="Quick capture task"
+              />
             </div>
             {pendingToday.length === 0 ? (
               <div className="tv-empty">

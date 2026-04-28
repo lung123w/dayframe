@@ -370,3 +370,64 @@
   opacity: 0.3;
   cursor: default;
 }
+
+/* Quick Capture */
+.tv-quick-capture {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #F8FAFC;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tv-quick-capture:focus-within {
+  border-color: #6366F1;
+  background: #fff;
+  border-style: solid;
+}
+
+.tv-quick-capture-icon {
+  color: #94A3B8;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tv-quick-capture-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: #1E293B;
+}
+
+.tv-quick-capture-input::placeholder {
+  color: #94A3B8;
+}
+
+/* Edit button on task cards */
+.tv-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  color: #CBD5E1;
+  font-size: 11px;
+  opacity: 0;
+  border-radius: 4px;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.tv-task:hover .tv-edit-btn {
+  opacity: 1;
+}
+
+.tv-edit-btn:hover {
+  color: #6366F1;
+  background: #EEF2FF;
+}
