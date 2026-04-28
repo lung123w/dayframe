@@ -27,6 +27,11 @@ dist-ssr
 data/*.db-shm
 data/*.db-wal
 
+# User data — SQLite database and exports (never commit personal data)
+data/*.db
+*.export.json
+*.export.csv
+
 # Backup files in backups/ are intentionally tracked in git.
 # Use the Backup button in the app to export a JSON, then move it here and commit.
 !backups/*.json

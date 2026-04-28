@@ -88,3 +88,14 @@ export const yearlyGoalService = {
     body: JSON.stringify(data),
   }),
 };
+
+export const settingsService = {
+  get: async (key) => {
+    const res = await request(`/api/settings/${key}`);
+    return res?.value ?? null;
+  },
+  set: (key, value) => request(`/api/settings/${key}`, {
+    method: 'PUT',
+    body: JSON.stringify({ value }),
+  }),
+};

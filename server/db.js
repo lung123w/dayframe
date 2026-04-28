@@ -107,6 +107,12 @@ db.exec(`
     updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(year)
   );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL DEFAULT 'null',
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 // Migrate weekly objectives to object format
