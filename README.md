@@ -1,255 +1,143 @@
 # DayFrame
 
-A modern, feature-rich project management application built with React that helps you organize and track tasks across multiple projects. Features a beautiful calendar interface similar to Outlook, with support for recurring tasks, team member assignments, and browser notifications.
+A personal task management app with a daily planner, today view, habit tracker, and workflow tools. Built with React (frontend) and Node.js + SQLite (backend).
 
 ## Features
 
-### 📅 Calendar Views
-- **Multiple View Modes**: Switch between day, week, month, and list views
-- **Outlook-like Interface**: Familiar and intuitive calendar layout
-- **Drag & Drop**: Easily reschedule tasks by dragging them to different dates
-- **Color-Coded Tasks**: Visual distinction by project, priority, and status
+### 📋 Today View
+- See all tasks due today in a prioritized list
+- Drag to reorder tasks; order is persisted across sessions
+- Quick-capture new tasks inline (press Enter to create, Escape to clear)
+- Edit any task directly from the today view
+- Mark tasks complete with a single click
+
+### 🗓️ Daily Planner (Week View)
+- 7-day week grid with drag-and-drop scheduling
+- Move tasks between days or reorder within a day
+- Reordering today's tasks in the planner syncs with the Today view order
+- Per-task time estimates editable inline
+- Navigate forward/backward by week
+- Yearly goals and weekly objectives panels integrated
 
 ### ✅ Task Management
-- **Create & Edit Tasks**: Rich task creation with all the details you need
-- **Task Properties**:
-  - Title and description
-  - Due dates
-  - Priority levels (Low, Medium, High)
-  - Status tracking (To Do, In Progress, Completed)
-  - Project assignment
-  - Team member assignment
-  
-### 🔄 Recurring Tasks
-- **Flexible Recurrence Patterns**:
-  - Daily (every N days)
-  - Weekly (specific days of the week)
-  - Monthly (every N months)
-  - Yearly (every N years)
-- **End Conditions**: Set end date or number of occurrences
-- **Visual Preview**: See a description of your recurrence pattern
+- Create and edit tasks with title, description, due date, priority, status, and project
+- Recurring tasks: daily, weekly, monthly, yearly with end date or occurrence count
+- Subtasks with completion tracking
+- Paste images directly into task descriptions (Ctrl+V)
+- Assign tasks to team members
 
-### 🖼️ Image Support
-- **Paste Images Directly**: Copy and paste images into task descriptions (Ctrl+V)
-- **Multiple Images**: Add multiple images per task
-- **Visual Preview**: See images directly in the task modal
+### 🔄 Daily Workflow
+- Define reusable daily workflow steps
+- Track step completion per day
+- Visual checklist in the Today view
 
-### 👥 Team Management
-- **Add Team Members**: Build your team directory
-- **Assign Tasks**: Assign tasks to specific team members
-- **Track Information**: Store names, emails, and roles
+### 📈 Habit Tracker
+- Create daily habits and track streaks
+- Check off habits each day
+
+### 🗂️ Backlog Sidebar
+- Collapsible sidebar listing all pending (unscheduled) tasks
+- Drag tasks from backlog onto the planner to schedule them
 
 ### 🔔 Notifications
-- **Browser Notifications**: Get notified about upcoming and overdue tasks
-- **Smart Timing**:
-  - Immediate alerts for overdue tasks
-  - 1-hour warnings for tasks due soon
-  - 24-hour reminders for tasks due today
-- **Background Monitoring**: Checks every 30 minutes while app is open
+- Browser notifications for overdue, 1-hour, and 24-hour warnings
+- Background polling every 30 minutes while the app is open
 
-### 💾 Data Persistence
-- **IndexedDB Storage**: All data stored locally in your browser
-- **Persistent**: Data survives browser restarts and cache clearing
-- **No Server Required**: Completely offline-capable
-- **No Login Needed**: Single-user, personal tool
+### 👥 Team Management
+- Add team members with name, email, and role
+- Assign tasks to team members
+
+## Data Persistence
+
+All data is stored in a **SQLite database** via a Node.js/Express backend (`server/`). There is no cloud sync — data is local to the machine running the server.
+
+- **Tables**: tasks, projects, team_members, subtasks, habits, habit_completions, workflow_steps, workflow_completions, settings
+- Data survives server restarts
+
+## Tech Stack
+
+### Frontend
+- **React 19** — UI framework
+- **Vite 8** — build tool and dev server
+- **FullCalendar** — calendar components
+- **date-fns** — date utilities
+- **React Icons** — icon library
+
+### Backend
+- **Node.js + Express** — REST API server
+- **better-sqlite3** — SQLite database driver
+
+### Testing
+- **Vitest** — test runner
+- **React Testing Library** — component testing
+- **jsdom** — browser environment simulation
 
 ## Installation & Setup
 
 ### Prerequisites
-- Node.js 16+ installed
-- Modern web browser (Edge, Chrome, Firefox, etc.)
+- Node.js 18+
 
 ### Getting Started
 
-1. **Install Dependencies**
+1. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Run Development Server**
+2. **Start the app** (frontend + backend together)
    ```bash
    npm run dev
    ```
-   The app will open at `http://localhost:5173/`
+   - Frontend: `http://localhost:5173`
+   - API server: `http://localhost:3001`
 
-3. **Build for Production**
+3. **Build for production**
    ```bash
    npm run build
    ```
-   Output will be in the `dist/` folder
 
-4. **Run Tests**
+4. **Run tests**
    ```bash
-   npm test        # Interactive mode
-   npm run test:run  # Run once
-   npm run test:ui   # Visual test UI
+   npm run test:run   # single run
+   npm test           # watch mode
+   npm run test:ui    # visual UI
    ```
 
-## Usage Guide
-
-### Creating Your First Task
-
-1. Click the **"New Task"** button in the toolbar
-2. Fill in the task details:
-   - Enter a title (required)
-   - Add a description
-   - Paste images with Ctrl+V
-   - Set a due date
-   - Choose priority and status
-   - Assign to a project or team member
-3. Click **"Create Task"**
-
-### Setting Up Recurring Tasks
-
-1. When creating/editing a task, check **"Recurring Task"**
-2. Configure the pattern:
-   - Select frequency (Daily, Weekly, Monthly, Yearly)
-   - Set interval (e.g., every 2 weeks)
-   - For weekly tasks, choose specific days
-   - Optionally set an end date or number of occurrences
-3. The app will automatically generate future instances
-
-### Managing Team Members
-
-1. Click the **"Team"** button in the header
-2. Click **"Add Member"**
-3. Enter name, email, and role
-4. Click **"Add Member"** to save
-5. Assign tasks to team members when creating tasks
-
-### Enabling Notifications
-
-1. Click the bell icon (🔔) in the header
-2. Allow notifications when prompted by your browser
-3. You'll receive notifications for:
-   - Overdue tasks
-   - Tasks due within 1 hour
-   - Tasks due within 24 hours
-
-### Calendar Navigation
-
-- **Month View**: Click any date to create a task
-- **Week View**: See your week at a glance
-- **Day View**: Focus on today's tasks
-- **List View**: See all upcoming tasks in a list
-- **Drag & Drop**: Move tasks to different dates by dragging
-
-## Technology Stack
-
-### Core
-- **React 19**: Modern UI framework
-- **Vite 8**: Fast build tool and dev server
-- **IndexedDB (via Dexie)**: Browser database for data persistence
-
-### Calendar & UI
-- **FullCalendar**: Professional calendar component
-- **React Icons**: Beautiful icon library
-- **date-fns**: Modern date utility library
-
-### Testing
-- **Vitest**: Fast unit test framework
-- **React Testing Library**: Component testing utilities
-- **jsdom**: Browser environment simulation
+5. **Lint**
+   ```bash
+   npm run lint
+   ```
 
 ## Project Structure
 
 ```
-project_mgmt_tool/
+dayframe/
+├── server/
+│   ├── db.js          # SQLite schema and migrations
+│   ├── index.js       # Express app entry point
+│   └── routes/        # API route handlers
 ├── src/
-│   ├── components/          # React components
-│   │   ├── Calendar.jsx     # Main calendar view
-│   │   ├── TaskModal.jsx    # Task creation/editing
-│   │   └── TeamManagement.jsx # Team member management
-│   ├── utils/               # Utility functions
-│   │   ├── recurrence.js    # Recurring task logic
-│   │   └── notifications.js # Browser notifications
-│   ├── __tests__/           # Test files
-│   ├── db.js                # IndexedDB database layer
-│   ├── App.jsx              # Main app component
-│   └── main.jsx             # App entry point
+│   ├── components/    # React components
+│   ├── utils/         # Utility functions
+│   ├── __tests__/     # Test files
+│   ├── api.js         # Frontend API service layer
+│   ├── App.jsx        # Main app component and state
+│   └── main.jsx       # App entry point
 ├── package.json
 ├── vite.config.js
 └── README.md
 ```
 
-## Data Storage
-
-All data is stored locally in IndexedDB with the following structure:
-
-- **Tasks**: Task details, recurrence patterns, images
-- **Team Members**: Name, email, role information
-- **Projects**: Project names and colors
-
-**Note**: Data is tied to your browser profile. If you switch browsers or clear site data, you'll lose your tasks. For production use, consider adding export/import functionality or cloud sync.
-
-## Browser Compatibility
-
-- ✅ Microsoft Edge (recommended)
-- ✅ Google Chrome
-- ✅ Mozilla Firefox
-- ✅ Safari (macOS)
-- ⚠️ Requires modern browser with IndexedDB and Notification API support
-
-## Testing
-
-The project includes comprehensive test coverage:
-
-- **Unit Tests**: 13 tests for utility functions (recurrence logic, validation)
-- **Component Tests**: 11 tests for UI components
-- **Integration Tests**: 4 tests for app-level functionality
-
-All 28 tests passing ✅
-
-Run tests with:
-```bash
-npm test          # Watch mode
-npm run test:run  # Single run
-npm run test:ui   # Visual UI
-```
-
-## Future Enhancements (Phase 2)
-
-Potential features for future development:
-
-- [ ] Outlook integration for calendar sync
-- [ ] Export/import functionality (JSON, CSV)
-- [ ] Task filtering and search
-- [ ] Subtasks and checklists
-- [ ] Time tracking
-- [ ] Report generation
-- [ ] Dark mode
-- [ ] Mobile responsive improvements
-- [ ] Cloud backup option
-
 ## Troubleshooting
 
-### Data Not Persisting
-- Check that you haven't disabled IndexedDB in browser settings
-- Ensure you're not in private/incognito mode
-- Check browser console for errors
+### App not loading data
+- Make sure both frontend and backend are running (`npm run dev` starts both)
+- Check the browser console and server terminal for errors
 
-### Notifications Not Working
+### Notifications not working
 - Click the bell icon to request permission
-- Check browser settings allow notifications for localhost
-- Ensure browser is not in Do Not Disturb mode
-
-### Calendar Not Loading
-- Check browser console for errors
-- Try refreshing the page
-- Clear browser cache and reload
+- Ensure the browser allows notifications for localhost
 
 ## License
 
-This project is open source and available for personal and commercial use.
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review the browser console for error messages
-3. Ensure you're using a modern, supported browser
-
----
-
-**Built with ❤️ using React, Vite, and modern web technologies**
-
+Open source — available for personal and commercial use.

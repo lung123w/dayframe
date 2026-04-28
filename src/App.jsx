@@ -9,6 +9,7 @@ import DailyPlanningModal from './components/DailyPlanningModal';
 import Sidebar from './components/Sidebar';
 import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
+import { syncSortOrderFromTodayOrder } from './utils/syncTodayOrder';
 import { FaPlus, FaFolder, FaCalendarCheck } from 'react-icons/fa';
 
 import './App.css';
@@ -187,6 +188,8 @@ function App() {
     setTodayOrder(newOrder);
     try {
       await settingsService.set('todayOrder', newOrder);
+      // Sync sortOrder on real (non-recurring) tasks
+      await syncSortOrderFromTodayOrder(newOrder, tasks, taskService.update);
     } catch (err) {
       console.error('Failed to save today order:', err);
     }
@@ -350,6 +353,7 @@ function App() {
               onSubtaskToggle={handleSubtaskToggle}
               onAssignDate={handleAssignDate}
               onDataChange={loadData}
+              onTodayOrderChange={handleTodayOrderChange}
             />
           </>
         )}
