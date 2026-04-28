@@ -11,6 +11,8 @@ import weeklyObjectivesRouter from './routes/weeklyObjectives.js';
 import dailyNotesRouter from './routes/dailyNotes.js';
 import yearlyGoalsRouter from './routes/yearlyGoals.js';
 import settingsRouter from './routes/settings.js';
+import workflowStepsRouter from './routes/workflowSteps.js';
+import workflowCompletionsRouter from './routes/workflowCompletions.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -29,6 +31,8 @@ app.use('/api/weekly-objectives', weeklyObjectivesRouter);
 app.use('/api/daily-notes', dailyNotesRouter);
 app.use('/api/yearly-goals', yearlyGoalsRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/workflow-steps', workflowStepsRouter);
+app.use('/api/workflow-completions', workflowCompletionsRouter);
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {
