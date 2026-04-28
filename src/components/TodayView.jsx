@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
-import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import React, { useMemo, useRef } from 'react';
+import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import DailyTimeline from './DailyTimeline';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
 import { generateRecurringTasks } from '../utils/recurrence';
+import { mergeOrder } from '../utils/todayOrder';
 import './TodayView.css';
 
 function toLocalDateStr(date) {
@@ -20,8 +21,13 @@ function formatTime(timeStr) {
   return m > 0 ? `${h12}:${String(m).padStart(2, '0')}${suffix}` : `${h12}${suffix}`;
 }
 
-export default function TodayView({ tasks, projects, onTaskClick, onNewTask, onStatusUpdate, onDataChange }) {
+function getTaskKey(task) {
+  return task.isRecurringInstance ? `${task.id}-${task.instanceDate}` : String(task.id);
+}
+
+export default function TodayView({ tasks, projects, todayOrder, onTodayOrderChange, onTaskClick, onNewTask, onStatusUpdate, onDataChange }) {
   const today = useMemo(() => toLocalDateStr(new Date()), []);
+  const dragSrcKey = useRef(null);
 
   const todayDate = useMemo(() => {
     const [y, m, d] = today.split('-').map(Number);
@@ -32,7 +38,7 @@ export default function TodayView({ tasks, projects, onTaskClick, onNewTask, onS
   }, [today]);
 
   // Tasks due today (including recurring)
-  const todayTasks = useMemo(() => {
+  const rawTodayTasks = useMemo(() => {
     const [y, m, d] = today.split('-').map(Number);
     const dayStart = new Date(y, m - 1, d);
     const dayEnd = new Date(y, m - 1, d + 1);
@@ -57,23 +63,72 @@ export default function TodayView({ tasks, projects, onTaskClick, onNewTask, onS
     ).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
   }, [tasks, today]);
 
-  const pendingToday = todayTasks.filter(t => t.status !== 'completed');
-  const completedToday = todayTasks.filter(t => t.status === 'completed');
+  // Apply stored order to today's pending tasks
+  const pendingToday = useMemo(() => {
+    const pending = rawTodayTasks.filter(t => t.status !== 'completed');
+    return mergeOrder(todayOrder, pending);
+  }, [rawTodayTasks, todayOrder]);
+
+  const completedToday = useMemo(() => rawTodayTasks.filter(t => t.status === 'completed'), [rawTodayTasks]);
+
   const completedCount = completedToday.length;
-  const totalCount = todayTasks.length + overdueTasks.length;
+  const totalCount = rawTodayTasks.length + overdueTasks.length;
 
   const getProject = id => projects.find(p => p.id === id);
 
-  const renderTaskCard = (task, isOverdue = false) => {
+  // ── Reorder helpers ──
+  const reorderAndSave = (newList) => {
+    const newOrder = newList.map(getTaskKey);
+    if (onTodayOrderChange) onTodayOrderChange(newOrder);
+  };
+
+  const moveTask = (idx, direction) => {
+    const newList = [...pendingToday];
+    const target = idx + direction;
+    if (target < 0 || target >= newList.length) return;
+    [newList[idx], newList[target]] = [newList[target], newList[idx]];
+    reorderAndSave(newList);
+  };
+
+  // ── Drag handlers ──
+  const handleDragStart = (e, key) => {
+    dragSrcKey.current = key;
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetKey) => {
+    e.preventDefault();
+    if (dragSrcKey.current === targetKey) return;
+    const newList = [...pendingToday];
+    const srcIdx = newList.findIndex(t => getTaskKey(t) === dragSrcKey.current);
+    const tgtIdx = newList.findIndex(t => getTaskKey(t) === targetKey);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+    const [removed] = newList.splice(srcIdx, 1);
+    newList.splice(tgtIdx, 0, removed);
+    reorderAndSave(newList);
+    dragSrcKey.current = null;
+  };
+
+  const renderTaskCard = (task, isOverdue = false, idx = -1, listLen = 0) => {
     const project = getProject(task.projectId);
     const isCompleted = task.status === 'completed';
-    const key = task.isRecurringInstance ? `${task.id}-${task.instanceDate}` : task.id;
+    const key = getTaskKey(task);
+    const isDraggable = !isOverdue && !isCompleted;
 
     return (
       <div
         key={key}
         className={`tv-task${isCompleted ? ' tv-task--done' : ''}${isOverdue ? ' tv-task--overdue' : ''}`}
         style={{ borderLeftColor: project?.color || '#E2E8F0' }}
+        draggable={isDraggable}
+        onDragStart={isDraggable ? (e) => handleDragStart(e, key) : undefined}
+        onDragOver={isDraggable ? handleDragOver : undefined}
+        onDrop={isDraggable ? (e) => handleDrop(e, key) : undefined}
         onClick={() => onTaskClick && onTaskClick(task)}
       >
         <button
@@ -115,6 +170,30 @@ export default function TodayView({ tasks, projects, onTaskClick, onNewTask, onS
             {task.priority === 'high' && <span className="tv-priority tv-priority--high">High</span>}
           </div>
         </div>
+
+        {/* Touch-friendly up/down reorder controls */}
+        {isDraggable && (
+          <div className="tv-reorder-btns" onClick={e => e.stopPropagation()}>
+            <button
+              className="tv-reorder-btn"
+              disabled={idx === 0}
+              onClick={() => moveTask(idx, -1)}
+              title="Move up"
+              aria-label="Move task up"
+            >
+              <FaArrowUp />
+            </button>
+            <button
+              className="tv-reorder-btn"
+              disabled={idx === listLen - 1}
+              onClick={() => moveTask(idx, 1)}
+              title="Move down"
+              aria-label="Move task down"
+            >
+              <FaArrowDown />
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -171,7 +250,7 @@ export default function TodayView({ tasks, projects, onTaskClick, onNewTask, onS
                 {overdueTasks.length === 0 ? 'No tasks for today — add one!' : 'All done for today!'}
               </div>
             ) : (
-              pendingToday.map(t => renderTaskCard(t))
+              pendingToday.map((t, idx) => renderTaskCard(t, false, idx, pendingToday.length))
             )}
           </div>
 

@@ -330,3 +330,43 @@
     font-size: 20px;
   }
 }
+
+/* ── Reorder controls ── */
+.tv-reorder-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.tv-task:hover .tv-reorder-btns {
+  opacity: 1;
+}
+
+.tv-reorder-btn {
+  background: none;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: #94A3B8;
+  font-size: 10px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tv-reorder-btn:hover:not(:disabled) {
+  color: #6366F1;
+  border-color: #6366F1;
+}
+
+.tv-reorder-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

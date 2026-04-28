@@ -5,10 +5,11 @@ import ProjectsView from './components/ProjectsView';
 import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
 import TodayView from './components/TodayView';
+import DailyPlanningModal from './components/DailyPlanningModal';
 import Sidebar from './components/Sidebar';
-import { taskService, projectService, subtaskService, habitService, habitEntryService } from './api';
+import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
-import { FaPlus, FaFolder } from 'react-icons/fa';
+import { FaPlus, FaFolder, FaCalendarCheck } from 'react-icons/fa';
 
 import './App.css';
 
@@ -27,7 +28,9 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [subtasks, setSubtasks] = useState([]);
+  const [todayOrder, setTodayOrder] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showPlanningModal, setShowPlanningModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('planner');
@@ -38,15 +41,17 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [tasksData, projectsData, subtasksData] = await Promise.all([
+      const [tasksData, projectsData, subtasksData, savedOrder] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
-        subtaskService.getAll()
+        subtaskService.getAll(),
+        settingsService.get('todayOrder'),
       ]);
 
       setTasks(sortTasks(tasksData));
       setProjects(projectsData);
       setSubtasks(subtasksData);
+      setTodayOrder(Array.isArray(savedOrder) ? savedOrder : []);
 
       // Create default project if none exists
       if (projectsData.length === 0) {
@@ -177,6 +182,23 @@ function App() {
     }
   };
 
+  // ── Today order handler ──
+  const handleTodayOrderChange = async (newOrder) => {
+    setTodayOrder(newOrder);
+    try {
+      await settingsService.set('todayOrder', newOrder);
+    } catch (err) {
+      console.error('Failed to save today order:', err);
+    }
+  };
+
+  // ── Daily planning modal ──
+  const handlePlanningConfirm = async (newOrder) => {
+    await handleTodayOrderChange(newOrder);
+    setShowPlanningModal(false);
+    setActiveView('today');
+  };
+
   // Assign a due date to an outstanding (unscheduled) task
   const handleAssignDate = async (task, date) => {
     try {
@@ -261,10 +283,21 @@ function App() {
       />
 
       <main className="app-main">
+        {/* Plan My Day — always visible */}
+        <button
+          className="plan-my-day-btn"
+          onClick={() => setShowPlanningModal(true)}
+          title="Plan My Day"
+        >
+          <FaCalendarCheck /> Plan My Day
+        </button>
+
         {activeView === 'today' && (
           <TodayView
             tasks={tasks}
             projects={projects}
+            todayOrder={todayOrder}
+            onTodayOrderChange={handleTodayOrderChange}
             onTaskClick={handleTaskClick}
             onNewTask={handleNewTaskForDay}
             onStatusUpdate={handleStatusUpdate}
@@ -350,6 +383,16 @@ function App() {
             setSelectedTask(null);
             setSelectedDate(null);
           }}
+        />
+      )}
+
+      {showPlanningModal && (
+        <DailyPlanningModal
+          tasks={tasks}
+          projects={projects}
+          todayOrder={todayOrder}
+          onConfirm={handlePlanningConfirm}
+          onClose={() => setShowPlanningModal(false)}
         />
       )}
 

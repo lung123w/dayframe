@@ -42,6 +42,10 @@ vi.mock('../api', () => ({
     getByHabit: vi.fn(() => Promise.resolve([])),
     create: vi.fn(() => Promise.resolve({ id: 1 })),
     deleteByDate: vi.fn(() => Promise.resolve())
+  },
+  settingsService: {
+    get: vi.fn(() => Promise.resolve(null)),
+    set: vi.fn(() => Promise.resolve())
   }
 }));
 

@@ -1,0 +1,224 @@
+.dpm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.dpm-modal {
+  background: #1E293B;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.dpm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #334155;
+}
+
+.dpm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dpm-header-icon {
+  color: #6366F1;
+  font-size: 20px;
+}
+
+.dpm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #F8FAFC;
+}
+
+.dpm-close-btn {
+  background: none;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.dpm-close-btn:hover {
+  color: #F8FAFC;
+}
+
+.dpm-subtitle {
+  margin: 0;
+  padding: 12px 24px 0;
+  font-size: 13px;
+  color: #94A3B8;
+}
+
+.dpm-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dpm-empty {
+  color: #64748B;
+  font-size: 14px;
+  text-align: center;
+  padding: 32px 0;
+}
+
+.dpm-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dpm-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.dpm-section--overdue .dpm-section-header {
+  color: #F87171;
+}
+
+.dpm-section--today .dpm-section-header {
+  color: #6366F1;
+}
+
+.dpm-task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #0F172A;
+  border-radius: 8px;
+  border-left: 3px solid #E2E8F0;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.dpm-task:hover {
+  background: #1E3A5F;
+}
+
+.dpm-task--checked {
+  background: #1e2d45;
+}
+
+.dpm-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: #6366F1;
+  cursor: pointer;
+}
+
+.dpm-task-title {
+  flex: 1;
+  font-size: 14px;
+  color: #E2E8F0;
+}
+
+.dpm-task-project {
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.dpm-overdue-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #F87171;
+  background: rgba(248, 113, 113, 0.1);
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.dpm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid #334155;
+  gap: 12px;
+}
+
+.dpm-selection-count {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.dpm-footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.dpm-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+
+.dpm-btn--cancel {
+  background: #1E293B;
+  color: #94A3B8;
+  border-color: #334155;
+}
+
+.dpm-btn--cancel:hover {
+  background: #334155;
+  color: #E2E8F0;
+}
+
+.dpm-btn--confirm {
+  background: #6366F1;
+  color: #fff;
+}
+
+.dpm-btn--confirm:hover {
+  background: #4F46E5;
+}
+
+@media (max-width: 600px) {
+  .dpm-modal {
+    max-height: 90vh;
+  }
+  .dpm-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dpm-footer-actions {
+    justify-content: flex-end;
+  }
+}
