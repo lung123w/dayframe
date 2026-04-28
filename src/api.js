@@ -99,3 +99,16 @@ export const settingsService = {
     body: JSON.stringify({ value }),
   }),
 };
+
+export const workflowStepService = {
+  getAll: () => request('/api/workflow-steps'),
+  create: (step) => request('/api/workflow-steps', { method: 'POST', body: JSON.stringify(step) }),
+  update: (id, updates) => request(`/api/workflow-steps/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+  delete: (id) => request(`/api/workflow-steps/${id}`, { method: 'DELETE' }),
+};
+
+export const workflowCompletionService = {
+  getForDate: (date) => request(`/api/workflow-completions?date=${date}`),
+  create: (data) => request('/api/workflow-completions', { method: 'POST', body: JSON.stringify(data) }),
+  deleteByStepAndDate: (stepId, date) => request(`/api/workflow-completions?stepId=${stepId}&date=${date}`, { method: 'DELETE' }),
+};

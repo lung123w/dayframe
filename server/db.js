@@ -113,6 +113,22 @@ db.exec(`
     value TEXT NOT NULL DEFAULT 'null',
     updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS workflow_steps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    text TEXT NOT NULL DEFAULT '',
+    sortOrder INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS workflow_completions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stepId INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (stepId) REFERENCES workflow_steps(id) ON DELETE CASCADE,
+    UNIQUE(stepId, date)
+  );
 `);
 
 // Migrate weekly objectives to object format

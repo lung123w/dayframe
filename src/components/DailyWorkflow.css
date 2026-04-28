@@ -1,0 +1,130 @@
+/* Daily Workflow */
+.daily-workflow {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #E2E8F0);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.dw-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface-2, #F8FAFC);
+  border-bottom: 1px solid transparent;
+  transition: background 0.15s;
+}
+
+.dw-header:hover {
+  background: var(--surface-hover, #F1F5F9);
+}
+
+.dw-toggle-icon {
+  color: var(--text-muted, #94A3B8);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.dw-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text, #1E293B);
+  flex: 1;
+}
+
+.dw-progress {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #64748B);
+  background: var(--surface-3, #E2E8F0);
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+
+.dw-body {
+  padding: 8px 0 4px;
+}
+
+.dw-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  transition: background 0.1s;
+}
+
+.dw-step:hover {
+  background: var(--surface-hover, #F8FAFC);
+}
+
+.dw-step:hover .dw-delete-btn {
+  opacity: 1;
+}
+
+.dw-checkbox {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  accent-color: var(--accent, #6366F1);
+  cursor: pointer;
+}
+
+.dw-step-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text, #1E293B);
+  line-height: 1.4;
+}
+
+.dw-step--done .dw-step-text {
+  text-decoration: line-through;
+  color: var(--text-muted, #94A3B8);
+}
+
+.dw-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 5px;
+  color: var(--text-muted, #94A3B8);
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.dw-delete-btn:hover {
+  color: #EF4444;
+  background: #FEE2E2;
+}
+
+.dw-add-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 10px;
+}
+
+.dw-add-icon {
+  color: var(--text-muted, #94A3B8);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.dw-add-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text, #1E293B);
+}
+
+.dw-add-input::placeholder {
+  color: var(--text-muted, #94A3B8);
+}

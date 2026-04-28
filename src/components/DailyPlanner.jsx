@@ -27,6 +27,7 @@ export default function DailyPlanner({
   onSubtaskToggle,
   onAssignDate,
   onDataChange,
+  onTodayOrderChange,
 }) {
   const currentWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
   const [weekStartDate, setWeekStartDate] = useState(currentWeekStart);
@@ -88,6 +89,11 @@ export default function DailyPlanner({
             }
           }
           if (onDataChange) onDataChange();
+          // If reordering today's column, sync todayOrder
+          const todayStr = toLocalDateStr(new Date());
+          if (dateStr === todayStr && onTodayOrderChange) {
+            onTodayOrderChange(reordered.map(t => String(t.id)));
+          }
         } else {
           // Cross-day move or from backlog
           onAssignDate(task, new Date(dateStr + 'T12:00:00'));
@@ -96,7 +102,7 @@ export default function DailyPlanner({
     } catch {
       // Invalid drag data
     }
-  }, [tasks, onAssignDate, onDataChange]);
+  }, [tasks, onAssignDate, onDataChange, onTodayOrderChange]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
