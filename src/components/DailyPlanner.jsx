@@ -44,6 +44,9 @@ export default function DailyPlanner({
   const handleNextWeek = () => {
     setWeekStartDate(prev => addDays(prev, 7));
   };
+  const handleGoToToday = () => {
+    setWeekStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  };
 
   // Handle estimate change (inline on task card)
   const handleEstimateChange = useCallback(async (task, minutes) => {
@@ -133,6 +136,7 @@ export default function DailyPlanner({
         onSelectDate={() => {}}
         onPrevWeek={handlePrevWeek}
         onNextWeek={handleNextWeek}
+        onGoToToday={handleGoToToday}
         tasks={tasks}
         weekStartDate={weekStartDate}
       />

@@ -11,6 +11,13 @@
 }
 .mini-week-arrow:hover { background: #F1F5F9; border-color: #94A3B8; }
 .mini-week-label { font-size: 13px; font-weight: 600; color: #1E293B; }
+.mini-week-today-btn {
+  padding: 3px 10px; font-size: 11px; font-weight: 600;
+  color: #F97316; background: #FFF7ED; border: 1.5px solid #FED7AA;
+  border-radius: 12px; cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.mini-week-today-btn:hover { background: #FFEDD5; border-color: #F97316; }
 
 .mini-week-days {
   display: flex; gap: 4px;

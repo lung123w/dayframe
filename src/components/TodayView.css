@@ -143,6 +143,26 @@
   color: #10B981;
 }
 
+.tv-pull-to-today-btn {
+  margin-left: auto;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #DC2626;
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tv-pull-to-today-btn:hover {
+  background: #FEE2E2;
+  border-color: #DC2626;
+}
+
 .tv-add-inline-btn {
   margin-left: auto;
   display: inline-flex;
@@ -195,8 +215,22 @@
   background: #FFF5F5;
 }
 
+.tv-task--draggable {
+  cursor: grab;
+}
+
+.tv-task--draggable:active {
+  cursor: grabbing;
+}
+
 .tv-task--overdue:hover {
   background: #FEE2E2;
+}
+
+.tv-section--today-drop.tv-section--drag-over {
+  outline: 2px dashed #F97316;
+  outline-offset: -2px;
+  border-radius: 8px;
 }
 
 /* Status button */

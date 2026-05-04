@@ -30,7 +30,9 @@ function getTaskKey(task) {
 export default function TodayView({ tasks, projects, todayOrder, onTodayOrderChange, onTaskClick, onNewTask, onStatusUpdate, onDataChange }) {
   const today = useMemo(() => toLocalDateStr(new Date()), []);
   const dragSrcKey = useRef(null);
+  const dragSrcIsOverdue = useRef(false);
   const [captureText, setCaptureText] = useState('');
+  const [todayDropActive, setTodayDropActive] = useState(false);
 
   const handleCaptureKeyDown = useCallback(async (e) => {
     if (e.key === 'Enter') {
@@ -78,6 +80,12 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
     ).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
   }, [tasks, today]);
 
+  const handlePullToToday = useCallback(async () => {
+    if (!overdueTasks.length) return;
+    await Promise.all(overdueTasks.map(t => taskService.update(t.id, { dueDate: today })));
+    if (onDataChange) onDataChange();
+  }, [overdueTasks, today, onDataChange]);
+
   // Apply stored order to today's pending tasks
   const pendingToday = useMemo(() => {
     const pending = rawTodayTasks.filter(t => t.status !== 'completed');
@@ -106,8 +114,9 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
   };
 
   // ── Drag handlers ──
-  const handleDragStart = (e, key) => {
+  const handleDragStart = (e, key, isOverdue = false) => {
     dragSrcKey.current = key;
+    dragSrcIsOverdue.current = isOverdue;
     e.dataTransfer.effectAllowed = 'move';
   };
 
@@ -116,8 +125,23 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
     e.dataTransfer.dropEffect = 'move';
   };
 
+  // Drop onto today section: reschedule overdue task to today
+  const handleDropOnToday = useCallback(async (e) => {
+    e.preventDefault();
+    setTodayDropActive(false);
+    if (!dragSrcIsOverdue.current) return;
+    const key = dragSrcKey.current;
+    dragSrcKey.current = null;
+    dragSrcIsOverdue.current = false;
+    const task = overdueTasks.find(t => getTaskKey(t) === key);
+    if (!task) return;
+    await taskService.update(task.id, { dueDate: today });
+    if (onDataChange) onDataChange();
+  }, [overdueTasks, today, onDataChange]);
+
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
+    if (dragSrcIsOverdue.current) return; // handled by section drop
     if (dragSrcKey.current === targetKey) return;
     const newList = [...pendingToday];
     const srcIdx = newList.findIndex(t => getTaskKey(t) === dragSrcKey.current);
@@ -133,15 +157,15 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
     const project = getProject(task.projectId);
     const isCompleted = task.status === 'completed';
     const key = getTaskKey(task);
-    const isDraggable = !isOverdue && !isCompleted;
+    const isDraggable = !isCompleted; // overdue tasks are now draggable to today
 
     return (
       <div
         key={key}
-        className={`tv-task${isCompleted ? ' tv-task--done' : ''}${isOverdue ? ' tv-task--overdue' : ''}`}
+        className={`tv-task${isCompleted ? ' tv-task--done' : ''}${isOverdue ? ' tv-task--overdue tv-task--draggable' : ''}`}
         style={{ borderLeftColor: project?.color || '#E2E8F0' }}
         draggable={isDraggable}
-        onDragStart={isDraggable ? (e) => handleDragStart(e, key) : undefined}
+        onDragStart={isDraggable ? (e) => handleDragStart(e, key, isOverdue) : undefined}
         onDragOver={isDraggable ? handleDragOver : undefined}
         onDrop={isDraggable ? (e) => handleDrop(e, key) : undefined}
         onClick={() => onTaskClick && onTaskClick(task)}
@@ -260,13 +284,22 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
               <div className="tv-section-header tv-section-header--overdue">
                 <FaExclamationCircle />
                 <span>Overdue ({overdueTasks.length})</span>
+                <button className="tv-pull-to-today-btn" onClick={handlePullToToday} title="Reschedule all overdue tasks to today">
+                  Pull to today
+                </button>
               </div>
               {overdueTasks.map(t => renderTaskCard(t, true))}
             </div>
           )}
 
           {/* Today's pending tasks */}
-          <div className="tv-section">
+          <div
+            className={`tv-section tv-section--today-drop${todayDropActive ? ' tv-section--drag-over' : ''}`}
+            onDragOver={handleDragOver}
+            onDragEnter={() => dragSrcIsOverdue.current && setTodayDropActive(true)}
+            onDragLeave={() => setTodayDropActive(false)}
+            onDrop={handleDropOnToday}
+          >
             <div className="tv-section-header">
               <span>Today — {pendingToday.length} remaining</span>
             </div>
