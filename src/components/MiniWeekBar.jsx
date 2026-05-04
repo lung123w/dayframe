@@ -3,7 +3,7 @@ import { startOfWeek, addDays, format, isToday, isSameDay } from 'date-fns';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './MiniWeekBar.css';
 
-export default function MiniWeekBar({ selectedDate, onSelectDate, onPrevWeek, onNextWeek, tasks, weekStartDate }) {
+export default function MiniWeekBar({ selectedDate, onSelectDate, onPrevWeek, onNextWeek, onGoToToday, tasks, weekStartDate }) {
   const [y, m, d] = selectedDate.split('-').map(Number);
   const selected = useMemo(() => new Date(y, m - 1, d), [y, m, d]);
   const weekStart = useMemo(() => {
@@ -41,6 +41,7 @@ export default function MiniWeekBar({ selectedDate, onSelectDate, onPrevWeek, on
       <div className="mini-week-nav">
         <button className="mini-week-arrow" onClick={onPrevWeek}><FaChevronLeft /></button>
         <span className="mini-week-label">{weekLabel}</span>
+        <button className="mini-week-today-btn" onClick={onGoToToday}>Today</button>
         <button className="mini-week-arrow" onClick={onNextWeek}><FaChevronRight /></button>
       </div>
       <div className="mini-week-days">
