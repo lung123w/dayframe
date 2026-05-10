@@ -50,7 +50,7 @@ export default function DailyWorkflow({ today }) {
 
   return (
     <div className="daily-workflow">
-      <div className="dw-header" onClick={() => setCollapsed(c => !c)}>
+      <div className={`dw-header${!collapsed ? ' dw-header--expanded' : ''}`} onClick={() => setCollapsed(c => !c)}>
         <span className="dw-toggle-icon">
           {collapsed ? <FaChevronRight /> : <FaChevronDown />}
         </span>

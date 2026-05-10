@@ -15,8 +15,12 @@
   cursor: pointer;
   user-select: none;
   background: var(--surface-2, #F8FAFC);
-  border-bottom: 1px solid transparent;
+  border-bottom: none;
   transition: background 0.15s;
+}
+
+.dw-header--expanded {
+  border-bottom: 1px solid var(--border, #E2E8F0);
 }
 
 .dw-header:hover {

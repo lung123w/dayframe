@@ -2,7 +2,6 @@ import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen } from 'react-icons/fa';
 import DailyTimeline from './DailyTimeline';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
-import DailyWorkflow from './DailyWorkflow';
 import { generateRecurringTasks } from '../utils/recurrence';
 import { mergeOrder } from '../utils/todayOrder';
 import { taskService } from '../api';
@@ -275,9 +274,6 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
         </div>
 
         <div className="today-tasks-panel">
-          {/* Daily Workflow section */}
-          <DailyWorkflow today={today} />
-
           {/* Overdue section */}
           {overdueTasks.length > 0 && (
             <div className="tv-section">

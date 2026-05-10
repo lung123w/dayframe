@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { FaLink, FaCheck } from 'react-icons/fa';
 import { habitService, habitEntryService } from '../api';
 import TimePopover from './TimePopover';
+import DailyWorkflow from './DailyWorkflow';
 import './PlannerHabitsPanel.css';
 
 export default function PlannerHabitsPanel({ onDataChange }) {
@@ -15,7 +16,6 @@ export default function PlannerHabitsPanel({ onDataChange }) {
   const loadRequestVersionRef = useRef(0);
 
   const today = format(new Date(), 'yyyy-MM-dd');
-
   const loadData = useCallback(async () => {
     const requestVersion = ++loadRequestVersionRef.current;
 
@@ -141,6 +141,7 @@ export default function PlannerHabitsPanel({ onDataChange }) {
           })}
         </div>
       )}
+      <DailyWorkflow today={today} />
     </div>
   );
 }
