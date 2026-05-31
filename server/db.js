@@ -129,6 +129,16 @@ db.exec(`
     FOREIGN KEY (stepId) REFERENCES workflow_steps(id) ON DELETE CASCADE,
     UNIQUE(stepId, date)
   );
+
+  CREATE TABLE IF NOT EXISTS key_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT '',
+    date TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT '',
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 // Migrate weekly objectives to object format

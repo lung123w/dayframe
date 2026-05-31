@@ -46,6 +46,9 @@ vi.mock('../api', () => ({
   settingsService: {
     get: vi.fn(() => Promise.resolve(null)),
     set: vi.fn(() => Promise.resolve())
+  },
+  keyEventService: {
+    getAll: vi.fn(() => Promise.resolve([]))
   }
 }));
 

@@ -112,3 +112,12 @@ export const workflowCompletionService = {
   create: (data) => request('/api/workflow-completions', { method: 'POST', body: JSON.stringify(data) }),
   deleteByStepAndDate: (stepId, date) => request(`/api/workflow-completions?stepId=${stepId}&date=${date}`, { method: 'DELETE' }),
 };
+
+export const keyEventService = {
+  getAll: () => request('/api/key-events'),
+  getByDateRange: (from, to) => request(`/api/key-events?from=${from}&to=${to}`),
+  getById: (id) => request(`/api/key-events/${id}`),
+  create: (event) => request('/api/key-events', { method: 'POST', body: JSON.stringify(event) }),
+  update: (id, updates) => request(`/api/key-events/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+  delete: (id) => request(`/api/key-events/${id}`, { method: 'DELETE' }),
+};
