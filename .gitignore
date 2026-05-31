@@ -38,3 +38,6 @@ data/*.db
 
 # Local git worktrees
 .worktrees/
+
+# Not relevant / archived personal files (nested git repo excluded)
+not relevant/CodeNomad/

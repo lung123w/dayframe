@@ -28,6 +28,10 @@ export default function DailyPlanner({
   onAssignDate,
   onDataChange,
   onTodayOrderChange,
+  keyEvents,
+  onAddKeyEvent,
+  onUpdateKeyEvent,
+  onDeleteKeyEvent,
 }) {
   const currentWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
   const [weekStartDate, setWeekStartDate] = useState(currentWeekStart);
@@ -142,7 +146,13 @@ export default function DailyPlanner({
       />
 
       {/* Weekly Objectives - right under week navigation */}
-      <WeeklyObjectives selectedDate={weekDays[0]} />
+      <WeeklyObjectives
+        selectedDate={weekDays[0]}
+        keyEvents={keyEvents}
+        onAddKeyEvent={onAddKeyEvent}
+        onUpdateKeyEvent={onUpdateKeyEvent}
+        onDeleteKeyEvent={onDeleteKeyEvent}
+      />
 
       {/* Day Columns: All 7 days shown equally - FULL WIDTH */}
       <div className="daily-planner-scroll-container">

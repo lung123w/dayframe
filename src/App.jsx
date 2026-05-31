@@ -7,7 +7,7 @@ import DailyPlanner from './components/DailyPlanner';
 import TodayView from './components/TodayView';
 import DailyPlanningModal from './components/DailyPlanningModal';
 import Sidebar from './components/Sidebar';
-import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService } from './api';
+import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
 import { syncSortOrderFromTodayOrder } from './utils/syncTodayOrder';
 import { FaPlus, FaFolder, FaCalendarCheck } from 'react-icons/fa';
@@ -30,6 +30,7 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [subtasks, setSubtasks] = useState([]);
   const [todayOrder, setTodayOrder] = useState([]);
+  const [keyEvents, setKeyEvents] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showPlanningModal, setShowPlanningModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -42,17 +43,19 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [tasksData, projectsData, subtasksData, savedOrder] = await Promise.all([
+      const [tasksData, projectsData, subtasksData, savedOrder, keyEventsData] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
         subtaskService.getAll(),
         settingsService.get('todayOrder'),
+        keyEventService.getAll(),
       ]);
 
       setTasks(sortTasks(tasksData));
       setProjects(projectsData);
       setSubtasks(subtasksData);
       setTodayOrder(Array.isArray(savedOrder) ? savedOrder : []);
+      setKeyEvents(keyEventsData);
 
       // Create default project if none exists
       if (projectsData.length === 0) {
@@ -241,6 +244,34 @@ function App() {
     setEditingProject(null);
   };
 
+  // ── Key Event handlers ──
+  const handleAddKeyEvent = async (eventData) => {
+    try {
+      await keyEventService.create(eventData);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to add key event:', err);
+    }
+  };
+
+  const handleUpdateKeyEvent = async (id, updates) => {
+    try {
+      await keyEventService.update(id, updates);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to update key event:', err);
+    }
+  };
+
+  const handleDeleteKeyEvent = async (id) => {
+    try {
+      await keyEventService.delete(id);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to delete key event:', err);
+    }
+  };
+
   // ── Backup: export all DB data as a JSON download ──
   const handleBackup = async () => {
     try {
@@ -354,6 +385,10 @@ function App() {
               onAssignDate={handleAssignDate}
               onDataChange={loadData}
               onTodayOrderChange={handleTodayOrderChange}
+              keyEvents={keyEvents}
+              onAddKeyEvent={handleAddKeyEvent}
+              onUpdateKeyEvent={handleUpdateKeyEvent}
+              onDeleteKeyEvent={handleDeleteKeyEvent}
             />
           </>
         )}
