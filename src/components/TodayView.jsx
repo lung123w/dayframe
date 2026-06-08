@@ -1,7 +1,8 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen } from 'react-icons/fa';
+import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen, FaCalendarAlt } from 'react-icons/fa';
 import DailyTimeline from './DailyTimeline';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
+import DeferPopover from './DeferPopover';
 import { generateRecurringTasks } from '../utils/recurrence';
 import { mergeOrder } from '../utils/todayOrder';
 import { taskService } from '../api';
@@ -30,8 +31,10 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
   const today = useMemo(() => toLocalDateStr(new Date()), []);
   const dragSrcKey = useRef(null);
   const dragSrcIsOverdue = useRef(false);
+  const deferBtnRef = useRef(null);
   const [captureText, setCaptureText] = useState('');
   const [todayDropActive, setTodayDropActive] = useState(false);
+  const [deferTaskId, setDeferTaskId] = useState(null);
 
   const handleCaptureKeyDown = useCallback(async (e) => {
     if (e.key === 'Enter') {
@@ -152,6 +155,12 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
     dragSrcKey.current = null;
   };
 
+  const handleDefer = useCallback(async (task, newDate) => {
+    await taskService.update(task.id, { dueDate: newDate });
+    if (onDataChange) onDataChange();
+    setDeferTaskId(null);
+  }, [onDataChange]);
+
   const renderTaskCard = (task, isOverdue = false, idx = -1, listLen = 0) => {
     const project = getProject(task.projectId);
     const isCompleted = task.status === 'completed';
@@ -171,6 +180,8 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
       >
         <button
           className="tv-status-btn"
+          draggable={false}
+          onMouseDown={e => e.preventDefault()}
           onClick={e => {
             e.stopPropagation();
             if (onStatusUpdate) onStatusUpdate(task, isCompleted ? 'pending' : 'completed');
@@ -211,9 +222,10 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
 
         {/* Touch-friendly up/down reorder controls */}
         {isDraggable && (
-          <div className="tv-reorder-btns" onClick={e => e.stopPropagation()}>
+          <div className="tv-reorder-btns" draggable={false} onMouseDown={e => e.preventDefault()} onClick={e => e.stopPropagation()}>
             <button
               className="tv-reorder-btn"
+              draggable={false}
               disabled={idx === 0}
               onClick={() => moveTask(idx, -1)}
               title="Move up"
@@ -223,6 +235,7 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
             </button>
             <button
               className="tv-reorder-btn"
+              draggable={false}
               disabled={idx === listLen - 1}
               onClick={() => moveTask(idx, 1)}
               title="Move down"
@@ -236,12 +249,42 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
         {/* Edit button */}
         <button
           className="tv-edit-btn"
+          draggable={false}
           title="Edit task"
           aria-label="Edit task"
+          onMouseDown={e => e.preventDefault()}
           onClick={e => { e.stopPropagation(); if (onTaskClick) onTaskClick(task); }}
         >
           <FaPen />
         </button>
+
+        {/* Defer button - only for pending tasks */}
+        {!isCompleted && (
+          <button
+            ref={deferTaskId === key ? deferBtnRef : null}
+            className="tv-defer-btn"
+            draggable={false}
+            title="Defer to another date"
+            aria-label="Defer task"
+            onMouseDown={e => e.preventDefault()}
+            onClick={e => {
+              e.stopPropagation();
+              setDeferTaskId(deferTaskId === key ? null : key);
+            }}
+          >
+            <FaCalendarAlt />
+          </button>
+        )}
+
+        {/* Defer popover */}
+        {deferTaskId === key && !isCompleted && (
+          <DeferPopover
+            task={task}
+            onDefer={handleDefer}
+            onClose={() => setDeferTaskId(null)}
+            anchorRef={deferBtnRef}
+          />
+        )}
       </div>
     );
   };

@@ -41,3 +41,7 @@ data/*.db
 
 # Not relevant / archived personal files (nested git repo excluded)
 not relevant/CodeNomad/
+
+# Node version manager files (personal dev environment)
+.node-version
+.nvmrc
