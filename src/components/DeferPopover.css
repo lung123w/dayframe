@@ -1,0 +1,111 @@
+.defer-popover {
+  position: absolute;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  min-width: 220px;
+  margin-top: 4px;
+}
+
+.defer-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.defer-popover-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.defer-popover-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  color: #94A3B8;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.defer-popover-close:hover {
+  color: #64748B;
+  background: #F1F5F9;
+}
+
+.defer-quick-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.defer-quick-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.defer-quick-btn:hover {
+  background: #EEF2FF;
+  border-color: #6366F1;
+  color: #6366F1;
+}
+
+.defer-quick-btn--someday {
+  color: #94A3B8;
+  font-style: italic;
+}
+
+.defer-quick-btn--someday:hover {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  color: #D97706;
+}
+
+.defer-date-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.defer-date-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+.defer-date-input {
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-family: inherit;
+  color: #1E293B;
+  background: white;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.defer-date-input:focus {
+  border-color: #6366F1;
+}
