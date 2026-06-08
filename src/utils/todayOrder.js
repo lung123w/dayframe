@@ -4,7 +4,7 @@
  * - Appends unordered tasks at the end.
  */
 export function mergeOrder(storedOrder, todayTasks) {
-  const getKey = (t) => String(t.id ?? `${t.recurringSourceId}-${t.instanceDate}`);
+  const getKey = (t) => t.isRecurringInstance ? `${t.id}-${t.instanceDate}` : String(t.id);
   const idSet = new Set(todayTasks.map(getKey));
   const validOrder = (storedOrder || []).filter(id => idSet.has(String(id)));
   const orderedSet = new Set(validOrder.map(String));
