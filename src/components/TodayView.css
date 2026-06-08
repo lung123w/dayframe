@@ -465,3 +465,32 @@
   color: #6366F1;
   background: #EEF2FF;
 }
+
+/* Defer button */
+.tv-defer-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  color: #CBD5E1;
+  font-size: 11px;
+  opacity: 0;
+  border-radius: 4px;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.tv-task:hover .tv-defer-btn {
+  opacity: 1;
+}
+
+.tv-defer-btn:hover {
+  color: #F97316;
+  background: #FFF7ED;
+}
+
+/* Defer popover positioning */
+.tv-task {
+  position: relative;
+}
