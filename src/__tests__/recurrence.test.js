@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  generateRecurringTasks, 
-  isRecurringPatternValid, 
+import {
+  generateRecurringTasks,
+  isRecurringPatternValid,
   getRecurrenceDescription,
-  resolveInstanceStatus
+  resolveInstanceStatus,
+  getNextOccurrenceFrom
 } from '../utils/recurrence';
 
 describe('Recurrence Utils', () => {
@@ -270,6 +271,114 @@ describe('Recurrence Utils', () => {
       };
       expect(resolveInstanceStatus(task, '2026-03-04T00:00:00.000Z')).toBe('in-progress');
       expect(resolveInstanceStatus(task, '2026-03-06T00:00:00.000Z')).toBe('completed');
+    });
+  });
+
+  describe('getNextOccurrenceFrom', () => {
+    function localDateStr(date) {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    it('returns null for a non-recurring task', () => {
+      const task = { id: 1, dueDate: new Date('2026-03-01').toISOString(), isRecurring: false };
+      expect(getNextOccurrenceFrom(task, new Date('2026-03-05'))).toBeNull();
+    });
+
+    it('returns null when task has no dueDate', () => {
+      const task = { id: 1, isRecurring: true, recurrencePattern: { type: 'daily', interval: 1 } };
+      expect(getNextOccurrenceFrom(task, new Date('2026-03-05'))).toBeNull();
+    });
+
+    it('returns today for a daily source whose first instance was yesterday', () => {
+      const yesterday = new Date('2026-03-09T00:00:00.000Z');
+      const task = {
+        id: 1,
+        dueDate: yesterday.toISOString(),
+        isRecurring: true,
+        recurrencePattern: { type: 'daily', interval: 1 },
+      };
+      const result = getNextOccurrenceFrom(task, new Date('2026-03-10T00:00:00.000Z'));
+      expect(result).not.toBeNull();
+      expect(localDateStr(result)).toBe('2026-03-10');
+    });
+
+    it('returns yesterday for a daily source whose first instance was two days ago', () => {
+      const twoDaysAgo = new Date('2026-03-08T00:00:00.000Z');
+      const task = {
+        id: 1,
+        dueDate: twoDaysAgo.toISOString(),
+        isRecurring: true,
+        recurrencePattern: { type: 'daily', interval: 1 },
+      };
+      const result = getNextOccurrenceFrom(task, new Date('2026-03-10T00:00:00.000Z'));
+      expect(result).not.toBeNull();
+      expect(localDateStr(result)).toBe('2026-03-09');
+    });
+
+    it('returns next Wednesday for a weekly source with daysOfWeek [3]', () => {
+      // dueDate is on Friday 2026-03-06; pattern is every week on Wednesday [3].
+      // The second occurrence is the next Wednesday after last Friday.
+      const lastFriday = new Date('2026-03-06T00:00:00.000Z');
+      const task = {
+        id: 1,
+        dueDate: lastFriday.toISOString(),
+        isRecurring: true,
+        recurrencePattern: { type: 'weekly', interval: 1, daysOfWeek: [3] },
+      };
+      const result = getNextOccurrenceFrom(task, new Date('2026-03-09T00:00:00.000Z'));
+      expect(result).not.toBeNull();
+      expect(localDateStr(result)).toBe('2026-03-11');
+    });
+
+    it('returns the same day next month for a monthly source', () => {
+      const lastMonth = new Date('2026-02-10T00:00:00.000Z');
+      const task = {
+        id: 1,
+        dueDate: lastMonth.toISOString(),
+        isRecurring: true,
+        recurrencePattern: { type: 'monthly', interval: 1 },
+      };
+      const result = getNextOccurrenceFrom(task, new Date('2026-03-10T00:00:00.000Z'));
+      expect(result).not.toBeNull();
+      expect(localDateStr(result)).toBe('2026-03-10');
+    });
+
+    it('returns null when the pattern endDate is in the past', () => {
+      const longAgo = new Date('2026-01-01T00:00:00.000Z');
+      const endedOn = new Date('2026-02-01T00:00:00.000Z');
+      const task = {
+        id: 1,
+        dueDate: longAgo.toISOString(),
+        isRecurring: true,
+        recurrencePattern: { type: 'daily', interval: 1, endDate: endedOn.toISOString() },
+      };
+      expect(getNextOccurrenceFrom(task, new Date('2026-03-10T00:00:00.000Z'))).toBeNull();
+    });
+
+    it('returns null when the second occurrence would be past endDate', () => {
+      const start = new Date('2026-03-09T00:00:00.000Z');
+      const task = {
+        id: 1,
+        dueDate: start.toISOString(),
+        isRecurring: true,
+        recurrencePattern: {
+          type: 'daily',
+          interval: 1,
+          endDate: new Date('2026-03-09T00:00:00.000Z').toISOString(),
+        },
+      };
+      expect(getNextOccurrenceFrom(task, new Date('2026-03-10T00:00:00.000Z'))).toBeNull();
+    });
+
+    it('returns null when endAfterOccurrences is 1 (no second occurrence possible)', () => {
+      const task = {
+        id: 1,
+        dueDate: new Date('2026-03-01T00:00:00.000Z').toISOString(),
+        isRecurring: true,
+        recurrencePattern: { type: 'daily', interval: 1, endAfterOccurrences: 1 },
+      };
+      expect(getNextOccurrenceFrom(task, new Date('2026-03-10T00:00:00.000Z'))).toBeNull();
     });
   });
 });
