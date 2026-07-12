@@ -257,3 +257,55 @@ export function formatTimeSpent(totalSeconds) {
 
   return `${minutes}m`;
 }
+
+/**
+ * Get the tracking unit type of a habit. Defaults to `'duration'` for
+ * legacy habits that do not have a `trackType` field.
+ *
+ * @param {{ trackType?: 'duration'|'count' }} habit
+ * @returns {'duration'|'count'}
+ */
+export function getTrackType(habit) {
+  return habit?.trackType || 'duration';
+}
+
+/**
+ * Format a rep count into a readable string like "20 reps" or "1 rep".
+ * For non-positive values, returns "0 reps".
+ *
+ * @param {number} count
+ * @returns {string}
+ */
+export function formatCount(count) {
+  const n = Number(count);
+  const safe = Number.isFinite(n) && n > 0 ? n : 0;
+  return `${safe} ${safe === 1 ? 'rep' : 'reps'}`;
+}
+
+/**
+ * Return the numeric value of a habit entry using the right field for the
+ * habit's tracking unit. For duration habits returns `entry.timeSpentSeconds`;
+ * for count habits returns `entry.count`. Returns 0 for missing fields.
+ *
+ * @param {{ timeSpentSeconds?: number, count?: number }} entry
+ * @param {{ trackType?: 'duration'|'count' }} habit
+ * @returns {number}
+ */
+export function getEntryValue(entry, habit) {
+  if (!entry) return 0;
+  if (getTrackType(habit) === 'count') {
+    return Number(entry.count) || 0;
+  }
+  return Number(entry.timeSpentSeconds) || 0;
+}
+
+/**
+ * Return a human-readable unit label for a habit's tracking type.
+ * Returns `'reps'` for count habits and `'minutes'` for duration habits.
+ *
+ * @param {{ trackType?: 'duration'|'count' }} habit
+ * @returns {'reps'|'minutes'}
+ */
+export function getEntryUnit(habit) {
+  return getTrackType(habit) === 'count' ? 'reps' : 'minutes';
+}

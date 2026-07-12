@@ -4,8 +4,9 @@ import { FaPlus, FaFire, FaCheck, FaClock, FaEdit, FaUndo } from 'react-icons/fa
 import HabitHeatmap from './HabitHeatmap';
 import HabitModal from './HabitModal';
 import TimePopover from './TimePopover';
+import RepsPopover from './RepsPopover';
 import { habitService, habitEntryService } from '../api';
-import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent } from '../utils/habits';
+import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent, formatCount, getEntryValue, getTrackType } from '../utils/habits';
 import './HabitTracker.css';
 
 export default function HabitTracker() {
@@ -76,15 +77,18 @@ export default function HabitTracker() {
     };
   }, []);
 
-  const handleToggleToday = async (habit, timeSpentSeconds = 0) => {
+  const handleToggleToday = async (habit, value = 0) => {
     try {
       const entries = entriesByHabit[habit.id] || [];
       const todayEntry = entries.find(e => e.date === today);
+      const isCount = getTrackType(habit) === 'count';
 
       if (todayEntry) {
         await habitEntryService.deleteByDate(habit.id, today);
+      } else if (isCount) {
+        await habitEntryService.create({ habitId: habit.id, date: today, count: value });
       } else {
-        await habitEntryService.create({ habitId: habit.id, date: today, timeSpentSeconds });
+        await habitEntryService.create({ habitId: habit.id, date: today, timeSpentSeconds: value });
       }
       await loadData();
     } catch (err) {
@@ -93,24 +97,41 @@ export default function HabitTracker() {
   };
 
   const handleLogManualTime = async (habitId) => {
-    const minutes = parseInt(manualMinutes);
-    if (!minutes || minutes <= 0) return;
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return;
+    const raw = parseInt(manualMinutes);
+    if (!raw || raw <= 0) return;
+    const isCount = getTrackType(habit) === 'count';
 
     try {
       const entries = entriesByHabit[habitId] || [];
       const todayEntry = entries.find(e => e.date === today);
-      const secondsToAdd = minutes * 60;
 
-      if (todayEntry) {
-        await habitEntryService.update(todayEntry.id, {
-          timeSpentSeconds: todayEntry.timeSpentSeconds + secondsToAdd,
-        });
+      if (isCount) {
+        if (todayEntry) {
+          await habitEntryService.update(todayEntry.id, {
+            count: (todayEntry.count || 0) + raw,
+          });
+        } else {
+          await habitEntryService.create({
+            habitId,
+            date: today,
+            count: raw,
+          });
+        }
       } else {
-        await habitEntryService.create({
-          habitId,
-          date: today,
-          timeSpentSeconds: secondsToAdd,
-        });
+        const secondsToAdd = raw * 60;
+        if (todayEntry) {
+          await habitEntryService.update(todayEntry.id, {
+            timeSpentSeconds: (todayEntry.timeSpentSeconds || 0) + secondsToAdd,
+          });
+        } else {
+          await habitEntryService.create({
+            habitId,
+            date: today,
+            timeSpentSeconds: secondsToAdd,
+          });
+        }
       }
 
       setManualMinutes('');
@@ -180,15 +201,19 @@ export default function HabitTracker() {
     await loadData(); // Restore the habit from DB (it hasn't been deleted yet)
   };
 
-  const handleToggleDate = async (habitId, dateStr, timeSpentSeconds = 0) => {
+  const handleToggleDate = async (habitId, dateStr, value = 0) => {
     try {
+      const habit = habits.find(h => h.id === habitId);
+      const isCount = habit && getTrackType(habit) === 'count';
       const entries = entriesByHabit[habitId] || [];
       const existing = entries.find(e => e.date === dateStr);
 
       if (existing) {
         await habitEntryService.deleteByDate(habitId, dateStr);
+      } else if (isCount) {
+        await habitEntryService.create({ habitId, date: dateStr, count: value });
       } else {
-        await habitEntryService.create({ habitId, date: dateStr, timeSpentSeconds });
+        await habitEntryService.create({ habitId, date: dateStr, timeSpentSeconds: value });
       }
       await loadData();
     } catch (err) {
@@ -264,7 +289,8 @@ export default function HabitTracker() {
           const currentStreak = calculateCurrentStreak(entries, habit.frequency);
           const longestStreak = calculateLongestStreak(entries, habit.frequency);
           const totalCompletions = entries.length;
-          const totalTime = entries.reduce((sum, e) => sum + (e.timeSpentSeconds || 0), 0);
+          const isCount = getTrackType(habit) === 'count';
+          const totalValue = entries.reduce((sum, e) => sum + getEntryValue(e, habit), 0);
           const isExpanded = expandedHabitId === habit.id;
 
           return (
@@ -309,15 +335,27 @@ export default function HabitTracker() {
                     <FaCheck /> {todayEntry ? 'Done' : 'Mark Done'}
                   </button>
                   {todayPopover && todayPopover.habitId === habit.id && (
-                    <TimePopover
-                      x={todayPopover.x}
-                      y={todayPopover.y}
-                      onSave={(seconds) => {
-                        handleToggleToday(habit, seconds);
-                        setTodayPopover(null);
-                      }}
-                      onClose={() => setTodayPopover(null)}
-                    />
+                    isCount ? (
+                      <RepsPopover
+                        x={todayPopover.x}
+                        y={todayPopover.y}
+                        onSave={(reps) => {
+                          handleToggleToday(habit, reps);
+                          setTodayPopover(null);
+                        }}
+                        onClose={() => setTodayPopover(null)}
+                      />
+                    ) : (
+                      <TimePopover
+                        x={todayPopover.x}
+                        y={todayPopover.y}
+                        onSave={(seconds) => {
+                          handleToggleToday(habit, seconds);
+                          setTodayPopover(null);
+                        }}
+                        onClose={() => setTodayPopover(null)}
+                      />
+                    )
                   )}
                 </div>
 
@@ -325,7 +363,7 @@ export default function HabitTracker() {
                   <input
                     type="number"
                     min="1"
-                    placeholder="min"
+                    placeholder={isCount ? 'reps' : 'min'}
                     value={manualMinutes}
                     onChange={e => setManualMinutes(e.target.value)}
                     className="time-input"
@@ -333,19 +371,27 @@ export default function HabitTracker() {
                   <button
                     className="btn btn-sm btn-outline"
                     onClick={() => handleLogManualTime(habit.id)}
-                    title="Log time"
+                    title={isCount ? 'Add reps' : 'Log time'}
                   >
                     <FaClock />
                   </button>
                 </div>
 
-                {todayEntry && todayEntry.timeSpentSeconds > 0 && (
-                  <span className="today-time">{formatTimeSpent(todayEntry.timeSpentSeconds)} today</span>
+                {todayEntry && getEntryValue(todayEntry, habit) > 0 && (
+                  <span className="today-time">
+                    {isCount ? formatCount(todayEntry.count || 0) : formatTimeSpent(todayEntry.timeSpentSeconds)} today
+                  </span>
                 )}
               </div>
 
               <div className="habit-card-heatmap">
-                <HabitHeatmap entries={entries} frequency={habit.frequency} color={habit.color} onToggleDate={(dateStr, timeSpentSeconds) => handleToggleDate(habit.id, dateStr, timeSpentSeconds)} />
+                <HabitHeatmap
+                  entries={entries}
+                  frequency={habit.frequency}
+                  color={habit.color}
+                  trackType={getTrackType(habit)}
+                  onToggleDate={(dateStr, value) => handleToggleDate(habit.id, dateStr, value)}
+                />
               </div>
 
               {isExpanded && (
@@ -364,8 +410,10 @@ export default function HabitTracker() {
                       <span className="habit-stat-label">Total</span>
                     </div>
                     <div className="habit-stat">
-                      <span className="habit-stat-value">{formatTimeSpent(totalTime)}</span>
-                      <span className="habit-stat-label">Time</span>
+                      <span className="habit-stat-value">
+                        {isCount ? formatCount(totalValue) : formatTimeSpent(totalValue)}
+                      </span>
+                      <span className="habit-stat-label">{isCount ? 'Reps' : 'Time'}</span>
                     </div>
                   </div>
                   {habit.description && (
@@ -385,6 +433,7 @@ export default function HabitTracker() {
           onDelete={handleDeleteHabit}
           onArchive={handleArchiveHabit}
           onClose={() => { setShowModal(false); setEditingHabit(null); }}
+          entriesCount={editingHabit ? (entriesByHabit[editingHabit.id] || []).length : 0}
         />
       )}
 
