@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent, isDateApplicable } from '../utils/habits';
+import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent, isDateApplicable, formatCount, getEntryValue, getEntryUnit, getTrackType } from '../utils/habits';
 
 describe('calculateCurrentStreak', () => {
   const daily = { type: 'daily' };
@@ -139,5 +139,85 @@ describe('formatTimeSpent', () => {
     expect(formatTimeSpent(3600)).toBe('1h 0m');
     expect(formatTimeSpent(3661)).toBe('1h 1m');
     expect(formatTimeSpent(90)).toBe('1m');
+  });
+});
+
+describe('getTrackType', () => {
+  it('returns the habit trackType when set', () => {
+    expect(getTrackType({ trackType: 'count' })).toBe('count');
+    expect(getTrackType({ trackType: 'duration' })).toBe('duration');
+  });
+
+  it('defaults to duration for habits without trackType (legacy)', () => {
+    expect(getTrackType({})).toBe('duration');
+    expect(getTrackType({ name: 'Read' })).toBe('duration');
+  });
+
+  it('defaults to duration for null/undefined habit', () => {
+    expect(getTrackType(null)).toBe('duration');
+    expect(getTrackType(undefined)).toBe('duration');
+  });
+});
+
+describe('formatCount', () => {
+  it('uses singular form for 1', () => {
+    expect(formatCount(1)).toBe('1 rep');
+  });
+
+  it('uses plural form for other positive integers', () => {
+    expect(formatCount(2)).toBe('2 reps');
+    expect(formatCount(20)).toBe('20 reps');
+    expect(formatCount(130)).toBe('130 reps');
+  });
+
+  it('returns "0 reps" for zero or negative values', () => {
+    expect(formatCount(0)).toBe('0 reps');
+    expect(formatCount(-3)).toBe('0 reps');
+  });
+
+  it('handles non-numeric input safely', () => {
+    expect(formatCount(NaN)).toBe('0 reps');
+    expect(formatCount(undefined)).toBe('0 reps');
+    expect(formatCount(null)).toBe('0 reps');
+  });
+});
+
+describe('getEntryValue', () => {
+  it('returns entry.count for a count habit', () => {
+    expect(getEntryValue({ count: 20 }, { trackType: 'count' })).toBe(20);
+  });
+
+  it('returns entry.timeSpentSeconds for a duration habit', () => {
+    expect(getEntryValue({ timeSpentSeconds: 900 }, { trackType: 'duration' })).toBe(900);
+  });
+
+  it('defaults to duration for legacy habits without trackType', () => {
+    expect(getEntryValue({ timeSpentSeconds: 300 }, {})).toBe(300);
+    expect(getEntryValue({ count: 5 }, {})).toBe(0);
+  });
+
+  it('returns 0 for missing or null entries', () => {
+    expect(getEntryValue(null, { trackType: 'count' })).toBe(0);
+    expect(getEntryValue(undefined, { trackType: 'duration' })).toBe(0);
+  });
+
+  it('returns 0 when the relevant field is missing', () => {
+    expect(getEntryValue({}, { trackType: 'count' })).toBe(0);
+    expect(getEntryValue({}, { trackType: 'duration' })).toBe(0);
+  });
+});
+
+describe('getEntryUnit', () => {
+  it('returns "reps" for count habits', () => {
+    expect(getEntryUnit({ trackType: 'count' })).toBe('reps');
+  });
+
+  it('returns "minutes" for duration habits', () => {
+    expect(getEntryUnit({ trackType: 'duration' })).toBe('minutes');
+  });
+
+  it('returns "minutes" for legacy habits without trackType', () => {
+    expect(getEntryUnit({})).toBe('minutes');
+    expect(getEntryUnit({ name: 'Meditate' })).toBe('minutes');
   });
 });

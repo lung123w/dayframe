@@ -3,7 +3,9 @@ import { format } from 'date-fns';
 import { FaLink, FaCheck } from 'react-icons/fa';
 import { habitService, habitEntryService } from '../api';
 import TimePopover from './TimePopover';
+import RepsPopover from './RepsPopover';
 import DailyWorkflow from './DailyWorkflow';
+import { getTrackType } from '../utils/habits';
 import './PlannerHabitsPanel.css';
 
 export default function PlannerHabitsPanel({ onDataChange }) {
@@ -51,7 +53,7 @@ export default function PlannerHabitsPanel({ onDataChange }) {
     return entries.some(e => e.date === today);
   };
 
-  const handleToggleToday = async (habitId, timeSpentSeconds = 0) => {
+  const handleToggleToday = async (habitId, value = 0) => {
     if (savingHabitIdsRef.current.has(habitId)) {
       return;
     }
@@ -60,13 +62,22 @@ export default function PlannerHabitsPanel({ onDataChange }) {
     setSavingHabitIds((prev) => ({ ...prev, [habitId]: true }));
 
     try {
+      const habit = habits.find(h => h.id === habitId);
+      const isCount = habit && getTrackType(habit) === 'count';
+
       if (isDoneToday(habitId)) {
         await habitEntryService.deleteByDate(habitId, today);
+      } else if (isCount) {
+        await habitEntryService.create({
+          habitId,
+          date: today,
+          count: value,
+        });
       } else {
         await habitEntryService.create({
           habitId,
           date: today,
-          timeSpentSeconds,
+          timeSpentSeconds: value,
         });
       }
       await loadData();
@@ -97,6 +108,7 @@ export default function PlannerHabitsPanel({ onDataChange }) {
         <div className="planner-habits-list">
           {habits.map((habit) => {
             const done = isDoneToday(habit.id);
+            const isCount = getTrackType(habit) === 'count';
             return (
               <div key={habit.id} className="planner-habits-item">
                 <span className="planner-habit-name">{habit.name}</span>
@@ -125,15 +137,27 @@ export default function PlannerHabitsPanel({ onDataChange }) {
                     <FaCheck /> {done ? 'Done' : 'Mark Done'}
                   </button>
                   {todayPopover && todayPopover.habitId === habit.id && (
-                    <TimePopover
-                      x={todayPopover.x}
-                      y={todayPopover.y}
-                      onSave={async (seconds) => {
-                        setTodayPopover(null);
-                        await handleToggleToday(habit.id, seconds);
-                      }}
-                      onClose={() => setTodayPopover(null)}
-                    />
+                    isCount ? (
+                      <RepsPopover
+                        x={todayPopover.x}
+                        y={todayPopover.y}
+                        onSave={async (reps) => {
+                          setTodayPopover(null);
+                          await handleToggleToday(habit.id, reps);
+                        }}
+                        onClose={() => setTodayPopover(null)}
+                      />
+                    ) : (
+                      <TimePopover
+                        x={todayPopover.x}
+                        y={todayPopover.y}
+                        onSave={async (seconds) => {
+                          setTodayPopover(null);
+                          await handleToggleToday(habit.id, seconds);
+                        }}
+                        onClose={() => setTodayPopover(null)}
+                      />
+                    )
                   )}
                 </div>
               </div>

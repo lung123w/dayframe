@@ -234,4 +234,53 @@ describe('PlannerHabitsPanel', () => {
       expect(onDataChange).toHaveBeenCalled();
     });
   });
+
+  it('opens RepsPopover when Mark Done is clicked on a count habit', async () => {
+    habitService.getAll.mockResolvedValue([
+      { id: 1, name: 'Push-ups', isArchived: false, trackType: 'count' },
+    ]);
+    habitEntryService.getByHabit.mockResolvedValue([]);
+
+    render(<PlannerHabitsPanel onDataChange={onDataChange} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /mark done/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /mark done/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/^reps$/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/time spent \(minutes\)/i)).not.toBeInTheDocument();
+  });
+
+  it('saves with count when RepsPopover Save is clicked for a count habit', async () => {
+    const today = todayStr();
+
+    habitService.getAll.mockResolvedValue([
+      { id: 1, name: 'Push-ups', isArchived: false, trackType: 'count' },
+    ]);
+    habitEntryService.getByHabit.mockResolvedValue([]);
+
+    render(<PlannerHabitsPanel onDataChange={onDataChange} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /mark done/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /mark done/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/^reps$/i)).toBeInTheDocument();
+    });
+
+    const input = screen.getByLabelText(/^reps$/i, { selector: 'input' });
+    fireEvent.change(input, { target: { value: '30' } });
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => {
+      expect(habitEntryService.create).toHaveBeenCalledWith({ habitId: 1, date: today, count: 30 });
+      expect(onDataChange).toHaveBeenCalled();
+    });
+  });
 });

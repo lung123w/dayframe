@@ -13,14 +13,17 @@ import {
   isFuture,
   isSameWeek,
 } from 'date-fns';
-import { isDateApplicable, formatTimeSpent } from '../utils/habits';
+import { isDateApplicable, formatTimeSpent, formatCount } from '../utils/habits';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import TimePopover from './TimePopover';
+import RepsPopover from './RepsPopover';
 import './HabitHeatmap.css';
 
 const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-export default function HabitHeatmap({ entries, frequency, color, onToggleDate }) {
+export default function HabitHeatmap({ entries, frequency, color, trackType, onToggleDate }) {
+  const effectiveTrackType = trackType || 'duration';
+  const isCount = effectiveTrackType === 'count';
   const [tooltip, setTooltip] = useState(null);
   const [viewDate, setViewDate] = useState(new Date());
   const [expanded, setExpanded] = useState(false);
@@ -122,10 +125,47 @@ export default function HabitHeatmap({ entries, frequency, color, onToggleDate }
       // Already completed — toggle off (delete), no popover
       onToggleDate(cell.dateStr, 0);
     } else {
-      // Show time popover
+      // Show time/reps popover
       const rect = e.currentTarget.getBoundingClientRect();
       setCellPopover({ dateStr: cell.dateStr, x: rect.right + 4, y: rect.top });
     }
+  };
+
+  const renderCellPopover = () => {
+    if (!cellPopover) return null;
+    const onSave = (value) => {
+      onToggleDate(cellPopover.dateStr, value);
+      setCellPopover(null);
+    };
+    if (isCount) {
+      return (
+        <RepsPopover
+          x={cellPopover.x}
+          y={cellPopover.y}
+          onSave={onSave}
+          onClose={() => setCellPopover(null)}
+        />
+      );
+    }
+    return (
+      <TimePopover
+        x={cellPopover.x}
+        y={cellPopover.y}
+        onSave={onSave}
+        onClose={() => setCellPopover(null)}
+      />
+    );
+  };
+
+  const renderTooltipValue = (entry) => {
+    if (!entry) return null;
+    if (isCount) {
+      return <> — {formatCount(entry.count || 0)}</>;
+    }
+    if (entry.timeSpentSeconds > 0) {
+      return <> — {formatTimeSpent(entry.timeSpentSeconds)}</>;
+    }
+    return null;
   };
 
   return (
@@ -176,17 +216,7 @@ export default function HabitHeatmap({ entries, frequency, color, onToggleDate }
         {expanded ? 'Show week' : 'Show month'}
       </button>
 
-      {cellPopover && (
-        <TimePopover
-          x={cellPopover.x}
-          y={cellPopover.y}
-          onSave={(seconds) => {
-            onToggleDate(cellPopover.dateStr, seconds);
-            setCellPopover(null);
-          }}
-          onClose={() => setCellPopover(null)}
-        />
-      )}
+      {cellPopover && renderCellPopover()}
 
       {tooltip && !cellPopover && (
         <div
@@ -199,9 +229,7 @@ export default function HabitHeatmap({ entries, frequency, color, onToggleDate }
           ) : tooltip.entry ? (
             <>
               <br />Completed
-              {tooltip.entry.timeSpentSeconds > 0 && (
-                <> — {formatTimeSpent(tooltip.entry.timeSpentSeconds)}</>
-              )}
+              {renderTooltipValue(tooltip.entry)}
             </>
           ) : tooltip.applicable ? (
             <><br />Missed</>

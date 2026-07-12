@@ -84,4 +84,70 @@ describe('HabitTracker', () => {
       expect(habitEntryService.create).toHaveBeenCalled();
     });
   });
+
+  it('opens RepsPopover when Mark Done is clicked on a count habit', async () => {
+    habitService.getAll.mockResolvedValue([
+      { id: 1, name: 'Push-ups', color: '#3B82F6', frequency: { type: 'daily' }, trackType: 'count', isArchived: false },
+    ]);
+    habitEntryService.getByHabit.mockResolvedValue([]);
+
+    render(<HabitTracker />);
+    await waitFor(() => {
+      expect(screen.getByText('Push-ups')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Mark Done'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Reps')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Skip')).not.toBeInTheDocument();
+  });
+
+  it('saves with count when RepsPopover Save is clicked for a count habit', async () => {
+    habitService.getAll.mockResolvedValue([
+      { id: 1, name: 'Push-ups', color: '#3B82F6', frequency: { type: 'daily' }, trackType: 'count', isArchived: false },
+    ]);
+    habitEntryService.getByHabit.mockResolvedValue([]);
+
+    render(<HabitTracker />);
+    await waitFor(() => {
+      expect(screen.getByText('Push-ups')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Mark Done'));
+    await waitFor(() => {
+      expect(screen.getByText('Reps')).toBeInTheDocument();
+    });
+
+    const input = screen.getByLabelText(/reps/i, { selector: 'input' });
+    fireEvent.change(input, { target: { value: '20' } });
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    const today = new Date().toISOString().slice(0, 10);
+    await waitFor(() => {
+      expect(habitEntryService.create).toHaveBeenCalledWith({ habitId: 1, date: today, count: 20 });
+    });
+  });
+
+  it('renders total as reps for a count habit', async () => {
+    habitService.getAll.mockResolvedValue([
+      { id: 1, name: 'Push-ups', color: '#3B82F6', frequency: { type: 'daily' }, trackType: 'count', isArchived: false },
+    ]);
+    habitEntryService.getByHabit.mockResolvedValue([
+      { id: 10, date: '2026-01-01', count: 20 },
+      { id: 11, date: '2026-01-02', count: 15 },
+    ]);
+
+    render(<HabitTracker />);
+    await waitFor(() => {
+      expect(screen.getByText('Push-ups')).toBeInTheDocument();
+    });
+
+    // Expand the card to see the stat block
+    fireEvent.click(screen.getByText('Push-ups'));
+    await waitFor(() => {
+      expect(screen.getByText('35 reps')).toBeInTheDocument();
+    });
+  });
 });

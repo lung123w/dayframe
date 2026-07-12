@@ -9,7 +9,7 @@ function getInitialFreq(habit) {
   return habit?.frequency || { type: 'daily' };
 }
 
-export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose }) {
+export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose, entriesCount = 0 }) {
   const initFreq = getInitialFreq(habit);
   const [name, setName] = useState(habit?.name || '');
   const [description, setDescription] = useState(habit?.description || '');
@@ -17,6 +17,9 @@ export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose
   const [freqType, setFreqType] = useState(initFreq.type);
   const [weekdays, setWeekdays] = useState(initFreq.type === 'weekdays' ? (initFreq.days || [1, 2, 3, 4, 5]) : [1, 2, 3, 4, 5]);
   const [timesPerWeek, setTimesPerWeek] = useState(initFreq.type === 'weekly' ? (initFreq.timesPerWeek || 3) : 3);
+  const [trackType, setTrackType] = useState(habit?.trackType || 'duration');
+  const originalTrackType = habit?.trackType || 'duration';
+  const trackTypeChanged = !!habit && trackType !== originalTrackType;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,7 +31,7 @@ export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose
     } else {
       frequency = { type: 'weekly', timesPerWeek };
     }
-    onSave({ name, description, color, frequency });
+    onSave({ name, description, color, frequency, trackType });
   };
 
   const toggleWeekday = (day) => {
@@ -145,6 +148,37 @@ export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose
                 />
                 <span>times per week</span>
               </div>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>Track by</label>
+            <div className="freq-options">
+              <label className="freq-option">
+                <input
+                  type="radio"
+                  name="trackType"
+                  value="duration"
+                  checked={trackType === 'duration'}
+                  onChange={() => setTrackType('duration')}
+                />
+                Duration
+              </label>
+              <label className="freq-option">
+                <input
+                  type="radio"
+                  name="trackType"
+                  value="count"
+                  checked={trackType === 'count'}
+                  onChange={() => setTrackType('count')}
+                />
+                Repetitions
+              </label>
+            </div>
+            {habit && trackTypeChanged && entriesCount > 0 && (
+              <p className="track-type-warning">
+                Historical entries will remain in their original unit.
+              </p>
             )}
           </div>
 

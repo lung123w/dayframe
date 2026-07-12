@@ -90,6 +90,16 @@
   width: 60px;
 }
 
+.track-type-warning {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #B45309;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
 .modal-actions {
   display: flex;
   align-items: center;
