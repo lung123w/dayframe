@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FaInbox, FaTimes, FaGripVertical } from 'react-icons/fa';
+import { getNextOccurrenceFrom } from '../utils/recurrence';
 import './BacklogSidebar.css';
 
 function toLocalDateStr(date) {
@@ -14,22 +15,34 @@ function isOverduePending(task) {
   return toLocalDateStr(task.dueDate) < toLocalDateStr(new Date());
 }
 
+function isUnscheduledVisible(task, today) {
+  if (task.status !== 'pending') return false;
+  if (!task.dueDate) return true;
+  if (task.isRecurring && task.recurrencePattern) {
+    const next = getNextOccurrenceFrom(task, today);
+    if (next === null) return false;
+    return toLocalDateStr(next) < toLocalDateStr(today);
+  }
+  return isOverduePending(task);
+}
+
 export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
   const [filterProject, setFilterProject] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('unscheduled'); // 'all-pending' | 'unscheduled'
 
   const displayTasks = useMemo(() => {
+    const today = new Date();
     let result = viewMode === 'unscheduled'
-      ? tasks.filter(t => t.status === 'pending' && (!t.dueDate || isOverduePending(t)))
+      ? tasks.filter(t => isUnscheduledVisible(t, today))
       : tasks.filter(t => t.status === 'pending');
-    
+
     if (filterProject) result = result.filter(t => String(t.projectId) === filterProject);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(t => t.title.toLowerCase().includes(q));
     }
-    
+
     // Sort by priority, then creation date
     return [...result].sort((a, b) => {
       const priorityOrder = { high: 0, medium: 1, low: 2 };

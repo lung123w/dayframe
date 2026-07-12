@@ -96,4 +96,103 @@ describe('BacklogSidebar', () => {
 
     expect(setData).toHaveBeenCalledWith('application/json', JSON.stringify({ taskId: 1 }));
   });
+
+  describe('recurring task filtering', () => {
+    function makeRecurring(overrides = {}) {
+      return {
+        id: 100,
+        title: 'Daily Recurring',
+        projectId: 1,
+        priority: 'medium',
+        status: 'pending',
+        isRecurring: true,
+        recurrencePattern: { type: 'daily', interval: 1 },
+        createdAt: '2026-03-01T00:00:00.000Z',
+        ...overrides,
+      };
+    }
+
+    it('hides a daily recurring source whose second occurrence is today', () => {
+      // system time is 2026-03-10; dueDate=2026-03-09 -> second occurrence = 2026-03-10 (today)
+      renderSidebar([makeRecurring({ id: 11, title: 'Daily Fresh', dueDate: '2026-03-09T10:00:00.000Z' })]);
+      fireEvent.click(screen.getByRole('button', { name: 'Unscheduled' }));
+      expect(screen.queryByText('Daily Fresh')).not.toBeInTheDocument();
+    });
+
+    it('shows a daily recurring source whose second occurrence is strictly before today', () => {
+      // dueDate=2026-03-08 -> second occurrence = 2026-03-09 (yesterday) -> overdue
+      renderSidebar([makeRecurring({ id: 12, title: 'Daily Overdue', dueDate: '2026-03-08T10:00:00.000Z' })]);
+      fireEvent.click(screen.getByRole('button', { name: 'Unscheduled' }));
+      expect(screen.getByText('Daily Overdue')).toBeInTheDocument();
+      expect(screen.getByText('Overdue')).toBeInTheDocument();
+    });
+
+    it('hides a weekly recurring source whose next occurrence is in the future', () => {
+      // dueDate=2026-03-06 (Friday), pattern weekly on Wednesday [3] -> next = 2026-03-11
+      renderSidebar([
+        makeRecurring({
+          id: 13,
+          title: 'Weekly Future',
+          dueDate: '2026-03-06T10:00:00.000Z',
+          recurrencePattern: { type: 'weekly', interval: 1, daysOfWeek: [3] },
+        }),
+      ]);
+      fireEvent.click(screen.getByRole('button', { name: 'Unscheduled' }));
+      expect(screen.queryByText('Weekly Future')).not.toBeInTheDocument();
+    });
+
+    it('hides a recurring source whose pattern endDate is in the past', () => {
+      renderSidebar([
+        makeRecurring({
+          id: 14,
+          title: 'Ended Recurring',
+          dueDate: '2026-01-01T10:00:00.000Z',
+          recurrencePattern: {
+            type: 'daily',
+            interval: 1,
+            endDate: '2026-02-01T00:00:00.000Z',
+          },
+        }),
+      ]);
+      fireEvent.click(screen.getByRole('button', { name: 'Unscheduled' }));
+      expect(screen.queryByText('Ended Recurring')).not.toBeInTheDocument();
+    });
+
+    it('shows recurring sources in All Pending mode regardless of next occurrence', () => {
+      renderSidebar([
+        makeRecurring({ id: 15, title: 'Daily Fresh', dueDate: '2026-03-09T10:00:00.000Z' }),
+        makeRecurring({ id: 16, title: 'Weekly Future', dueDate: '2026-03-06T10:00:00.000Z', recurrencePattern: { type: 'weekly', interval: 1, daysOfWeek: [3] } }),
+      ]);
+      fireEvent.click(screen.getByRole('button', { name: 'All Pending' }));
+      expect(screen.getByText('Daily Fresh')).toBeInTheDocument();
+      expect(screen.getByText('Weekly Future')).toBeInTheDocument();
+    });
+
+    it('search within Unscheduled view skips recurring sources with future next occurrences', () => {
+      renderSidebar([
+        makeRecurring({ id: 17, title: 'Daily Fresh Searchable', dueDate: '2026-03-09T10:00:00.000Z' }),
+        makeRecurring({ id: 18, title: 'Daily Overdue Searchable', dueDate: '2026-03-08T10:00:00.000Z' }),
+      ]);
+      fireEvent.click(screen.getByRole('button', { name: 'Unscheduled' }));
+      fireEvent.change(screen.getByPlaceholderText('Search...'), { target: { value: 'searchable' } });
+      expect(screen.queryByText('Daily Fresh Searchable')).not.toBeInTheDocument();
+      expect(screen.getByText('Daily Overdue Searchable')).toBeInTheDocument();
+    });
+
+    it('keeps non-recurring overdue tasks visible in Unscheduled mode', () => {
+      renderSidebar([
+        { id: 19, title: 'Plain Overdue', projectId: 1, priority: 'medium', status: 'pending', dueDate: '2026-03-09T10:00:00.000Z' },
+      ]);
+      fireEvent.click(screen.getByRole('button', { name: 'Unscheduled' }));
+      expect(screen.getByText('Plain Overdue')).toBeInTheDocument();
+    });
+
+    it('hides non-recurring future tasks in Unscheduled mode', () => {
+      renderSidebar([
+        { id: 20, title: 'Plain Future', projectId: 1, priority: 'medium', status: 'pending', dueDate: '2026-03-15T10:00:00.000Z' },
+      ]);
+      fireEvent.click(screen.getByRole('button', { name: 'Unscheduled' }));
+      expect(screen.queryByText('Plain Future')).not.toBeInTheDocument();
+    });
+  });
 });

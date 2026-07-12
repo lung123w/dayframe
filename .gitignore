@@ -39,8 +39,8 @@ data/*.db
 # Local git worktrees
 .worktrees/
 
-# Not relevant / archived personal files (nested git repo excluded)
-not relevant/CodeNomad/
+# Not relevant / archived personal files
+not relevant/
 
 # Node version manager files (personal dev environment)
 .node-version

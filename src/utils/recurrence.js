@@ -49,6 +49,55 @@ export function resolveInstanceStatus(task, instanceDateStr) {
  * }
  */
 
+function toLocalDateStr(date) {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Return the second occurrence of a recurring task (one step after the first
+ * instance / `task.dueDate`). The caller compares the returned date with the
+ * `fromDate` reference to decide if the source is "behind" (returned date is
+ * strictly before `fromDate`) or "on schedule" (returned date is `fromDate` or
+ * later). Returns null when the pattern has already ended by `fromDate`
+ * (endDate is strictly before `fromDate`), when the second occurrence is past
+ * `endDate`, or when `endAfterOccurrences` limits the pattern to one or zero
+ * instances.
+ *
+ * @param {{ isRecurring?: boolean, dueDate?: string|Date, recurrencePattern?: object }} task
+ * @param {Date|string} fromDate The reference date (typically "today"). Used
+ *   to decide whether the pattern has already ended from the caller's
+ *   perspective.
+ * @returns {Date|null}
+ */
+export function getNextOccurrenceFrom(task, fromDate) {
+  if (!task || !task.isRecurring || !task.recurrencePattern || !task.dueDate || !fromDate) {
+    return null;
+  }
+
+  const pattern = task.recurrencePattern;
+  const startDate = new Date(task.dueDate);
+  const endDate = pattern.endDate ? new Date(pattern.endDate) : null;
+  const fromLocal = toLocalDateStr(fromDate);
+
+  if (endDate && toLocalDateStr(endDate) < fromLocal) {
+    return null;
+  }
+
+  if (pattern.endAfterOccurrences && pattern.endAfterOccurrences <= 1) {
+    return null;
+  }
+
+  const second = getNextOccurrence(startDate, pattern);
+
+  if (endDate && toLocalDateStr(second) > toLocalDateStr(endDate)) {
+    return null;
+  }
+
+  return second;
+}
+
 export function generateRecurringTasks(task, startDate, endDate) {
   if (!task.isRecurring || !task.recurrencePattern) {
     return [task];
