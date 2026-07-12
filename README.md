@@ -1,143 +1,164 @@
 # DayFrame
 
-A personal task management app with a daily planner, today view, habit tracker, and workflow tools. Built with React (frontend) and Node.js + SQLite (backend).
+A personal productivity app with a daily planner, habit tracker, timeline view, and structured daily workflow. Built with React + Vite on the frontend and Node.js + Express + SQLite on the backend. All data is stored locally — no cloud, no accounts.
 
 ## Features
 
-### 📋 Today View
-- See all tasks due today in a prioritized list
-- Drag to reorder tasks; order is persisted across sessions
-- Quick-capture new tasks inline (press Enter to create, Escape to clear)
-- Edit any task directly from the today view
-- Mark tasks complete with a single click
+### Today View
+- Prioritized list of today's tasks, split into overdue, pending, and completed sections
+- Quick-capture input: type a task title and press Enter to add it instantly
+- One-click "Pull all overdue to today" to reschedule everything at once
+- Drag-and-drop reordering; order persists across sessions
+- Defer individual tasks to another date via a date popover
+- **Daily Timeline**: visual 6 am–9 pm hourly grid showing tasks as positioned time blocks by start/end time, with a live current-time indicator
 
-### 🗓️ Daily Planner (Week View)
-- 7-day week grid with drag-and-drop scheduling
-- Move tasks between days or reorder within a day
-- Reordering today's tasks in the planner syncs with the Today view order
-- Per-task time estimates editable inline
-- Navigate forward/backward by week
-- Yearly goals and weekly objectives panels integrated
+### Planner (Week View)
+- 7-day column grid for the current week with forward/backward navigation
+- Drag tasks between days to reschedule, or within a day to reorder
+- Per-task inline time estimate editor
+- Task cards show: status, title, scheduled time, time estimate, project colour, subtask progress, and rich description
+- **Daily Shutdown** panel per day: shows completed vs. total stats, planned vs. done time, incomplete task list with "rollover to tomorrow" buttons, and a highlights/notes field
 
-### ✅ Task Management
-- Create and edit tasks with title, description, due date, priority, status, and project
-- Recurring tasks: daily, weekly, monthly, yearly with end date or occurrence count
-- Subtasks with completion tracking
-- Paste images directly into task descriptions (Ctrl+V)
-- Assign tasks to team members
+### Task Management
+- Title, rich-text description (bold, italic, headings, lists, code, links), due date, priority, project, status
+- Start time and end time for timeline placement
+- Scheduled time badge for a specific time-of-day
+- Inline time estimate (minutes)
+- Subtasks with completion tracking and progress count
+- Paste images directly into descriptions (Ctrl+V) — stored as base64
+- Recurring tasks: daily, weekly (specific days of the week), monthly, yearly — with optional end date or occurrence count
+- Per-occurrence status overrides for recurring tasks ("this instance only" or "this and all future")
 
-### 🔄 Daily Workflow
-- Define reusable daily workflow steps
-- Track step completion per day
-- Visual checklist in the Today view
+### Habit Tracker
+- Track daily habits with colour coding and frequency settings (daily, specific weekdays, or X times per week)
+- Mark a habit done with optional time-logging popover
+- Streak tracking: current streak and best streak displayed per habit
+- Annual heatmap visualization of completions per habit (click to toggle past dates)
+- Archive habits to preserve history without cluttering the active list
+- Soft-delete with 5-second undo toast
 
-### 📈 Habit Tracker
-- Create daily habits and track streaks
-- Check off habits each day
+### Plan My Day
+- Modal that groups all pending tasks into Overdue / Due Today / Upcoming (next 7 days)
+- Select which tasks to focus on; confirms a prioritized order for the Today view
+- Pre-selects tasks from the previous session's plan
 
-### 🗂️ Backlog Sidebar
-- Collapsible sidebar listing all pending (unscheduled) tasks
-- Drag tasks from backlog onto the planner to schedule them
+### Daily Workflow
+- Define a reusable checklist of daily steps
+- Track completion per day; resets each morning
+- Visible in the Today view alongside habits
 
-### 🔔 Notifications
-- Browser notifications for overdue, 1-hour, and 24-hour warnings
+### Weekly Goals & Key Events
+- Weekly objectives list with checkbox completion per week
+- Key events (notable things happening during the week) grouped by day, with category tagging
+- Integrated into the Planner view
+
+### Yearly Goals
+- Annual vision text (rich-text) and a list of yearly goals
+- Image paste support (Ctrl+V)
+- Auto-saves on blur
+
+### Backlog
+- Lists all unscheduled or pending tasks in one place
+- Drag tasks from the backlog onto a planner day column to schedule them
+
+### Notifications
+- Browser notifications for overdue tasks, 1-hour warnings, and 24-hour reminders
 - Background polling every 30 minutes while the app is open
+- Permission requested via the bell icon in the sidebar
 
-### 👥 Team Management
-- Add team members with name, email, and role
-- Assign tasks to team members
+### Projects
+- Create projects with a name and colour
+- Assign tasks to projects; project colour is shown on task cards and timeline blocks
+- A default "General" project is created automatically on first run
 
-## Data Persistence
-
-All data is stored in a **SQLite database** via a Node.js/Express backend (`server/`). There is no cloud sync — data is local to the machine running the server.
-
-- **Tables**: tasks, projects, team_members, subtasks, habits, habit_completions, workflow_steps, workflow_completions, settings
-- Data survives server restarts
+### Backup
+- Export all data as a JSON file from the sidebar
 
 ## Tech Stack
 
-### Frontend
-- **React 19** — UI framework
-- **Vite 8** — build tool and dev server
-- **FullCalendar** — calendar components
-- **date-fns** — date utilities
-- **React Icons** — icon library
+| Layer | Technology |
+|---|---|
+| Frontend framework | React 19 |
+| Build tool | Vite 8 |
+| Rich text editor | Tiptap 3 |
+| Date utilities | date-fns 4 |
+| Icons | react-icons 5 |
+| API server | Node.js + Express 5 |
+| Database | SQLite via better-sqlite3 |
+| Test runner | Vitest 4 |
+| Component testing | React Testing Library + jsdom |
 
-### Backend
-- **Node.js + Express** — REST API server
-- **better-sqlite3** — SQLite database driver
+## Getting Started
 
-### Testing
-- **Vitest** — test runner
-- **React Testing Library** — component testing
-- **jsdom** — browser environment simulation
+**Prerequisites:** Node.js 18+
 
-## Installation & Setup
+```bash
+# Install dependencies
+npm install
 
-### Prerequisites
-- Node.js 18+
+# Start frontend (port 5173) + API server (port 3001) together
+npm run dev
+```
 
-### Getting Started
+Open `http://localhost:5173`
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### Production
 
-2. **Start the app** (frontend + backend together)
-   ```bash
-   npm run dev
-   ```
-   - Frontend: `http://localhost:5173`
-   - API server: `http://localhost:3001`
+```bash
+npm run build   # Builds React app into dist/
+npm start       # Express serves the API + static frontend on port 3001
+```
 
-3. **Build for production**
-   ```bash
-   npm run build
-   ```
+Open `http://localhost:3001`
 
-4. **Run tests**
-   ```bash
-   npm run test:run   # single run
-   npm test           # watch mode
-   npm run test:ui    # visual UI
-   ```
+### Windows Launcher
 
-5. **Lint**
-   ```bash
-   npm run lint
-   ```
+Run `start-dayframe.bat` to start the app in the background and open the browser automatically. Run `install-shortcuts.bat` to add desktop and startup shortcuts.
+
+## Scripts
+
+```bash
+npm run dev        # Start dev server (frontend + backend)
+npm run build      # Production build
+npm start          # Run production server
+npm run test:run   # Run all tests once
+npm test           # Run tests in watch mode
+npm run test:ui    # Open Vitest browser UI
+npm run lint       # Run ESLint
+```
 
 ## Project Structure
 
 ```
 dayframe/
 ├── server/
-│   ├── db.js          # SQLite schema and migrations
-│   ├── index.js       # Express app entry point
-│   └── routes/        # API route handlers
+│   ├── index.js       # Express entry point
+│   ├── db.js          # SQLite schema and inline migrations
+│   └── routes/        # REST API handlers (tasks, habits, projects, etc.)
 ├── src/
-│   ├── components/    # React components
-│   ├── utils/         # Utility functions
-│   ├── __tests__/     # Test files
-│   ├── api.js         # Frontend API service layer
-│   ├── App.jsx        # Main app component and state
-│   └── main.jsx       # App entry point
-├── package.json
+│   ├── App.jsx        # Root component: state management and view routing
+│   ├── api.js         # Fetch-based API service layer
+│   ├── components/    # React components (25 components with paired CSS)
+│   ├── utils/         # Utility functions (recurrence, habits, notifications, etc.)
+│   └── __tests__/     # Vitest test files
+├── data/              # SQLite database file (gitignored)
+├── public/
 ├── vite.config.js
-└── README.md
+└── package.json
 ```
+
+## Data
+
+All data is stored in a local SQLite file at `data/app.db`. It is excluded from version control. Tables include: `tasks`, `subtasks`, `projects`, `team_members`, `habits`, `habit_entries`, `weekly_objectives`, `daily_notes`, `yearly_goals`, `key_events`, `workflow_steps`, `workflow_completions`, `settings`.
+
+Data survives server restarts and never leaves the machine.
 
 ## Troubleshooting
 
-### App not loading data
-- Make sure both frontend and backend are running (`npm run dev` starts both)
-- Check the browser console and server terminal for errors
+**App not loading data**
+- Ensure both frontend and backend are running — `npm run dev` starts both
+- Check the browser console and the terminal running the server for errors
 
-### Notifications not working
-- Click the bell icon to request permission
-- Ensure the browser allows notifications for localhost
-
-## License
-
-Open source — available for personal and commercial use.
+**Notifications not working**
+- Click the bell icon in the sidebar to request browser permission
+- Ensure the browser allows notifications from localhost
