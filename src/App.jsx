@@ -6,6 +6,7 @@ import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
 import TodayView from './components/TodayView';
 import DailyPlanningModal from './components/DailyPlanningModal';
+import WeeklyReview from './components/WeeklyReview';
 import Sidebar from './components/Sidebar';
 import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
@@ -403,6 +404,16 @@ function App() {
             onCreateProject={() => handleOpenProjectModal()}
             onEditProject={(project) => handleOpenProjectModal(project)}
             onDeleteProject={handleDeleteProject}
+          />
+        )}
+
+        {activeView === 'review' && (
+          <WeeklyReview
+            keyEvents={keyEvents}
+            onAddKeyEvent={handleAddKeyEvent}
+            onUpdateKeyEvent={handleUpdateKeyEvent}
+            onDeleteKeyEvent={handleDeleteKeyEvent}
+            onDataChange={loadData}
           />
         )}
       </main>

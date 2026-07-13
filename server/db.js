@@ -139,6 +139,19 @@ db.exec(`
     createdAt TEXT NOT NULL DEFAULT (datetime('now')),
     updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS weekly_reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    weekStart TEXT NOT NULL,
+    cleanupTasks TEXT NOT NULL DEFAULT '[]',
+    gratitudeEntries TEXT NOT NULL DEFAULT '[]',
+    reflectionAnswers TEXT NOT NULL DEFAULT '{}',
+    weeklyGoals TEXT NOT NULL DEFAULT '[]',
+    syncFlags TEXT NOT NULL DEFAULT '{}',
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(weekStart)
+  );
 `);
 
 // Migrate weekly objectives to object format
