@@ -73,6 +73,14 @@ export const weeklyObjectiveService = {
   }),
 };
 
+export const weeklyReviewService = {
+  getByWeek: (weekStart) => request(`/api/weekly-reviews?weekStart=${weekStart}`),
+  upsert: (weekStart, document) => request('/api/weekly-reviews', {
+    method: 'PUT',
+    body: JSON.stringify({ weekStart, ...document }),
+  }),
+};
+
 export const dailyNoteService = {
   getByDate: (date) => request(`/api/daily-notes?date=${date}`),
   upsert: (data) => request('/api/daily-notes', {

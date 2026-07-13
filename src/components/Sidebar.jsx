@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCalendar, FaLink, FaFolder, FaBell, FaDownload, FaCalendarDay } from 'react-icons/fa';
+import { FaCalendar, FaLink, FaFolder, FaBell, FaDownload, FaCalendarDay, FaClipboardCheck } from 'react-icons/fa';
 import './Sidebar.css';
 
 export default function Sidebar({ currentView, onNavigate, onNotifications, onBackup }) {
@@ -36,6 +36,14 @@ export default function Sidebar({ currentView, onNavigate, onNotifications, onBa
           >
             <FaLink />
             <span>Habits</span>
+          </button>
+          <button
+            className={`sidebar-nav-item ${currentView === 'review' ? 'active' : ''}`}
+            onClick={() => onNavigate('review')}
+            aria-label="Navigate to Weekly Review view"
+          >
+            <FaClipboardCheck />
+            <span>Review</span>
           </button>
           <button
             className={`sidebar-nav-item ${currentView === 'projects' ? 'active' : ''}`}
