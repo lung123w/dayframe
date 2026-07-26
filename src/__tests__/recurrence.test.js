@@ -381,4 +381,48 @@ describe('Recurrence Utils', () => {
       expect(getNextOccurrenceFrom(task, new Date('2026-03-10T00:00:00.000Z'))).toBeNull();
     });
   });
+
+  describe('monthly "last X of month" pattern', () => {
+    it('generates one instance per month on the last Saturday', () => {
+      const task = {
+        id: 1,
+        title: 'Monthly Financial Review',
+        dueDate: new Date(2026, 7, 29, 9, 0, 0).toISOString(), // Aug 29, 2026 (last Sat)
+        isRecurring: true,
+        recurrencePattern: {
+          type: 'monthly',
+          weekOfMonth: 'last',
+          dayOfWeek: 6,
+        },
+        status: 'pending',
+        statusOverrides: {},
+        statusFromOverrides: [],
+      };
+
+      const startDate = new Date(2026, 7, 1);
+      const endDate = new Date(2026, 11, 1);
+      const result = generateRecurringTasks(task, startDate, endDate);
+
+      // Should produce Aug 29, Sep 26, Oct 31, Nov 28
+      expect(result.length).toBeGreaterThanOrEqual(3);
+      const dates = result.map(r => new Date(r.dueDate));
+      dates.forEach((d) => {
+        expect(d.getDay()).toBe(6); // Saturday
+      });
+    });
+
+    it('getNextOccurrenceFrom advances to the last Saturday of the next month', () => {
+      const task = {
+        id: 1,
+        dueDate: new Date(2026, 7, 29).toISOString(), // Aug 29, 2026 (last Sat)
+        isRecurring: true,
+        recurrencePattern: { type: 'monthly', weekOfMonth: 'last', dayOfWeek: 6 },
+      };
+      const result = getNextOccurrenceFrom(task, new Date('2026-09-01'));
+      expect(result).not.toBeNull();
+      expect(result.getMonth()).toBe(8); // September (0-indexed)
+      expect(result.getDate()).toBe(26); // Last Saturday of Sep 2026
+      expect(result.getDay()).toBe(6);
+    });
+  });
 });

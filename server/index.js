@@ -15,6 +15,8 @@ import workflowStepsRouter from './routes/workflowSteps.js';
 import workflowCompletionsRouter from './routes/workflowCompletions.js';
 import keyEventsRouter from './routes/keyEvents.js';
 import weeklyReviewsRouter from './routes/weeklyReviews.js';
+import financialCardsRouter from './routes/financialCards.js';
+import monthlyReviewsRouter from './routes/monthlyReviews.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -37,6 +39,8 @@ app.use('/api/workflow-steps', workflowStepsRouter);
 app.use('/api/workflow-completions', workflowCompletionsRouter);
 app.use('/api/key-events', keyEventsRouter);
 app.use('/api/weekly-reviews', weeklyReviewsRouter);
+app.use('/api/financial-cards', financialCardsRouter);
+app.use('/api/monthly-reviews', monthlyReviewsRouter);
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {

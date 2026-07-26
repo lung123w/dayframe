@@ -45,3 +45,8 @@ not relevant/
 # Node version manager files (personal dev environment)
 .node-version
 .nvmrc
+
+# Environment files (contains secrets — never commit)
+.env
+.env.local
+.env.*.local
