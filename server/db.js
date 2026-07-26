@@ -152,6 +152,34 @@ db.exec(`
     updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(weekStart)
   );
+
+  CREATE TABLE IF NOT EXISTS financial_cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL DEFAULT '',
+    institution TEXT NOT NULL DEFAULT '',
+    cardType TEXT NOT NULL DEFAULT 'credit',
+    accountNumber TEXT NOT NULL DEFAULT '',
+    displayOrder INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS monthly_reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    monthKey TEXT NOT NULL,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    reviewDate TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    checklist TEXT NOT NULL DEFAULT '[]',
+    cardEntries TEXT NOT NULL DEFAULT '[]',
+    notes TEXT NOT NULL DEFAULT '',
+    completedAt TEXT,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(monthKey)
+  );
 `);
 
 // Migrate weekly objectives to object format
@@ -243,6 +271,12 @@ try {
   }
 } catch (e) {
   // Skip if something goes wrong
+}
+
+try {
+  db.exec(`ALTER TABLE monthly_reviews ADD COLUMN notes TEXT NOT NULL DEFAULT ''`);
+} catch (e) {
+  // Column already exists
 }
 
 export default db;

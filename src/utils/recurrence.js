@@ -1,4 +1,5 @@
-import { addDays, addWeeks, addMonths, addYears, isBefore, isAfter } from 'date-fns';
+import { addDays, addWeeks, addMonths, addYears, isBefore, isAfter, getDay, lastDayOfMonth, subDays } from 'date-fns';
+import { getLastSaturdayOfMonth } from './lastSaturday.js';
 
 /**
  * Resolve the effective status for a single recurring instance.
@@ -155,6 +156,9 @@ function getNextOccurrence(currentDate, pattern) {
       return addWeeks(currentDate, interval);
 
     case 'monthly':
+      if (pattern.weekOfMonth === 'last' && typeof pattern.dayOfWeek === 'number') {
+        return getNextLastWeekdayOfMonth(currentDate, pattern);
+      }
       return addMonths(currentDate, interval);
 
     case 'yearly':
@@ -163,6 +167,37 @@ function getNextOccurrence(currentDate, pattern) {
     default:
       return addDays(currentDate, 1);
   }
+}
+
+/**
+ * Compute the next occurrence of a "last X of month" pattern (e.g. last Saturday).
+ * Given the current occurrence date (which should be the last X of its month),
+ * returns the last X of the next month.
+ *
+ * @param {Date} currentDate - the current occurrence date
+ * @param {{ dayOfWeek: number, hour?: number, minute?: number }} pattern
+ * @returns {Date}
+ */
+function getNextLastWeekdayOfMonth(currentDate, pattern) {
+  const targetDow = pattern.dayOfWeek; // 0=Sun..6=Sat
+  // Jump to the same day-of-month in the next month, then snap to the last {targetDow}
+  // of that month. Easier: just compute the last targetDow of the next month directly.
+  const next = addMonths(currentDate, 1);
+  return getLastWeekdayOfMonth(next.getFullYear(), next.getMonth(), targetDow);
+}
+
+/**
+ * Return the last occurrence of the given day-of-week in the given month,
+ * preserving the pattern's hour:minute (defaults to currentDate's time).
+ */
+function getLastWeekdayOfMonth(year, month, targetDow) {
+  // For Saturday (6) we have a fast path via getLastSaturdayOfMonth
+  if (targetDow === 6) {
+    return getLastSaturdayOfMonth(year, month);
+  }
+  const lastDay = lastDayOfMonth(new Date(year, month, 1));
+  const back = (getDay(lastDay) - targetDow + 7) % 7;
+  return subDays(lastDay, back);
 }
 
 function getNextWeeklyOccurrence(currentDate, daysOfWeek, interval) {

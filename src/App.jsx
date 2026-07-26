@@ -8,9 +8,11 @@ import TodayView from './components/TodayView';
 import DailyPlanningModal from './components/DailyPlanningModal';
 import WeeklyReview from './components/WeeklyReview';
 import Sidebar from './components/Sidebar';
-import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService } from './api';
+import MonthlyReview from './components/MonthlyReview';
+import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService, financialCardService, monthlyReviewService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
 import { syncSortOrderFromTodayOrder } from './utils/syncTodayOrder';
+import { ensureMonthlyReviewReminder } from './utils/monthlyReviewReminder';
 import { FaPlus, FaFolder, FaCalendarCheck } from 'react-icons/fa';
 
 import './App.css';
@@ -32,6 +34,8 @@ function App() {
   const [subtasks, setSubtasks] = useState([]);
   const [todayOrder, setTodayOrder] = useState([]);
   const [keyEvents, setKeyEvents] = useState([]);
+  const [financialCards, setFinancialCards] = useState([]);
+  const [monthlyReviews, setMonthlyReviews] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showPlanningModal, setShowPlanningModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -44,12 +48,14 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [tasksData, projectsData, subtasksData, savedOrder, keyEventsData] = await Promise.all([
+      const [tasksData, projectsData, subtasksData, savedOrder, keyEventsData, cardsData, reviewsData] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
         subtaskService.getAll(),
         settingsService.get('todayOrder'),
         keyEventService.getAll(),
+        financialCardService.getAll(),
+        monthlyReviewService.getAll(),
       ]);
 
       setTasks(sortTasks(tasksData));
@@ -57,6 +63,8 @@ function App() {
       setSubtasks(subtasksData);
       setTodayOrder(Array.isArray(savedOrder) ? savedOrder : []);
       setKeyEvents(keyEventsData);
+      setFinancialCards(cardsData);
+      setMonthlyReviews(reviewsData);
 
       // Create default project if none exists
       if (projectsData.length === 0) {
@@ -74,10 +82,15 @@ function App() {
   useEffect(() => {
     loadData();
     requestNotificationPermission();
-    
+
     // Start notification service
     const cleanup = startNotificationService(async () => {
       return await taskService.getAll();
+    });
+
+    // Ensure the recurring "Monthly Financial Review" task exists
+    ensureMonthlyReviewReminder(taskService).catch(err => {
+      console.error('Failed to ensure monthly review reminder:', err);
     });
 
     return cleanup;
@@ -276,21 +289,25 @@ function App() {
   // ── Backup: export all DB data as a JSON download ──
   const handleBackup = async () => {
     try {
-      const [allTasks, allProjects, allSubtasks, allHabits, allHabitEntries] = await Promise.all([
+      const [allTasks, allProjects, allSubtasks, allHabits, allHabitEntries, allFinancialCards, allMonthlyReviews] = await Promise.all([
         taskService.getAll(),
         projectService.getAll(),
         subtaskService.getAll(),
         habitService.getAll(),
         habitEntryService.getAll(),
+        financialCardService.getAll(),
+        monthlyReviewService.getAll(),
       ]);
       const payload = {
         exportedAt: new Date().toISOString(),
-        version: 3,
+        version: 4,
         tasks: allTasks,
         projects: allProjects,
         subtasks: allSubtasks,
         habits: allHabits,
         habitEntries: allHabitEntries,
+        financialCards: allFinancialCards,
+        monthlyReviews: allMonthlyReviews,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -413,6 +430,14 @@ function App() {
             onAddKeyEvent={handleAddKeyEvent}
             onUpdateKeyEvent={handleUpdateKeyEvent}
             onDeleteKeyEvent={handleDeleteKeyEvent}
+            onDataChange={loadData}
+          />
+        )}
+
+        {activeView === 'finance' && (
+          <MonthlyReview
+            reviews={monthlyReviews}
+            financialCards={financialCards}
             onDataChange={loadData}
           />
         )}

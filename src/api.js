@@ -129,3 +129,40 @@ export const keyEventService = {
   update: (id, updates) => request(`/api/key-events/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
   delete: (id) => request(`/api/key-events/${id}`, { method: 'DELETE' }),
 };
+
+export const financialCardService = {
+  getAll: () => request('/api/financial-cards'),
+  getById: (id) => request(`/api/financial-cards/${id}`),
+  create: (card) => request('/api/financial-cards', { method: 'POST', body: JSON.stringify(card) }),
+  update: (id, updates) => request(`/api/financial-cards/${id}`, { method: 'PUT', body: JSON.stringify(updates) }),
+  deactivate: (id) => request(`/api/financial-cards/${id}/deactivate`, { method: 'POST' }),
+  reorder: (id, direction) => request(`/api/financial-cards/${id}/reorder`, {
+    method: 'POST',
+    body: JSON.stringify({ direction }),
+  }),
+};
+
+export const monthlyReviewService = {
+  getAll: () => request('/api/monthly-reviews'),
+  getByMonth: (monthKey) => request(`/api/monthly-reviews/by-month?monthKey=${encodeURIComponent(monthKey)}`),
+  getCurrent: () => request('/api/monthly-reviews/current'),
+  createForMonth: (monthKey) => request('/api/monthly-reviews', {
+    method: 'POST',
+    body: JSON.stringify({ monthKey }),
+  }),
+  upsert: (review) => request('/api/monthly-reviews', { method: 'PUT', body: JSON.stringify(review) }),
+  toggleChecklistItem: (id, itemId) => request(`/api/monthly-reviews/${id}/checklist/${itemId}`, {
+    method: 'PATCH',
+  }),
+  updateCardEntry: (id, cardId, patch) => request(`/api/monthly-reviews/${id}/card-entry/${cardId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  }),
+  updateNotes: (id, notes) => request(`/api/monthly-reviews/${id}/notes`, {
+    method: 'PATCH',
+    body: JSON.stringify({ notes }),
+  }),
+  syncCards: (id) => request(`/api/monthly-reviews/${id}/sync-cards`, { method: 'POST' }),
+  complete: (id) => request(`/api/monthly-reviews/${id}/complete`, { method: 'POST' }),
+  reopen: (id) => request(`/api/monthly-reviews/${id}/reopen`, { method: 'POST' }),
+};
