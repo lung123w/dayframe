@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { startOfWeek, format } from 'date-fns';
+import { startOfWeek, endOfWeek, subDays, format } from 'date-fns';
 
 const {
   mockReviewGetByWeek,
@@ -167,13 +167,55 @@ describe('WeeklyReview', () => {
     });
   });
 
-  it('surfaces the habit completion summary when habits exist', async () => {
+  it('surfaces the habit completion summary with total time spent', async () => {
     const weekStart = thisWeekStart();
     mockHabitGetAll.mockResolvedValue([{ id: 1, name: 'Reading', color: '#10B981', isArchived: 0 }]);
-    mockHabitEntryGetAll.mockResolvedValue([{ habitId: 1, date: weekStart }]);
+    mockHabitEntryGetAll.mockResolvedValue([{ habitId: 1, date: weekStart, timeSpentSeconds: 5400 }]);
     render(<WeeklyReview {...defaultProps} />);
     await screen.findByText('Weekly Goal Setup');
-    await waitFor(() => expect(screen.getByText(/Reading: 1/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Reading: 1h 30m/)).toBeInTheDocument());
+  });
+
+  it('surfaces the habit completion summary with reps for count habits', async () => {
+    const weekStart = thisWeekStart();
+    mockHabitGetAll.mockResolvedValue([
+      { id: 1, name: 'Push-ups', color: '#10B981', isArchived: 0, trackType: 'count' },
+    ]);
+    mockHabitEntryGetAll.mockResolvedValue([
+      { habitId: 1, date: weekStart, count: 20 },
+      { habitId: 1, date: weekStart, count: 30 },
+    ]);
+    render(<WeeklyReview {...defaultProps} />);
+    await screen.findByText('Weekly Goal Setup');
+    await waitFor(() => expect(screen.getByText(/Push-ups: 50 reps/)).toBeInTheDocument());
+  });
+
+  it('defaults to the week containing yesterday so a late-night review shows the just-finished week', async () => {
+    // Regression: the component used to default to startOfWeek(new Date()),
+    // so opening the review after midnight on Monday showed a brand-new empty
+    // week and every habit chip rendered 0m even though last week had data.
+    const expectedDefault = format(startOfWeek(subDays(new Date(), 1), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    const expectedDefaultEnd = format(endOfWeek(subDays(new Date(), 1), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    mockHabitGetAll.mockResolvedValue([{ id: 1, name: 'Reading', color: '#10B981', isArchived: 0 }]);
+    mockHabitEntryGetAll.mockResolvedValue([{ habitId: 1, date: expectedDefault, timeSpentSeconds: 5400 }]);
+    render(<WeeklyReview {...defaultProps} />);
+    await screen.findByText('Weekly Goal Setup');
+    await waitFor(() => {
+      expect(mockReviewGetByWeek).toHaveBeenCalledWith(expectedDefault);
+      expect(mockHabitEntryGetAll).toHaveBeenCalledWith({ from: expectedDefault, to: expectedDefaultEnd });
+      expect(screen.getByText(/Reading: 1h 30m/)).toBeInTheDocument();
+    });
+  });
+
+  it('labels the habit summary with the actual data range instead of "Last week"', async () => {
+    const weekStart = thisWeekStart();
+    mockHabitGetAll.mockResolvedValue([{ id: 1, name: 'Reading', color: '#10B981', isArchived: 0 }]);
+    mockHabitEntryGetAll.mockResolvedValue([{ habitId: 1, date: weekStart, timeSpentSeconds: 600 }]);
+    render(<WeeklyReview {...defaultProps} />);
+    await screen.findByText('Weekly Goal Setup');
+    // The old hard-coded label hid mismatches between the title and the loaded week
+    await waitFor(() => expect(screen.queryByText("Last week's habits:")).not.toBeInTheDocument());
+    expect(screen.getByText(/Habits \(/)).toBeInTheDocument();
   });
 
   // ── Weekly goals with minimum steps ───────────────────────────────────────

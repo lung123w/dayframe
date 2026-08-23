@@ -19,12 +19,14 @@ import {
   endOfWeek,
   addWeeks,
   subWeeks,
+  subDays,
   format,
   addDays,
   isSameDay,
   startOfDay,
 } from 'date-fns';
 import { weeklyReviewService, weeklyObjectiveService, habitService, habitEntryService } from '../api';
+import { formatTimeSpent, formatCount, getTrackType, getEntryValue } from '../utils/habits';
 import './WeeklyReview.css';
 
 // ── Default cleanup template ───────────────────────────────────────────────
@@ -282,8 +284,13 @@ export default function WeeklyReview({
   onDeleteKeyEvent,
   onDataChange,
 }) {
+  // Default to the week containing *yesterday*: a weekly review is typically
+  // done late in the evening, and defaulting to "this week" made the review
+  // show an empty new week (all habits 0m) as soon as the clock crossed
+  // midnight into Monday. Yesterday's week is always the most recently
+  // completed (or current) week, so the reflection data is never blank.
   const [weekStartDate, setWeekStartDate] = useState(() =>
-    startOfWeek(new Date(), { weekStartsOn: 1 })
+    startOfWeek(subDays(new Date(), 1), { weekStartsOn: 1 })
   );
   const [review, setReview] = useState(() => defaultDoc(''));
   const [loading, setLoading] = useState(false);
@@ -545,8 +552,10 @@ export default function WeeklyReview({
   const habitSummary = habits
     .filter((h) => !h.isArchived)
     .map((h) => {
-      const count = habitEntries.filter((e) => String(e.habitId) === String(h.id)).length;
-      return { id: h.id, name: h.name, color: h.color, count };
+      const entries = habitEntries.filter((e) => String(e.habitId) === String(h.id));
+      const isCount = getTrackType(h) === 'count';
+      const total = entries.reduce((sum, e) => sum + getEntryValue(e, h), 0);
+      return { id: h.id, name: h.name, color: h.color, checkIns: entries.length, total, isCount };
     });
 
   const cleanupDone = review.cleanupTasks.filter((t) => t.completed).length;
@@ -695,15 +704,15 @@ export default function WeeklyReview({
                 <label className="wr-reflection-label">{q.label}</label>
                 {q.id === 'habits' && habitSummary.length > 0 && (
                   <div className="wr-habit-summary">
-                    <span className="wr-habit-summary-title">Last week's habits:</span>
+                    <span className="wr-habit-summary-title">Habits ({weekRangeLabel}):</span>
                     {habitSummary.map((h) => (
                       <span
                         key={h.id}
                         className="wr-habit-chip"
                         style={{ borderLeftColor: h.color }}
-                        title={`${h.name}: ${h.count} check-in(s) this week`}
+                        title={`${h.name}: ${h.isCount ? formatCount(h.total) : formatTimeSpent(h.total)} for week of ${weekRangeLabel} (${h.checkIns} check-in${h.checkIns === 1 ? '' : 's'})`}
                       >
-                        {h.name}: {h.count}
+                        {h.name}: {h.isCount ? formatCount(h.total) : formatTimeSpent(h.total)}
                       </span>
                     ))}
                   </div>
