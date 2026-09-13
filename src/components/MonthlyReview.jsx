@@ -45,6 +45,20 @@ function groupChecklistBySection(checklist) {
   return sections;
 }
 
+// Photo gallery limits. Photos are kept as base64 data URLs, so a single
+// paste can otherwise blow up the review payload; 8 MB per photo keeps
+// screenshots and phone photos usable while rejecting absurd pastes.
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+function readImageAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to read the pasted image'));
+    reader.readAsDataURL(file);
+  });
+}
+
 function CollapsibleSection({ title, items, readOnly, onToggle }) {
   const [open, setOpen] = useState(true);
   const completed = items.filter(i => i.completed).length;
@@ -129,6 +143,10 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
   const [addMonth, setAddMonth] = useState(nextMonthDate.getMonth() + 1);
   const [addBusy, setAddBusy] = useState(false);
   const [addError, setAddError] = useState(null);
+  // Photo gallery: lightboxSrc holds the photo shown full-screen (null when
+  // closed); photoError surfaces paste feedback such as an oversized image.
+  const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [photoError, setPhotoError] = useState(null);
 
   const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
@@ -171,6 +189,18 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
           const fromList = reviews.find(r => r.monthKey === selectedMonthKey);
           if (fromList) {
             setReview(fromList);
+            // The history list payload strips the photo gallery (see the
+            // server's withoutImages), so pull the detail for it. Notes and
+            // checklist render straight away from the list row.
+            try {
+              const detail = await monthlyReviewService.getByMonth(selectedMonthKey);
+              const detailImages = detail && Array.isArray(detail.images) ? detail.images : [];
+              if (!cancelled && detailImages.length > 0) {
+                setReview((prev) => (prev ? { ...prev, images: detailImages } : detail));
+              }
+            } catch (err) {
+              console.error('Failed to load review photos:', err);
+            }
           } else {
             const data = await monthlyReviewService.getByMonth(selectedMonthKey);
             if (!cancelled) setReview(data);
@@ -187,6 +217,21 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
 
   const isCurrent = selectedMonthKey === today;
   const isReadOnly = !isCurrent;
+
+  const photos = useMemo(
+    () => (review && Array.isArray(review.images) ? review.images : []),
+    [review]
+  );
+
+  // Close the photo lightbox on Escape.
+  useEffect(() => {
+    if (!lightboxSrc) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setLightboxSrc(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [lightboxSrc]);
 
   const handleToggleItem = useCallback(async (item) => {
     if (isReadOnly || !review || !review.id) return;
@@ -271,6 +316,65 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
       setBusy(false);
     }
   }, [review, isReadOnly, onDataChange]);
+
+  const handleSavePhotos = useCallback(async (nextPhotos) => {
+    if (isReadOnly || !review || !review.id) return;
+    setBusy(true);
+    const previous = review;
+    try {
+      // Optimistic update — the thumbnail shows up while the PATCH is in flight.
+      setReview((prev) => (prev ? { ...prev, images: nextPhotos } : prev));
+      const updated = await monthlyReviewService.updateImages(review.id, nextPhotos);
+      setReview(updated);
+      onDataChange && onDataChange();
+    } catch (err) {
+      console.error('Photo update failed:', err);
+      setReview(previous); // revert
+    } finally {
+      setBusy(false);
+    }
+  }, [review, isReadOnly, onDataChange]);
+
+  const handlePhotoPaste = useCallback((e) => {
+    if (isReadOnly || !review || !review.id) return;
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    const imageFiles = [];
+    for (const item of items) {
+      if (item && typeof item.type === 'string' && item.type.startsWith('image/')) {
+        const file = item.getAsFile ? item.getAsFile() : null;
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length === 0) return;
+    // We are handling this paste — stop the browser from also acting on it.
+    e.preventDefault();
+    const accepted = [];
+    let rejected = 0;
+    for (const file of imageFiles) {
+      if (file.size > MAX_PHOTO_BYTES) rejected += 1;
+      else accepted.push(file);
+    }
+    setPhotoError(rejected > 0
+      ? `Photo is too large (max 8 MB per photo). ${rejected} photo${rejected === 1 ? '' : 's'} skipped.`
+      : null);
+    if (accepted.length === 0) return;
+    (async () => {
+      const dataUrls = [];
+      for (const file of accepted) {
+        try {
+          dataUrls.push(await readImageAsDataUrl(file));
+        } catch (err) {
+          console.error('Failed to read pasted photo:', err);
+        }
+      }
+      if (dataUrls.length > 0) await handleSavePhotos([...photos, ...dataUrls]);
+    })();
+  }, [isReadOnly, review, photos, handleSavePhotos]);
+
+  const handleRemovePhoto = useCallback((index) => {
+    handleSavePhotos(photos.filter((_, i) => i !== index));
+  }, [photos, handleSavePhotos]);
 
   const handleAddMonth = useCallback(async (e) => {
     e.preventDefault();
@@ -602,6 +706,74 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
                 )}
               </section>
 
+              <section className="mfr-photos">
+                <h3>Photos</h3>
+                {isReadOnly ? (
+                  photos.length > 0 ? (
+                    <div className="mfr-photos-grid">
+                      {photos.map((src, idx) => (
+                        <div className="mfr-photo-preview" key={`${idx}-${src.slice(0, 24)}`}>
+                          <img
+                            className="mfr-photo-thumb"
+                            src={src}
+                            alt={`Review photo ${idx + 1}`}
+                            title="Click to view full size"
+                            onClick={() => setLightboxSrc(src)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mfr-empty">No photos for this month.</p>
+                  )
+                ) : (
+                  <>
+                    <div
+                      className="mfr-photos-paste"
+                      tabIndex={0}
+                      onPaste={handlePhotoPaste}
+                      aria-label="Paste a photo (Ctrl+V)"
+                      title="Paste a photo (Ctrl+V)"
+                    >
+                      <span className="mfr-photos-paste-title">Paste a photo (Ctrl+V)</span>
+                      <span className="mfr-photos-paste-hint">
+                        Click this box, then press Ctrl+V to paste a screenshot or a photo of a statement.
+                      </span>
+                    </div>
+                    {photoError && (
+                      <div className="mfr-photos-error" role="alert">{photoError}</div>
+                    )}
+                    {photos.length > 0 ? (
+                      <div className="mfr-photos-grid">
+                        {photos.map((src, idx) => (
+                          <div className="mfr-photo-preview" key={`${idx}-${src.slice(0, 24)}`}>
+                            <img
+                              className="mfr-photo-thumb"
+                              src={src}
+                              alt={`Review photo ${idx + 1}`}
+                              title="Click to view full size"
+                              onClick={() => setLightboxSrc(src)}
+                            />
+                            <button
+                              type="button"
+                              className="mfr-photo-remove"
+                              onClick={() => handleRemovePhoto(idx)}
+                              disabled={busy}
+                              aria-label={`Remove photo ${idx + 1}`}
+                              title="Remove photo"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mfr-empty">No photos yet — paste a screenshot to keep it with this review.</p>
+                    )}
+                  </>
+                )}
+              </section>
+
               <section className="mfr-reference">
                 <h3>Reference</h3>
                 <div className="mfr-reference-intro">
@@ -647,6 +819,27 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
                   </div>
                 ))}
               </section>
+
+              {lightboxSrc && (
+                <div
+                  className="mfr-lightbox"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Photo preview"
+                  onClick={() => setLightboxSrc(null)}
+                >
+                  <img className="mfr-lightbox-img" src={lightboxSrc} alt="Review photo preview" />
+                  <button
+                    type="button"
+                    className="mfr-lightbox-close"
+                    onClick={() => setLightboxSrc(null)}
+                    aria-label="Close photo preview"
+                    title="Close"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </>
           )}
         </main>

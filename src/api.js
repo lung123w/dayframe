@@ -162,6 +162,10 @@ export const monthlyReviewService = {
     method: 'PATCH',
     body: JSON.stringify({ notes }),
   }),
+  updateImages: (id, images) => request(`/api/monthly-reviews/${id}/images`, {
+    method: 'PATCH',
+    body: JSON.stringify({ images }),
+  }),
   syncCards: (id) => request(`/api/monthly-reviews/${id}/sync-cards`, { method: 'POST' }),
   complete: (id) => request(`/api/monthly-reviews/${id}/complete`, { method: 'POST' }),
   reopen: (id) => request(`/api/monthly-reviews/${id}/reopen`, { method: 'POST' }),
