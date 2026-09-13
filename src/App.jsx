@@ -5,7 +5,6 @@ import ProjectsView from './components/ProjectsView';
 import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
 import TodayView from './components/TodayView';
-import DailyPlanningModal from './components/DailyPlanningModal';
 import WeeklyReview from './components/WeeklyReview';
 import Sidebar from './components/Sidebar';
 import MonthlyReview from './components/MonthlyReview';
@@ -13,7 +12,7 @@ import { taskService, projectService, subtaskService, habitService, habitEntrySe
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
 import { syncSortOrderFromTodayOrder } from './utils/syncTodayOrder';
 import { ensureMonthlyReviewReminder } from './utils/monthlyReviewReminder';
-import { FaPlus, FaFolder, FaCalendarCheck } from 'react-icons/fa';
+import { FaPlus, FaFolder } from 'react-icons/fa';
 
 import './App.css';
 
@@ -37,7 +36,6 @@ function App() {
   const [financialCards, setFinancialCards] = useState([]);
   const [monthlyReviews, setMonthlyReviews] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [showPlanningModal, setShowPlanningModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('planner');
@@ -212,13 +210,6 @@ function App() {
     }
   };
 
-  // ── Daily planning modal ──
-  const handlePlanningConfirm = async (newOrder) => {
-    await handleTodayOrderChange(newOrder);
-    setShowPlanningModal(false);
-    setActiveView('today');
-  };
-
   // Assign a due date to an outstanding (unscheduled) task
   const handleAssignDate = async (task, date) => {
     try {
@@ -335,14 +326,6 @@ function App() {
       />
 
       <main className="app-main">
-        {/* Plan My Day — always visible */}
-        <button
-          className="plan-my-day-btn"
-          onClick={() => setShowPlanningModal(true)}
-          title="Plan My Day"
-        >
-          <FaCalendarCheck /> Plan My Day
-        </button>
 
         {activeView === 'today' && (
           <TodayView
@@ -458,16 +441,6 @@ function App() {
             setSelectedTask(null);
             setSelectedDate(null);
           }}
-        />
-      )}
-
-      {showPlanningModal && (
-        <DailyPlanningModal
-          tasks={tasks}
-          projects={projects}
-          todayOrder={todayOrder}
-          onConfirm={handlePlanningConfirm}
-          onClose={() => setShowPlanningModal(false)}
         />
       )}
 
