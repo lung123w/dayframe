@@ -333,28 +333,3 @@ body {
     min-width: 64px;
   }
 }
-
-/* ── Plan My Day button ── */
-.plan-my-day-btn {
-  position: absolute;
-  top: 16px;
-  right: 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #6366F1;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  z-index: 100;
-  transition: background 0.15s;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
-}
-
-.plan-my-day-btn:hover {
-  background: #4F46E5;
-}

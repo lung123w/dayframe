@@ -37,11 +37,6 @@ A personal productivity app with a daily planner, habit tracker, timeline view, 
 - Archive habits to preserve history without cluttering the active list
 - Soft-delete with 5-second undo toast
 
-### Plan My Day
-- Modal that groups all pending tasks into Overdue / Due Today / Upcoming (next 7 days)
-- Select which tasks to focus on; confirms a prioritized order for the Today view
-- Pre-selects tasks from the previous session's plan
-
 ### Daily Workflow
 - Define a reusable checklist of daily steps
 - Track completion per day; resets each morning
