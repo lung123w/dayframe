@@ -8,6 +8,7 @@ const {
   mockToggleChecklistItem,
   mockUpdateCardEntry,
   mockUpdateNotes,
+  mockUpdateImages,
   mockComplete,
   mockReopen,
 } = vi.hoisted(() => ({
@@ -17,6 +18,7 @@ const {
   mockToggleChecklistItem: vi.fn(),
   mockUpdateCardEntry: vi.fn(),
   mockUpdateNotes: vi.fn(),
+  mockUpdateImages: vi.fn(),
   mockComplete: vi.fn(),
   mockReopen: vi.fn(),
 }));
@@ -29,6 +31,7 @@ vi.mock('../api', () => ({
     toggleChecklistItem: mockToggleChecklistItem,
     updateCardEntry: mockUpdateCardEntry,
     updateNotes: mockUpdateNotes,
+    updateImages: mockUpdateImages,
     complete: mockComplete,
     reopen: mockReopen,
   },
@@ -74,6 +77,18 @@ function buildReview(overrides = {}) {
   };
 }
 
+function makeImageFile(name = 'receipt.png', type = 'image/png') {
+  return new File(['fake-image-bytes'], name, { type });
+}
+
+function makePasteEvent(files) {
+  return {
+    clipboardData: {
+      items: files.map((file) => ({ type: file.type, getAsFile: () => file })),
+    },
+  };
+}
+
 describe('MonthlyReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -89,6 +104,7 @@ describe('MonthlyReview', () => {
     });
     mockUpdateCardEntry.mockImplementation(async () => buildReview());
     mockUpdateNotes.mockImplementation(async (id, notes) => buildReview({ notes }));
+    mockUpdateImages.mockImplementation(async (id, images) => buildReview({ images }));
     mockCreateForMonth.mockImplementation(async (monthKey) => buildReview({ monthKey }));
     mockComplete.mockImplementation(async () => buildReview({ status: 'completed', completedAt: new Date().toISOString() }));
     mockReopen.mockImplementation(async () => buildReview({ status: 'in_progress', completedAt: null }));
@@ -443,5 +459,73 @@ describe('MonthlyReview', () => {
     expect(yearSelect.value).toBe(String(expectedNext.getFullYear()));
     expect(monthSelect.value).toBe(String(expectedNext.getMonth() + 1));
   });
+  // --- Photos (finance-review-photo-paste) ---
+
+  it('adds a pasted image to the gallery and persists it via updateImages', async () => {
+    render(<MonthlyReview reviews={[]} financialCards={DEFAULT_FINANCIAL_CARDS} onDataChange={vi.fn()} />);
+    const zone = await screen.findByLabelText('Paste a photo (Ctrl+V)');
+    fireEvent.paste(zone, makePasteEvent([makeImageFile('receipt.png')]));
+    await waitFor(() => {
+      expect(mockUpdateImages).toHaveBeenCalledTimes(1);
+    });
+    expect(mockUpdateImages.mock.calls[0][0]).toBe(1);
+    const sentImages = mockUpdateImages.mock.calls[0][1];
+    expect(sentImages).toHaveLength(1);
+    expect(sentImages[0]).toMatch(/^data:image\/png;base64,/);
+    expect(await screen.findByAltText('Review photo 1')).toBeInTheDocument();
+  });
+
+  it('removes a stored photo and persists the remaining array', async () => {
+    mockGetCurrent.mockResolvedValue(buildReview({ images: ['data:image/png;base64,AAA'] }));
+    render(<MonthlyReview reviews={[]} financialCards={DEFAULT_FINANCIAL_CARDS} onDataChange={vi.fn()} />);
+    const thumb = await screen.findByAltText('Review photo 1');
+    expect(thumb).toHaveAttribute('src', 'data:image/png;base64,AAA');
+    fireEvent.click(screen.getByLabelText('Remove photo 1'));
+    await waitFor(() => {
+      expect(mockUpdateImages).toHaveBeenCalledWith(1, []);
+    });
+  });
+
+  it('rejects an oversized pasted image with a visible message and adds no thumbnail', async () => {
+    render(<MonthlyReview reviews={[]} financialCards={DEFAULT_FINANCIAL_CARDS} onDataChange={vi.fn()} />);
+    const zone = await screen.findByLabelText('Paste a photo (Ctrl+V)');
+    const huge = makeImageFile('huge.png');
+    Object.defineProperty(huge, 'size', { value: 9 * 1024 * 1024 });
+    fireEvent.paste(zone, makePasteEvent([huge]));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/too large/i);
+    expect(mockUpdateImages).not.toHaveBeenCalled();
+    expect(screen.queryByAltText('Review photo 1')).not.toBeInTheDocument();
+  });
+
+  it('renders past-month photos read-only with a working lightbox and no editing controls', async () => {
+    mockGetByMonth.mockResolvedValue(buildReview({
+      monthKey: '2020-01',
+      status: 'completed',
+      completedAt: '2020-01-25T10:00:00Z',
+      images: ['data:image/png;base64,BBB'],
+    }));
+    const pastReview = buildReview({ monthKey: '2020-01', status: 'completed', completedAt: '2020-01-25T10:00:00Z' });
+    render(<MonthlyReview reviews={[pastReview]} financialCards={DEFAULT_FINANCIAL_CARDS} onDataChange={vi.fn()} />);
+    fireEvent.click(await screen.findByText('January 2020'));
+    const thumb = await screen.findByAltText('Review photo 1');
+    expect(thumb).toHaveAttribute('src', 'data:image/png;base64,BBB');
+    expect(screen.queryByLabelText('Paste a photo (Ctrl+V)')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Remove photo 1')).not.toBeInTheDocument();
+    fireEvent.click(thumb);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows the photo empty state for a read-only month without photos', async () => {
+    const pastReview = buildReview({ monthKey: '2020-01', status: 'completed', completedAt: '2020-01-25T10:00:00Z' });
+    render(<MonthlyReview reviews={[pastReview]} financialCards={DEFAULT_FINANCIAL_CARDS} onDataChange={vi.fn()} />);
+    fireEvent.click(await screen.findByText('January 2020'));
+    expect(await screen.findByText('No photos for this month.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Paste a photo (Ctrl+V)')).not.toBeInTheDocument();
+  });
+
 });
 

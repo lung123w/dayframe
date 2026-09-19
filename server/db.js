@@ -175,6 +175,7 @@ db.exec(`
     checklist TEXT NOT NULL DEFAULT '[]',
     cardEntries TEXT NOT NULL DEFAULT '[]',
     notes TEXT NOT NULL DEFAULT '',
+    images TEXT NOT NULL DEFAULT '[]',
     completedAt TEXT,
     createdAt TEXT NOT NULL DEFAULT (datetime('now')),
     updatedAt TEXT NOT NULL DEFAULT (datetime('now')),
@@ -242,6 +243,12 @@ try {
 try {
   db.exec(`ALTER TABLE yearly_goals ADD COLUMN images TEXT NOT NULL DEFAULT '[]'`);
 } catch (e) {
+  // Column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE monthly_reviews ADD COLUMN images TEXT NOT NULL DEFAULT '[]'`);
+} catch {
   // Column already exists
 }
 

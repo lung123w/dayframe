@@ -5,12 +5,31 @@ import { buildReviewFromTemplate } from '../../src/utils/checklistTemplate.js';
 
 const router = Router();
 
+function parseImages(raw) {
+  try {
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 function deserialize(row) {
   return {
     ...row,
     checklist: JSON.parse(row.checklist),
     cardEntries: JSON.parse(row.cardEntries),
+    images: parseImages(row.images),
   };
+}
+
+// The list endpoint feeds the history sidebar, so it drops the (potentially
+// huge) base64 photo gallery — one review full of screenshots must not bloat
+// every history payload. Detail endpoints (/current, /by-month) keep it.
+function withoutImages(review) {
+  const copy = { ...review };
+  delete copy.images;
+  return copy;
 }
 
 function defaultReview(monthKey, reviewDate) {
@@ -23,6 +42,7 @@ function defaultReview(monthKey, reviewDate) {
     checklist: [],
     cardEntries: [],
     notes: '',
+    images: [],
     completedAt: null,
   };
 }
@@ -79,7 +99,7 @@ function persistReview(review) {
 // GET / — list all ordered by monthKey desc
 router.get('/', (req, res) => {
   const rows = db.prepare('SELECT * FROM monthly_reviews ORDER BY monthKey DESC').all();
-  res.json(rows.map(deserialize));
+  res.json(rows.map((row) => withoutImages(deserialize(row))));
 });
 
 // GET /current — get-or-create the review for the current month
@@ -242,6 +262,28 @@ router.patch('/:id/notes', (req, res) => {
   db.prepare(
     'UPDATE monthly_reviews SET notes = ?, status = ?, updatedAt = datetime(\'now\') WHERE id = ?'
   ).run(notes, status, row.id);
+  res.json(deserialize(db.prepare('SELECT * FROM monthly_reviews WHERE id = ?').get(row.id)));
+});
+
+// PATCH /:id/images — replace the review's photo gallery (array of data URLs).
+// Photos are stored as-is (base64 data URLs) so a paste from the clipboard can
+// be persisted without a separate upload step.
+router.patch('/:id/images', (req, res) => {
+  const row = db.prepare('SELECT * FROM monthly_reviews WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Review not found' });
+  if (!Array.isArray(req.body.images)) {
+    return res.status(400).json({ error: 'images must be an array' });
+  }
+  if (!req.body.images.every((img) => typeof img === 'string')) {
+    return res.status(400).json({ error: 'images must be an array of data URLs' });
+  }
+  // Same status bump as PATCH /:id/notes: the first real content moves a
+  // pending review into in_progress. An empty array never re-opens a review.
+  let status = row.status;
+  if (status === 'pending' && req.body.images.length > 0) status = 'in_progress';
+  db.prepare(
+    'UPDATE monthly_reviews SET images = ?, status = ?, updatedAt = datetime(\'now\') WHERE id = ?'
+  ).run(JSON.stringify(req.body.images), status, row.id);
   res.json(deserialize(db.prepare('SELECT * FROM monthly_reviews WHERE id = ?').get(row.id)));
 });
 

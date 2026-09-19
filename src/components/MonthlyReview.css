@@ -492,3 +492,130 @@
   .mfr-layout { flex-direction: column; }
   .mfr-side { width: 100%; }
 }
+
+.mfr-photos h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.mfr-photos-paste {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 1.25rem 1rem;
+  border: 2px dashed var(--border-color, #d1d5db);
+  border-radius: 8px;
+  background: var(--surface-color, #f9fafb);
+  color: var(--text-muted, #6b7280);
+  text-align: center;
+  cursor: pointer;
+}
+.mfr-photos-paste:hover {
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+.mfr-photos-paste:focus {
+  outline: 2px solid #4f46e5;
+  outline-offset: 1px;
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+.mfr-photos-paste-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.mfr-photos-paste-hint {
+  font-size: 0.75rem;
+}
+
+.mfr-photos-error {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #b91c1c;
+}
+
+.mfr-photos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.mfr-photo-preview {
+  position: relative;
+}
+
+.mfr-photo-thumb {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  cursor: zoom-in;
+  display: block;
+}
+.mfr-photo-thumb:hover {
+  border-color: #4f46e5;
+}
+
+.mfr-photo-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(17, 24, 39, 0.75);
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.mfr-photo-remove:hover { background: #b91c1c; }
+.mfr-photo-remove:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mfr-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.75);
+  cursor: zoom-out;
+}
+
+.mfr-lightbox-img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.mfr-lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.mfr-lightbox-close:hover { background: rgba(255, 255, 255, 0.3); }
