@@ -305,7 +305,6 @@ export default function WeeklyReview({
 
   const weekStart = format(weekStartDate, 'yyyy-MM-dd');
   const weekEnd = endOfWeek(weekStartDate, { weekStartsOn: 1 });
-  const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
   const weekRangeLabel = `${format(weekStartDate, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -316,6 +315,16 @@ export default function WeeklyReview({
       isToday: isSameDay(startOfDay(day), startOfDay(new Date())),
     };
   });
+
+  // Review week = the selected (plan) week minus one week.  The habit
+  // summary answers the reflection about the week that just ended, while
+  // the doc, goals, sync and key events stay keyed to the selected week.
+  // See openspec/changes/weekly-review-habit-week/design.md §2.
+  const reviewWeekStart = subWeeks(weekStartDate, 1);
+  const reviewWeekEnd = subWeeks(weekEnd, 1);
+  const reviewWeekStartStr = format(reviewWeekStart, 'yyyy-MM-dd');
+  const reviewWeekEndStr = format(reviewWeekEnd, 'yyyy-MM-dd');
+  const reviewWeekRangeLabel = `${format(reviewWeekStart, 'MMM d')} – ${format(reviewWeekEnd, 'MMM d, yyyy')}`;
 
   // Group key events for the selected week
   const eventsByDate = {};
@@ -333,7 +342,7 @@ export default function WeeklyReview({
       const [doc, habitsData, entriesData] = await Promise.all([
         weeklyReviewService.getByWeek(weekStart),
         habitService.getAll(),
-        habitEntryService.getAll({ from: weekStart, to: weekEndStr }),
+        habitEntryService.getAll({ from: reviewWeekStartStr, to: reviewWeekEndStr }),
       ]);
       // Seed cleanup template for a new week with no saved tasks
       if (!doc.cleanupTasks || doc.cleanupTasks.length === 0) {
@@ -347,7 +356,7 @@ export default function WeeklyReview({
     } finally {
       setLoading(false);
     }
-  }, [weekStart, weekEndStr]);
+  }, [weekStart, reviewWeekStartStr, reviewWeekEndStr]);
 
   useEffect(() => {
     loadWeek();
@@ -704,13 +713,13 @@ export default function WeeklyReview({
                 <label className="wr-reflection-label">{q.label}</label>
                 {q.id === 'habits' && habitSummary.length > 0 && (
                   <div className="wr-habit-summary">
-                    <span className="wr-habit-summary-title">Habits ({weekRangeLabel}):</span>
+                    <span className="wr-habit-summary-title">上週習慣 (Review week: {reviewWeekRangeLabel}):</span>
                     {habitSummary.map((h) => (
                       <span
                         key={h.id}
                         className="wr-habit-chip"
                         style={{ borderLeftColor: h.color }}
-                        title={`${h.name}: ${h.isCount ? formatCount(h.total) : formatTimeSpent(h.total)} for week of ${weekRangeLabel} (${h.checkIns} check-in${h.checkIns === 1 ? '' : 's'})`}
+                        title={`${h.name}: ${h.isCount ? formatCount(h.total) : formatTimeSpent(h.total)} for review week of ${reviewWeekRangeLabel} (${h.checkIns} check-in${h.checkIns === 1 ? '' : 's'})`}
                       >
                         {h.name}: {h.isCount ? formatCount(h.total) : formatTimeSpent(h.total)}
                       </span>
