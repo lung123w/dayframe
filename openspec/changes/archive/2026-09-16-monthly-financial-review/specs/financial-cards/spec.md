@@ -41,8 +41,6 @@ The system MUST expose a "Manage Cards" view (reachable from the Finance view) w
 - **WHEN** the user moves a card up or down in the manage view
 - **THEN** the affected cards' `displayOrder` values are updated and the card table re-renders in the new order
 
-## MODIFIED Requirements
-
 ### Requirement: Account numbers are visible by default with a per-card hide toggle
 
 For privacy-on-demand, the system MUST display `accountNumber` values in **full** in the review view's card table by default, and MUST provide a per-card toggle (eye / eye-slash button) that the user can click to mask or unmask that card's number. The masked form MUST show only the last 4 digits (e.g. `****2973`). The full value MUST be editable in the manage-cards edit form and persisted to the database unencrypted. The toggle state is per-session, per-card, and is not persisted across page reloads.
