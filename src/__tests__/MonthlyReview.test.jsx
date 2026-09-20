@@ -40,7 +40,7 @@ vi.mock('../api', () => ({
 import MonthlyReview from '../components/MonthlyReview';
 
 const DEFAULT_FINANCIAL_CARDS = [
-  { id: 1, name: 'Hang Seng CC', institution: 'Hang Seng Bank', cardType: 'credit', accountNumber: '4548 8920 2973 7963', displayOrder: 0, active: 1 },
+  { id: 1, name: 'Hang Seng CC', institution: 'Hang Seng Bank', cardType: 'credit', accountNumber: '1234 5678 9012 3456', displayOrder: 0, active: 1 },
 ];
 
 function buildReview(overrides = {}) {
@@ -61,7 +61,7 @@ function buildReview(overrides = {}) {
         cardId: 1,
         cardName: 'Hang Seng CC',
         cardInstitution: 'Hang Seng Bank',
-        accountNumber: '4548 8920 2973 7963',
+        accountNumber: '1234 5678 9012 3456',
         statementSaved: false,
         amount: '',
         dueDate: '',
@@ -163,9 +163,9 @@ describe('MonthlyReview', () => {
   it('shows the full account number in the card table by default', async () => {
     render(<MonthlyReview reviews={[]} financialCards={DEFAULT_FINANCIAL_CARDS} onDataChange={vi.fn()} />);
     await screen.findByText('Hang Seng CC');
-    expect(screen.getByText('4548 8920 2973 7963')).toBeInTheDocument();
+    expect(screen.getByText('1234 5678 9012 3456')).toBeInTheDocument();
     // The masked form should NOT be present initially
-    expect(screen.queryByText('****7963')).not.toBeInTheDocument();
+    expect(screen.queryByText('****3456')).not.toBeInTheDocument();
   });
 
   it('masks the account number when the user clicks the hide toggle', async () => {
@@ -174,9 +174,9 @@ describe('MonthlyReview', () => {
     const hideBtn = screen.getByLabelText('Hide account number');
     fireEvent.click(hideBtn);
     await waitFor(() => {
-      expect(screen.getByText('****7963')).toBeInTheDocument();
+      expect(screen.getByText('****3456')).toBeInTheDocument();
     });
-    expect(screen.queryByText('4548 8920 2973 7963')).not.toBeInTheDocument();
+    expect(screen.queryByText('1234 5678 9012 3456')).not.toBeInTheDocument();
   });
 
   it('unmasks the account number when the user clicks the show toggle after hiding', async () => {
@@ -185,14 +185,14 @@ describe('MonthlyReview', () => {
     // First hide
     fireEvent.click(screen.getByLabelText('Hide account number'));
     await waitFor(() => {
-      expect(screen.getByText('****7963')).toBeInTheDocument();
+      expect(screen.getByText('****3456')).toBeInTheDocument();
     });
     // Then show again
     fireEvent.click(screen.getByLabelText('Show account number'));
     await waitFor(() => {
-      expect(screen.getByText('4548 8920 2973 7963')).toBeInTheDocument();
+      expect(screen.getByText('1234 5678 9012 3456')).toBeInTheDocument();
     });
-    expect(screen.queryByText('****7963')).not.toBeInTheDocument();
+    expect(screen.queryByText('****3456')).not.toBeInTheDocument();
   });
 
   it('hides cards independently ??masking one card does not affect others', async () => {

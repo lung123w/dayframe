@@ -68,7 +68,7 @@ Migrated in: `images` (`server/db.js:243-247`) · `vision` free text (`:255-260`
 
 ### financial_cards
 `id` PK · `name` · `institution` · `cardType` (default `credit`) · `accountNumber` · `displayOrder` · `active` 0/1 · `createdAt` · `updatedAt`
-> **Seeded from source.** The first `GET /api/financial-cards` on an empty table inserts 9 hardcoded cards — including real account numbers — from `SEED_CARDS` in `server/routes/financialCards.js:6-34`. Deactivate is a soft delete (`active = 0`); there is no DELETE route.
+> **Seeded from a gitignored file — never from tracked source.** The first `GET /api/financial-cards` on an empty table seeds from the optional `data/seed-cards.json` (a JSON array of `{name, institution, cardType, accountNumber}`), read at request time by `readSeedCards()` (`server/routes/financialCards.js:15-30`). **If the file is absent, unreadable or not a JSON array, nothing is seeded** and the GET still returns `200` with `[]`; there is no fallback list in source (POL-006 — the GitHub repo is public). Once the table holds at least one row the file is never read again, so this is a **no-op for the live DB**, which is already seeded. Deactivate is a soft delete (`active = 0`); there is no DELETE route.
 
 ### monthly_reviews
 `id` PK · `monthKey` (`YYYY-MM`) · `year` · `month` · `reviewDate` · `status` (`pending|in_progress|completed`) · `checklist` JSON `'[]'` · `cardEntries` JSON `'[]'` (per-card payment entries) · `notes` · `images` JSON `'[]'` (base64 photos, Phase 1 paste UI) · `completedAt` · `createdAt` · `updatedAt` · **`UNIQUE(monthKey)`**

@@ -32,6 +32,9 @@ data/*.db
 *.export.json
 *.export.csv
 
+# Optional financial-card seed list (real account numbers — must stay local)
+data/seed-cards.json
+
 # Backup files in backups/ are intentionally tracked in git.
 # Use the Backup button in the app to export a JSON, then move it here and commit.
 !backups/*.json

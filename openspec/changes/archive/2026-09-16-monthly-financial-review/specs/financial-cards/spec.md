@@ -43,11 +43,11 @@ The system MUST expose a "Manage Cards" view (reachable from the Finance view) w
 
 ### Requirement: Account numbers are visible by default with a per-card hide toggle
 
-For privacy-on-demand, the system MUST display `accountNumber` values in **full** in the review view's card table by default, and MUST provide a per-card toggle (eye / eye-slash button) that the user can click to mask or unmask that card's number. The masked form MUST show only the last 4 digits (e.g. `****2973`). The full value MUST be editable in the manage-cards edit form and persisted to the database unencrypted. The toggle state is per-session, per-card, and is not persisted across page reloads.
+For privacy-on-demand, the system MUST display `accountNumber` values in **full** in the review view's card table by default, and MUST provide a per-card toggle (eye / eye-slash button) that the user can click to mask or unmask that card's number. The masked form MUST show only the last 4 digits (e.g. `****3456`). The full value MUST be editable in the manage-cards edit form and persisted to the database unencrypted. The toggle state is per-session, per-card, and is not persisted across page reloads.
 
 #### Scenario: Card table shows full account number by default
-- **WHEN** the review's card table renders for a card with account number `4548 8920 2973 7963`
-- **THEN** the account-number column displays the full `4548 8920 2973 7963` next to a "hide" toggle
+- **WHEN** the review's card table renders for a card with account number `1234 5678 9012 3456`
+- **THEN** the account-number column displays the full `1234 5678 9012 3456` next to a "hide" toggle
 
 #### Scenario: User clicks the toggle to mask one card
 - **WHEN** the user clicks the "hide" toggle on a card row that is currently showing the full number

@@ -41,7 +41,7 @@ function buildCard(overrides = {}) {
     name: 'Hang Seng CC',
     institution: 'Hang Seng Bank',
     cardType: 'credit',
-    accountNumber: '4548 8920 2973 7963',
+    accountNumber: '1234 5678 9012 3456',
     displayOrder: 0,
     active: 1,
     ...overrides,
@@ -69,29 +69,29 @@ describe('FinancialCards', () => {
 
   it('shows a list of active cards with masked account numbers', async () => {
     const cards = [
-      buildCard({ id: 1, name: 'Hang Seng CC', accountNumber: '4548 8920 2973 7963', displayOrder: 0 }),
-      buildCard({ id: 2, name: 'HSBC RED', accountNumber: '5289 4600 0709 2734', displayOrder: 1 }),
+      buildCard({ id: 1, name: 'Hang Seng CC', accountNumber: '1234 5678 9012 3456', displayOrder: 0 }),
+      buildCard({ id: 2, name: 'HSBC RED', accountNumber: '9876 5432 1098 7654', displayOrder: 1 }),
     ];
     render(<FinancialCards financialCards={cards} onDataChange={vi.fn()} />);
     expect(screen.getByText('Hang Seng CC')).toBeInTheDocument();
     expect(screen.getByText('HSBC RED')).toBeInTheDocument();
-    expect(screen.getByText('****7963')).toBeInTheDocument();
-    expect(screen.getByText('****2734')).toBeInTheDocument();
+    expect(screen.getByText('****3456')).toBeInTheDocument();
+    expect(screen.getByText('****7654')).toBeInTheDocument();
   });
 
   it('hides the full account number in the list', async () => {
-    const cards = [buildCard({ accountNumber: '4548 8920 2973 7963' })];
+    const cards = [buildCard({ accountNumber: '1234 5678 9012 3456' })];
     render(<FinancialCards financialCards={cards} onDataChange={vi.fn()} />);
-    expect(screen.queryByText('4548 8920 2973 7963')).not.toBeInTheDocument();
+    expect(screen.queryByText('1234 5678 9012 3456')).not.toBeInTheDocument();
   });
 
   it('shows the full account number in the edit form', async () => {
-    const cards = [buildCard({ accountNumber: '4548 8920 2973 7963' })];
+    const cards = [buildCard({ accountNumber: '1234 5678 9012 3456' })];
     render(<FinancialCards financialCards={cards} onDataChange={vi.fn()} />);
     const editButton = screen.getByTitle('Edit');
     fireEvent.click(editButton);
     await waitFor(() => {
-      const input = screen.getByDisplayValue('4548 8920 2973 7963');
+      const input = screen.getByDisplayValue('1234 5678 9012 3456');
       expect(input).toBeInTheDocument();
     });
   });
