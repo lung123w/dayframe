@@ -13,7 +13,7 @@
 - [x] 2.4 Reproduce the defect and the repair at the API level against a **copy** of `data/app.db` (never the live file): `GET /api/habits` before (id 9 = string, id 9 = object after), a `PUT` that omits `frequency` rewrote the cell single-encoded (`{`, `json_extract` type=`weekly`/tpw=`1`), `POST` with a string `frequency` stored `{"type":"weekly","timesPerWeek":2}`; a malformed cell answered 500 on `e6c1a91` and 200 + `{type:'daily'}` after
 - [x] 2.5 `npm run test:run` · `npm run lint` · `npm run build` — base `e6c1a91`: 27 files / 326 tests / 325 pass / 1 pre-existing failure (MiniWeekBar), 22 lint errors, build exit 0. Change: 28 files / 352 tests / 351 pass / **same single** failure, 22 lint errors, build exit 0
 - [x] 2.6 Rule B: `.dev_context/DATA_MODEL.md` §1 + §5, `.dev_context/ROUTE_MAP.md` `/api/habits` row, `.dev_context/DECISION_LOG.md` (ADR-012 + §D open item + `Last updated`)
-- [ ] 2.7 Conventional commit(s) on `fix/habit-frequency-normalization`, push, open the PR (base `master`, stacked on #15/#16)
+- [x] 2.7 Conventional commit(s) on `fix/habit-frequency-normalization`, push, open the PR (base `master`, stacked on #15/#16) — PR #18 (`23c4914`, base `master` @ `526f3b3`, `mergeable_state: clean`)
 
 ## 3. Verification (df-tester)
 
