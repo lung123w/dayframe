@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db.js';
+import { normalizeFrequency } from '../habitFrequency.js';
 
 const router = Router();
 
@@ -16,7 +17,8 @@ function parseHabit(row) {
   return {
     ...row,
     isArchived: !!row.isArchived,
-    frequency: JSON.parse(row.frequency || '{"type":"daily"}'),
+    // The column can hold a JSON string (or a nested one) — never hand the client a string.
+    frequency: normalizeFrequency(row.frequency),
   };
 }
 
@@ -47,7 +49,7 @@ router.post('/', (req, res) => {
     b.name || '',
     b.description || '',
     b.color || '#10B981',
-    JSON.stringify(b.frequency || { type: 'daily' }),
+    JSON.stringify(normalizeFrequency(b.frequency)),
     normalizeTrackType(b.trackType),
     b.isArchived ? 1 : 0,
     b.sortOrder ?? 0,
@@ -72,7 +74,9 @@ router.put('/:id', (req, res) => {
     merged.name,
     merged.description,
     merged.color,
-    JSON.stringify(merged.frequency),
+    // Self-healing: whatever the column held (even a doubly-encoded string) is rewritten
+    // single-encoded, so a habit saved from the UI repairs its own row.
+    JSON.stringify(normalizeFrequency(merged.frequency)),
     // merged.trackType already carries the stored value when the body omits it
     normalizeTrackType(merged.trackType),
     merged.isArchived ? 1 : 0,
