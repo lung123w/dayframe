@@ -286,4 +286,18 @@ try {
   // Column already exists
 }
 
+// Habit count tracking (DECISION_LOG ADR-011) — habits declare their unit,
+// entries carry the rep count. Add-only; existing rows keep the defaults.
+try {
+  db.exec(`ALTER TABLE habits ADD COLUMN trackType TEXT NOT NULL DEFAULT 'duration'`);
+} catch {
+  // Column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE habit_entries ADD COLUMN count INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // Column already exists
+}
+
 export default db;
