@@ -7,12 +7,12 @@
 
 ## 2. Implementation (df-fullstack)
 
-- [ ] 2.1 Add `server/habitFrequency.js` exporting `normalizeFrequency(value)` per design.md D2 (no imports; total; idempotent; preserves unknown keys)
-- [ ] 2.2 `server/routes/habits.js`: `parseHabit` uses `normalizeFrequency(row.frequency)`; `POST` stores `JSON.stringify(normalizeFrequency(b.frequency))`; `PUT` stores `JSON.stringify(normalizeFrequency(merged.frequency))`
-- [ ] 2.3 Add `src/__tests__/habitFrequency.test.js` (explicit `import { describe, it, expect } from 'vitest'`) covering the whole D2 table, idempotency, and no-throw on garbage input
-- [ ] 2.4 Reproduce the defect and the repair at the API level against a **copy** of `data/app.db` (never the live file): `GET /api/habits` before/after, a `PUT` that omits `frequency` rewrites the row single-encoded, `POST` with a string `frequency` stores an object
-- [ ] 2.5 `npm run test:run` · `npm run lint` · `npx vite build` — compare against base `e6c1a91` and say which failures are pre-existing
-- [ ] 2.6 Rule B: `.dev_context/DATA_MODEL.md` §1 + §5, `.dev_context/ROUTE_MAP.md` `/api/habits` row, `.dev_context/DECISION_LOG.md` (new ADR + open item + `Last updated`)
+- [x] 2.1 Add `server/habitFrequency.js` exporting `normalizeFrequency(value)` per design.md D2 (no imports; total; idempotent; preserves unknown keys)
+- [x] 2.2 `server/routes/habits.js`: `parseHabit` uses `normalizeFrequency(row.frequency)` (`:21`); `POST` stores `JSON.stringify(normalizeFrequency(b.frequency))` (`:52`); `PUT` stores `JSON.stringify(normalizeFrequency(merged.frequency))` (`:79`)
+- [x] 2.3 Add `src/__tests__/habitFrequency.test.js` (explicit `import { describe, it, expect } from 'vitest'`) covering the whole D2 table, idempotency, and no-throw on garbage input — 26 tests, all green
+- [x] 2.4 Reproduce the defect and the repair at the API level against a **copy** of `data/app.db` (never the live file): `GET /api/habits` before (id 9 = string, id 9 = object after), a `PUT` that omits `frequency` rewrote the cell single-encoded (`{`, `json_extract` type=`weekly`/tpw=`1`), `POST` with a string `frequency` stored `{"type":"weekly","timesPerWeek":2}`; a malformed cell answered 500 on `e6c1a91` and 200 + `{type:'daily'}` after
+- [x] 2.5 `npm run test:run` · `npm run lint` · `npm run build` — base `e6c1a91`: 27 files / 326 tests / 325 pass / 1 pre-existing failure (MiniWeekBar), 22 lint errors, build exit 0. Change: 28 files / 352 tests / 351 pass / **same single** failure, 22 lint errors, build exit 0
+- [x] 2.6 Rule B: `.dev_context/DATA_MODEL.md` §1 + §5, `.dev_context/ROUTE_MAP.md` `/api/habits` row, `.dev_context/DECISION_LOG.md` (ADR-012 + §D open item + `Last updated`)
 - [ ] 2.7 Conventional commit(s) on `fix/habit-frequency-normalization`, push, open the PR (base `master`, stacked on #15/#16)
 
 ## 3. Verification (df-tester)
