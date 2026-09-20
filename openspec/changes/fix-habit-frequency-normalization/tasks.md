@@ -1,9 +1,9 @@
 ## 1. Spec (df-analyst)
 
-- [ ] 1.1 Rule A: read `.dev_context/DATA_MODEL.md` §1 (`habits`) and §5 (live-DB drift) before touching the delta
-- [ ] 1.2 Harden `specs/habit-frequency-normalization/spec.md` — verify every row of the frozen contract table in `design.md` (D2) has a requirement or scenario; add the missing edge cases (triple-encoded string, `null`, array, `weekdays` with `days:[1,'2',9,1]`, `timesPerWeek: 0`, unknown `type`, malformed JSON)
-- [ ] 1.3 Confirm the requirement bodies satisfy `openspec validate` (SHALL/MUST on the first line of each requirement) and that `openspec validate fix-habit-frequency-normalization` passes
-- [ ] 1.4 Comment on the card: any place where the frozen contract (design.md D1–D7) is wrong or under-specified — do not silently change a decision
+- [x] 1.1 Rule A: read `.dev_context/DATA_MODEL.md` §1 (`habits`) and §5 (live-DB drift) before touching the delta
+- [x] 1.2 Harden `specs/habit-frequency-normalization/spec.md` — every row of the frozen contract table in `design.md` (D2) now maps to a requirement or scenario; edge cases added: triple- and 4+-layer encodings, malformed JSON, empty-string cell, `'null'`/`'[]'`/`'3'`/`'true'` cells, `{}` / `{type:''}` / `{type:null}` / `{type:'monthly'}` / `{type:'Weekly'}`, `timesPerWeek` = `0` / `-1` / `"0"` / `"3"` / `2.5` / `12` / `true` / `[3]` / `{}`, `days` = `[1,'2',9,1]` / `[0,8]` / `[7,1,3]` / `[]` / missing / non-array / non-integer entries, unknown-key preservation, per-type key ownership, POST/PUT response shape, single-row write isolation, and the no-boot-migration guard (7 requirements, 33 scenarios)
+- [x] 1.3 Confirm the requirement bodies satisfy `openspec validate` (SHALL/MUST on the first line of each requirement) and that `openspec validate fix-habit-frequency-normalization` passes — `Change 'fix-habit-frequency-normalization' is valid` (7 requirements / 33 scenarios, `--strict`)
+- [x] 1.4 Comment on the card: any place where the frozen contract (design.md D1–D7) is wrong or under-specified — do not silently change a decision — see the `df-analyst` comment on `t_afb383af` (line-number drift in `proposal.md` / `design.md`, the 3-parse unwrap budget, per-type key ownership, `timesPerWeek` numeric-string/non-scalar rule, `2.5` preserved unrounded, empty-label caveat for `days:[]`)
 
 ## 2. Implementation (df-fullstack)
 
