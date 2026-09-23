@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DayFrame — UI/UX Modernization Pitch (3 concepts)</title>
+<style>
+  /* ── The deck wears the recommended direction's own clothes (Concept A tokens) ── */
+  :root {
+    --bg-page:#FAFAF9; --bg-surface:#FFFFFF; --bg-surface-2:#F7F6F3;
+    --border-subtle:rgba(15,23,42,0.08); --border-default:rgba(15,23,42,0.12);
+    --text-heading:#0F172A; --text-body:#1E293B; --text-muted:#64748B; --text-subtle:#94A3B8;
+    --accent:#635BFF; --accent-hover:#5248E5; --accent-soft:rgba(99,91,255,0.08);
+    --success:#10B981; --warning:#F59E0B; --error:#DF1B41; --focus-ring:rgba(99,91,255,0.35);
+    --ink-900:#0B0E14; --ink-800:#12161F; --ink-700:#1A1F2B; --ink-border:rgba(255,255,255,0.10);
+    --radius-btn:6px; --radius-card:10px;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    margin:0; background:var(--bg-page); color:var(--text-body); font-family:var(--sans);
+    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:1080px; margin:0 auto; padding:0 28px 96px; }
+  a { color:var(--accent); text-decoration:none; font-weight:500; }
+  a:hover { color:var(--accent-hover); text-decoration:underline; }
+  h1,h2,h3,h4 { color:var(--text-heading); margin:0; letter-spacing:-0.01em; }
+  h1 { font-size:40px; font-weight:300; line-height:1.1; letter-spacing:-0.02em; }
+  h2 { font-size:26px; font-weight:600; margin:0 0 6px; }
+  h3 { font-size:19px; font-weight:600; margin:26px 0 8px; }
+  h4 { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin:20px 0 8px; }
+  p { margin:0 0 12px; }
+  small, .small { font-size:12.5px; color:var(--text-muted); line-height:1.5; display:block; }
+  code, .mono { font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; }
+  code { background:var(--bg-surface-2); border:1px solid var(--border-subtle); border-radius:4px; padding:1px 5px; color:#334155; }
+  hr { border:0; border-top:1px solid var(--border-subtle); margin:40px 0; }
+
+  /* cover */
+  .cover { padding:64px 0 28px; border-bottom:1px solid var(--border-subtle); }
+  .eyebrow { font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
+  .cover .lede { font-size:18px; max-width:760px; color:var(--text-body); margin-top:14px; }
+  .meta-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-top:32px; }
+  .meta-grid div span { display:block; font-size:12px; color:var(--text-subtle); text-transform:uppercase; letter-spacing:0.07em; font-weight:600; margin-bottom:4px; }
+  .meta-grid div strong { font-weight:600; color:var(--text-heading); font-size:14px; }
+
+  /* toc */
+  nav.toc { display:flex; flex-wrap:wrap; gap:8px 20px; padding:18px 0 4px; }
+  nav.toc a { font-size:13.5px; font-weight:500; color:var(--text-muted); }
+  nav.toc a:hover { color:var(--accent); }
+
+  section { padding:44px 0 8px; border-top:1px solid var(--border-subtle); }
+  section:first-of-type { border-top:0; }
+  .sec-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .sec-head .num { font-family:var(--mono); font-size:12px; color:var(--text-subtle); }
+
+  /* cards + stats */
+  .card { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-card); padding:20px 22px; }
+  .card + .card { margin-top:14px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .stats { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:18px 0 22px; }
+  .stat { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-card); padding:14px 16px; }
+  .stat b { display:block; font-size:24px; font-weight:600; color:var(--text-heading); font-variant-numeric:tabular-nums; }
+  .stat span { font-size:12px; color:var(--text-muted); }
+  .sev { display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600; border-radius:4px; padding:1px 6px; }
+  .sev-h { background:rgba(223,27,65,0.10); color:#B01636; }
+  .sev-m { background:rgba(245,158,11,0.14); color:#96610A; }
+  .sev-l { background:rgba(100,116,139,0.12); color:#475569; }
+
+  table { width:100%; border-collapse:collapse; font-size:13.5px; margin:12px 0 6px; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  th { font-size:11.5px; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); font-weight:600; border-bottom:1px solid var(--border-default); }
+  tbody tr:hover { background:var(--bg-surface-2); }
+  .num-col { text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+  /* concept shell */
+  .concept-key { font-family:var(--mono); font-size:12px; color:var(--text-subtle); }
+  .concept-title { font-size:30px; font-weight:600; letter-spacing:-0.02em; }
+  .tagline { font-size:15px; color:var(--text-muted); max-width:820px; margin-top:6px; }
+  .pill-row { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px; }
+  .pill { font-size:12px; color:var(--text-body); background:var(--bg-surface-2); border:1px solid var(--border-subtle); border-radius:999px; padding:3px 11px; }
+
+  /* mockups (CSS-drawn wireframes) */
+  figure.mock { margin:20px 0 6px; }
+  .mock-frame { border:1px solid var(--border-default); border-radius:var(--radius-card); overflow:hidden; background:var(--bg-surface); }
+  .mock-bar { display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--border-subtle); background:var(--bg-surface-2); }
+  .dot { width:8px; height:8px; border-radius:50%; background:#D6D3CD; display:inline-block; }
+  .mock-body { display:flex; min-height:280px; }
+  figcaption { font-size:12.5px; color:var(--text-muted); margin-top:8px; }
+
+  /* mock A */
+  .mockA { flex:1; display:flex; flex-direction:column; }
+  .mockA .topstrip { display:flex; align-items:center; gap:14px; padding:12px 18px; border-bottom:1px solid var(--border-subtle); }
+  .mockA .brand { font-weight:600; color:var(--text-heading); font-size:14px; }
+  .mockA .dest { font-size:12.5px; color:var(--text-muted); }
+  .mockA .dest.on { color:var(--accent); font-weight:600; }
+  .mockA .cols { display:flex; gap:22px; padding:18px; flex:1; }
+  .mockA .maincol { flex:1; }
+  .mockA .capture { display:flex; align-items:center; gap:8px; border:1px solid var(--border-subtle); border-radius:var(--radius-btn); padding:8px 10px; color:var(--text-subtle); font-size:12.5px; margin-bottom:14px; }
+  .rowline { display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid var(--border-subtle); font-size:13px; }
+  .rowline .c { width:14px; height:14px; border-radius:50%; border:1.5px solid var(--text-subtle); }
+  .rowline .c.done { background:var(--success); border-color:var(--success); }
+  .rowline .t { flex:1; color:var(--text-body); }
+  .rowline .m { font-size:11.5px; color:var(--text-subtle); font-family:var(--mono); }
+  .railA { width:210px; border-left:1px solid var(--border-subtle); padding-left:16px; }
+  .railA .rl { display:flex; align-items:center; gap:8px; font-size:12.5px; padding:6px 0; color:var(--text-body); }
+  .railA .rl .c { width:12px; height:12px; border-radius:50%; border:1.5px solid var(--text-subtle); }
+  .railA .rl.done .c { background:var(--accent); border-color:var(--accent); }
+  .hourstrip { width:34px; border-right:1px solid var(--border-subtle); padding:2px 6px 2px 0; text-align:right; }
+  .hourstrip span { display:block; font-size:9.5px; color:var(--text-subtle); font-family:var(--mono); height:22px; }
+
+  /* mock B */
+  .mockB { flex:1; background:var(--ink-900); display:flex; }
+  .mockB .rail { width:44px; border-right:1px solid var(--ink-border); padding:10px 0; display:flex; flex-direction:column; gap:12px; align-items:center; }
+  .mockB .rail i { width:16px; height:16px; border-radius:4px; background:rgba(255,255,255,0.18); display:block; }
+  .mockB .tray { width:150px; border-right:1px solid var(--ink-border); padding:12px 10px; }
+  .mockB .tray .chip { background:var(--ink-700); border:1px solid var(--ink-border); color:#C6CDDA; font-size:10.5px; border-radius:5px; padding:5px 7px; margin-bottom:6px; }
+  .mockB .grid { flex:1; display:flex; padding:8px 10px 0; }
+  .mockB .day { flex:1; border-left:1px solid var(--ink-border); padding:0 4px; position:relative; }
+  .mockB .day .hd { font-size:9.5px; color:#8892A4; font-family:var(--mono); text-align:center; padding-bottom:6px; }
+  .mockB .blk { border-radius:6px; font-size:9.5px; color:#E7EAF0; padding:3px 5px; margin-top:6px; }
+  .mockB .blk.b1 { background:rgba(59,74,107,0.85); border-left:3px solid #7C9CFF; }
+  .mockB .blk.b2 { background:rgba(47,93,90,0.85); border-left:3px solid #5FD3C4; }
+  .mockB .blk.b3 { background:rgba(74,58,92,0.85); border-left:3px solid #B79CF0; }
+  .mockB .nowline { position:absolute; left:0; right:0; top:120px; height:2px; background:#7C9CFF; }
+  .mockB .lens { border-top:1px solid var(--ink-border); background:var(--ink-800); color:#C6CDDA; font-size:10.5px; padding:9px 12px; display:flex; justify-content:space-between; }
+
+  /* mock C */
+  .mockC { flex:1; display:flex; }
+  .mockC .rail { width:38px; border-right:1px solid var(--border-subtle); background:var(--bg-surface-2); }
+  .mockC .pane { flex:1; padding:14px 16px; }
+  .mockC .now { display:flex; justify-content:space-between; font-size:12px; border:1px solid var(--border-subtle); border-radius:var(--radius-btn); padding:7px 10px; margin-bottom:12px; color:var(--text-muted); }
+  .mockC .lrow { display:flex; align-items:center; gap:10px; padding:7px 6px; font-size:13px; border-bottom:1px solid var(--border-subtle); }
+  .mockC .lrow.sel { background:var(--accent-soft); border-left:3px solid var(--accent); }
+  .mockC .lrow .k { font-family:var(--mono); font-size:11px; color:var(--text-subtle); width:26px; }
+  .mockC .lrow .t { flex:1; }
+  .mockC .lrow .n { font-family:var(--mono); font-size:11.5px; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+  .mockC .cmdbar { border-top:1px solid var(--border-default); background:var(--bg-surface-2); font-family:var(--mono); font-size:11.5px; color:var(--text-muted); padding:10px 14px; }
+  .mockC .cmdbar b { color:var(--text-heading); font-weight:600; }
+
+  /* swatches */
+  .swatches { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin:6px 0 10px; }
+  .sw { border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden; background:var(--bg-surface); }
+  .sw .chip { height:44px; border-bottom:1px solid var(--border-subtle); }
+  .sw .lbl { padding:6px 8px; font-family:var(--mono); font-size:10.5px; color:var(--text-muted); }
+  .sw .lbl b { display:block; font-family:var(--sans); font-size:11px; color:var(--text-body); font-weight:600; margin-bottom:2px; }
+
+  .cols-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:10px; }
+  ul { margin:6px 0 12px; padding-left:18px; }
+  li { margin-bottom:5px; }
+  .callout { border:1px solid var(--border-subtle); border-radius:var(--radius-card); background:var(--accent-soft); padding:16px 18px; margin:16px 0; }
+  .callout p:last-child { margin-bottom:0; }
+  .verdict { border:1px solid var(--accent); border-radius:var(--radius-card); padding:18px 20px; background:var(--bg-surface); }
+  .verdict .pick { font-size:22px; font-weight:600; color:var(--text-heading); letter-spacing:-0.01em; }
+  .kbd { font-family:var(--mono); font-size:11.5px; border:1px solid var(--border-default); border-bottom-width:2px; border-radius:4px; padding:1px 5px; background:var(--bg-surface-2); }
+  footer { margin-top:40px; padding-top:20px; border-top:1px solid var(--border-subtle); font-size:12px; color:var(--text-subtle); }
+  @media print {
+    body { background:#fff; font-size:11pt; }
+    section { break-inside:avoid; }
+    nav.toc { display:none; }
+  }
+  @media (max-width:820px) {
+    .stats, .meta-grid, .grid-2, .grid-3, .cols-3 { grid-template-columns:1fr; }
+    .swatches { grid-template-columns:repeat(3,1fr); }
+    h1 { font-size:30px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══════════ COVER ═══════════ -->
+  <header class="cover">
+    <div class="eyebrow">Design pitch · 2026-09-23</div>
+    <h1>DayFrame UI/UX modernization — three directions, one recommendation</h1>
+    <p class="lede">DayFrame's interface works, but it reads like a 2020 dashboard: a dark rail, 71 hex values, 13 type sizes, 1,828 lines of CSS belonging to screens nobody can reach, and a keyboard scorecard of 1 out of 5. This deck carries a code-grounded audit, three genuinely different directions, and the design stack I recommend adopting for each stage.</p>
+
+    <div class="meta-grid">
+      <div><span>Audit basis</span><strong>42 flaws, all <code>file:line</code>-cited</strong></div>
+      <div><span>Directions</span><strong>A Calm Canvas · B Timeline Studio · C Command Deck</strong></div>
+      <div><span>Recommended</span><strong>Concept A, with C's keyboard layer</strong></div>
+      <div><span>Production code touched</span><strong>None — pitch only</strong></div>
+    </div>
+
+    <nav class="toc">
+      <a href="#audit">1 · Audit summary</a>
+      <a href="#concept-a">2 · Concept A — Calm Canvas</a>
+      <a href="#concept-b">3 · Concept B — Timeline Studio</a>
+      <a href="#concept-c">4 · Concept C — Command Deck</a>
+      <a href="#stack">5 · Recommended design stack</a>
+      <a href="#compare">6 · Comparison</a>
+      <a href="#recommendation">7 · Recommendation &amp; phasing</a>
+    </nav>
+  </header>
+
+  <!-- ═══════════ 1 · AUDIT ═══════════ -->
+  <section id="audit">
+    <div class="sec-head"><span class="num">01</span><h2>Audit summary</h2></div>
+    <p class="small">Source: <code>docs/design/2026-09-ui-ux-audit.md</code> (branch <code>docs/ui-modernization-pitch</code>, commit <code>c80e8b8</code>), read against <code>origin/master</code> <code>526f3b3</code>. Every claim below carries the audit's own <code>path:line</code>. No rendered screen was inspected — the audit is a source read, and it says so.</p>
+
+    <div class="stats">
+      <div class="stat"><b>42</b><span>flaws found (H/M/L)</span></div>
+      <div class="stat"><b>71</b><span>unique hex values, no token layer</span></div>
+      <div class="stat"><b>194</b><span>font-size declarations in the 9–12px band</span></div>
+      <div class="stat"><b>1,828</b><span>CSS lines in 4 unreachable components</span></div>
+      <div class="stat"><b>12<span style="font-size:14px;color:#94A3B8">/30</span></b><span>UX pillar score</span></div>
+    </div>
+
+    <h3>The eight findings that set the agenda</h3>
+    <table>
+      <thead><tr><th style="width:52px">ID</th><th>Finding</th><th style="width:230px">Evidence</th><th style="width:52px">Sev</th></tr></thead>
+      <tbody>
+        <tr><td>F16</td><td><strong>Mobile is a closed door.</strong> Below 768px the rail is <code>display:none</code> and it is the only navigation — the app has no router.</td><td><code>src/components/Sidebar.css:94-98</code>, <code>src/App.jsx:41</code></td><td><span class="sev sev-h">H</span></td></tr>
+        <tr><td>F10</td><td><strong>Real actions hide until hover.</strong> 12 rules gate controls behind <code>opacity:0</code> — on Today that hides reorder-up, reorder-down, edit and defer.</td><td><code>src/components/TodayView.css:374,454,477</code> · <code>TodayView.jsx:224-277</code></td><td><span class="sev sev-h">H</span></td></tr>
+        <tr><td>F03</td><td><strong>No colour tokens.</strong> <code>#E2E8F0</code> appears 115 times, <code>#1E293B</code> 98, <code>#94A3B8</code> 94; a palette change is a 71-site edit.</td><td>28 stylesheets</td><td><span class="sev sev-h">H</span></td></tr>
+        <tr><td>F22</td><td><strong>Habits are never one click.</strong> Mark Done → popover → type a number → Save. Eight habits ≈ 30 interactions a night.</td><td><code>PlannerHabitsPanel.jsx:116-138</code> · <code>TimePopover.jsx:42-56</code></td><td><span class="sev sev-h">H</span></td></tr>
+        <tr><td>F25</td><td><strong>A network write per keystroke.</strong> Every <code>onChange</code> in the weekly review and finance review PUTs/PATCHes; no debounce, no queue, last-write-wins.</td><td><code>WeeklyReview.jsx:617,673,732</code> · <code>MonthlyReview.jsx:622,668</code></td><td><span class="sev sev-h">H</span></td></tr>
+        <tr><td>F08</td><td><strong>Invisible focus.</strong> 0 <code>:focus-visible</code>, 21 <code>outline:none</code>, 30 <code>:focus</code> rules against 173 <code>:hover</code>.</td><td><code>TaskModal.css:102,692,740</code> · <code>TodayView.css:436</code></td><td><span class="sev sev-h">H</span></td></tr>
+        <tr><td>F35</td><td><strong>One screen, two weeks.</strong> The review's header names the plan week while the habit chips show the reviewed week, separated by an 11px parenthetical.</td><td><code>WeeklyReview.jsx:583</code> vs <code>:716</code></td><td><span class="sev sev-h">H</span></td></tr>
+        <tr><td>F11</td><td><strong>A quarter of the CSS paints nothing.</strong> Four components are imported by nobody; one still ships 71 <code>!important</code> lines.</td><td><code>Calendar.css</code> (916) · <code>DayPanel.css</code> (486) · <code>OutstandingTasks.css</code> (353) · <code>DailyShutdown.css</code> (73)</td><td><span class="sev sev-m">M</span></td></tr>
+      </tbody>
+    </table>
+    <p class="small">Full inventory: 42 rows, F01–F42, in the audit document. Severity key — H: costs data, time or trust today · M: ongoing friction · L: cosmetic.</p>
+
+    <h3>UX pillars — 12 / 30</h3>
+    <table>
+      <thead><tr><th>Pillar</th><th class="num-col" style="width:70px">Score</th><th>What the audit measured</th><th style="width:250px">Lever that moves it most</th></tr></thead>
+      <tbody>
+        <tr><td>Flow state</td><td class="num-col">2 / 5</td><td>Default view is the planner, not Today; the loop spans two views with four competing orderings.</td><td>One cold open that owns capture, ordering, completion.</td></tr>
+        <tr><td>Cognitive load</td><td class="num-col">2 / 5</td><td>71 hexes, 13 type sizes, 12 radii, 51 transition values; an 11-field modal for every task.</td><td>One accent, one ladder, a form that shows five fields.</td></tr>
+        <tr><td>Sub-second quick entry</td><td class="num-col">3 / 5</td><td>Capture really is one step once focused — but it lives inside one section of one view, with no hotkey.</td><td>Capture line on every view with a focus key.</td></tr>
+        <tr><td>Visual time clarity</td><td class="num-col">2 / 5</td><td>One 15-hour axis, 220px wide, unclamped, inside a container that already assumes a 900px viewport; the week grid has no axis at all.</td><td>One time model, one axis, report what falls outside it.</td></tr>
+        <tr><td>Keyboard affordance</td><td class="num-col">1 / 5</td><td>Exactly one <code>tabIndex</code> in the whole app; every scheduling action is drag-only.</td><td>Visible focus plus a small documented shortcut set.</td></tr>
+        <tr><td>Information hierarchy</td><td class="num-col">2 / 5</td><td>Two competing totals ("Done 370" vs "3 of 8 done"); 12px uppercase section headers competing with 14px titles.</td><td>Three real sizes, one page title per view.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <p><strong>The two cheapest pillars to move are keyboard affordance and information hierarchy.</strong> Both are stylesheet-and-token work with zero data-model risk, and both drag the other four up with them. That single observation drives the recommendation in §7.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Friction in the daily loop (audit §4)</h4>
+        <ul>
+          <li><strong>Capture:</strong> 3 pointer actions from cold open (rail → input → Enter); reachable only from Today, and the planner's own inbox cannot create anything.</li>
+          <li><strong>Schedule:</strong> every path is HTML5 drag only — no button, no keyboard, no accessible name.</li>
+          <li><strong>Execute:</strong> complete is 1 click (mouse only); habit logging is 3–4 interactions.</li>
+          <li><strong>Review:</strong> the review opens on the week containing yesterday, names a different week in its header, and has no close-out step — the designed daily shutdown surface exists but is imported by nothing.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>What the audit could <em>not</em> verify</h4>
+        <ul>
+          <li>No rendered screen was inspected — visual claims are read from source, not observed.</li>
+          <li>No contrast ratio was measured; the light-only concern (F15) is a statement about surfaces and use-time, not a WCAG result.</li>
+          <li>No usage data exists and none was invented; the click counts are read from handlers.</li>
+          <li>The live database was not queried; DB claims rest on <code>.dev_context/DATA_MODEL.md</code>.</li>
+          <li>Cost estimates are scope judgements, not schedules.</li>
+          <li>The repo's <code>CLAUDE.md</code> is stale enough to be misleading and was excluded as evidence; <code>ROUTE_MAP.md:51</code> and <code>master</code> disagree about the finance-card seed source.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 2 · CONCEPT A ═══════════ -->
+  <section id="concept-a">
+    <div class="sec-head"><span class="num">02</span><span class="concept-key">Concept A</span></div>
+    <h2 class="concept-title">Calm Canvas</h2>
+    <p class="tagline">A day, not a document. Generous whitespace, hairlines instead of boxes, one recessive accent reserved for state, and a single capture line that is always there. The cheapest and lowest-risk of the three — and the one that departs least from your own Notion + Stripe reference.</p>
+    <div class="pill-row">
+      <span class="pill">Surface type: Decide / Monitor hybrid — a calm day list</span>
+      <span class="pill">Cold open: Today (0 clicks)</span>
+      <span class="pill">Accent: one, state-only</span>
+      <span class="pill">Cost: S–M · 6–9 sessions · incremental</span>
+    </div>
+
+    <figure class="mock" id="mock-a">
+      <div class="mock-frame">
+        <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="small" style="margin:0 0 0 8px">DayFrame — Today</span></div>
+        <div class="mock-body">
+          <div class="mockA">
+            <div class="topstrip">
+              <span class="brand">DayFrame</span>
+              <span class="dest on">Today</span><span class="dest">Week</span><span class="dest">Habits</span><span class="dest">Review</span><span class="dest">More ▾</span>
+            </div>
+            <div class="cols">
+              <div class="hourstrip"><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span></div>
+              <div class="maincol">
+                <div class="capture">＋ Add a task…  <span class="mono">/</span></div>
+                <div class="rowline"><span class="c done"></span><span class="t">Weekly review — habits summary</span><span class="m">09:30</span></div>
+                <div class="rowline"><span class="c"></span><span class="t">Close out finance cards for Sep</span><span class="m">40m</span></div>
+                <div class="rowline"><span class="c"></span><span class="t">Parent-teacher call</span><span class="m">15:00</span></div>
+                <div class="rowline"><span class="c"></span><span class="t">Draft renovation snag list</span><span class="m">Move · Defer</span></div>
+                <div class="rowline" style="border-bottom:0"><span class="c"></span><span class="t">Log daily shutdown note</span><span class="m">Move · Defer</span></div>
+              </div>
+              <div class="railA">
+                <h4 style="margin-top:0">Habits · 3 of 8</h4>
+                <div class="rl done"><span class="c"></span>Guitar 25m</div>
+                <div class="rl done"><span class="c"></span>Meditation 10m</div>
+                <div class="rl done"><span class="c"></span>Read 30m</div>
+                <div class="rl"><span class="c"></span>Pull-ups</div>
+                <div class="rl"><span class="c"></span>Push-ups</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Wireframe, not a screenshot: 52px top strip replaces the 220px dark rail; the day is hairline-separated lines with two persistent row actions revealed in focus (not hover-only); habits collapse to a right rail that logs in one click.</figcaption>
+    </figure>
+
+    <h3>Layout idea</h3>
+    <p>No permanent dark rail. A 52px top strip carries the app name, the day's date as the page title, and four text destinations plus a "More" overflow (Finance, Projects, Backup, Notifications). Below it one centred column — the day in reading order — separated by hairlines, no card backgrounds, no shadows. Each line: completion circle, title at body size, right-aligned metadata in one muted size. Hover <em>or focus</em> reveals exactly two text actions (move, defer). A ~260px habit rail collapses to "6 of 8 done" until clicked. The timeline becomes a thin vertical hours strip reading alongside the list, and the week a horizontal band of seven hairline-divided columns.</p>
+
+    <h3>Navigation flow (cold open → "what do I do now")</h3>
+    <ul>
+      <li><strong>Add a task</strong> — the capture line is the first element, always present: <span class="kbd">/</span> to focus, type, <span class="kbd">Enter</span>. New tasks inherit the last-used project.</li>
+      <li><strong>Move a task onto today</strong> — in <em>Week</em> the backlog is a left band; each row carries an inline "Today" text action. One click. Drag still works.</li>
+      <li><strong>Log a habit</strong> — one click on the habit row's completion control logs "done" with zero minutes; duration is an optional refinement.</li>
+      <li><strong>Get to today's plan</strong> — it is the cold open: <strong>0 clicks</strong>.</li>
+    </ul>
+
+    <h3>Key highlights</h3>
+    <div class="grid-2">
+      <div>
+        <ul>
+          <li>Today becomes the cold open (<code>App.jsx:41</code>); the planner becomes a reference surface, not a second planner.</li>
+          <li>Task rows replace task cards: hairlines, no border-left colour stripe, no card fill.</li>
+          <li>Hover/focus reveals become two persistent-in-focus text actions, so reorder and defer survive touch and keyboard (F10).</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li>Habit rail logs in one click (F22); the shared manual-minutes input disappears (F23).</li>
+          <li>A three-size type ladder replaces 13 px values and 194 declarations in the 9–12px band (F05).</li>
+          <li>Saves become visible and debounced, one "Saved / Could not save" line (F25, F26); the dead day-select buttons start selecting days (F20).</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Visual system (lead's call)</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#FAFAF9"></div><div class="lbl"><b>Page</b>#FAFAF9</div></div>
+      <div class="sw"><div class="chip" style="background:#FFFFFF"></div><div class="lbl"><b>Surface</b>#FFFFFF</div></div>
+      <div class="sw"><div class="chip" style="background:#F7F6F3"></div><div class="lbl"><b>Surface 2</b>#F7F6F3</div></div>
+      <div class="sw"><div class="chip" style="background:#0F172A"></div><div class="lbl"><b>Heading</b>#0F172A</div></div>
+      <div class="sw"><div class="chip" style="background:#1E293B"></div><div class="lbl"><b>Body</b>#1E293B</div></div>
+      <div class="sw"><div class="chip" style="background:#64748B"></div><div class="lbl"><b>Muted</b>#64748B</div></div>
+      <div class="sw"><div class="chip" style="background:#635BFF"></div><div class="lbl"><b>Accent</b>#635BFF</div></div>
+      <div class="sw"><div class="chip" style="background:#5248E5"></div><div class="lbl"><b>Accent hi</b>#5248E5</div></div>
+      <div class="sw"><div class="chip" style="background:#10B981"></div><div class="lbl"><b>Success</b>#10B981</div></div>
+      <div class="sw"><div class="chip" style="background:#F59E0B"></div><div class="lbl"><b>Warning</b>#F59E0B</div></div>
+      <div class="sw"><div class="chip" style="background:#DF1B41"></div><div class="lbl"><b>Error</b>#DF1B41</div></div>
+      <div class="sw"><div class="chip" style="background:#E7E5DF"></div><div class="lbl"><b>Hairline</b>#E7E5DF</div></div>
+    </div>
+
+    <div class="cols-3">
+      <div>
+        <h4>Type scale</h4>
+        <table>
+          <thead><tr><th>Role</th><th class="num-col">px / wt</th></tr></thead>
+          <tbody>
+            <tr><td>Display (date)</td><td class="num-col">40 / 300</td></tr>
+            <tr><td>Page title</td><td class="num-col">22 / 600</td></tr>
+            <tr><td>Section</td><td class="num-col">17 / 600</td></tr>
+            <tr><td>Body-large</td><td class="num-col">16 / 400</td></tr>
+            <tr><td>Body</td><td class="num-col">15 / 400</td></tr>
+            <tr><td>Row title</td><td class="num-col">14 / 500</td></tr>
+            <tr><td>Meta</td><td class="num-col">12 / 400</td></tr>
+            <tr><td>Label (caps)</td><td class="num-col">11 / 600</td></tr>
+          </tbody>
+        </table>
+        <p class="small">Floor: nothing renders below 11px, and only labels may go there. Numbers use tabular figures.</p>
+      </div>
+      <div>
+        <h4>Space &amp; shape</h4>
+        <ul>
+          <li>Space: 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64</li>
+          <li>Section padding 24–48px; component gap 8–16px</li>
+          <li>Radius: 6px controls, 8–10px cards, 999px badges (sparingly)</li>
+          <li>Borders: 1px <code>#E7E5DF</code> — no 1.5px, no card shadows</li>
+          <li>Shadow: only the two genuine overlays (modal, popover)</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Light / dark strategy</h4>
+        <ul>
+          <li><strong>Light-first, light-only at launch.</strong> The dark rail is removed; the app opens on paper, not slate.</li>
+          <li>Dark mode is <em>designed for</em>, not built: every value above is a token, so mode switching is a token swap, not a redesign.</li>
+          <li>Two-mode tokens are written in one file from session 1 so the option stays cheap.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Feature implications</h3>
+    <table>
+      <thead><tr><th style="width:150px">Surface</th><th>What changes</th></tr></thead>
+      <tbody>
+        <tr><td>Today</td><td>Rebuilt around list + habit rail; becomes the cold open and the only capture surface.</td></tr>
+        <tr><td>Planner → "Week"</td><td>Keeps 7 columns, loses per-day card chrome, gains real day selection and an empty state that reads as intentional quiet.</td></tr>
+        <tr><td>Habits</td><td>Keeps heat map and streaks; loses the shared minutes input; one-click logging.</td></tr>
+        <tr><td>Weekly review</td><td>Same three sections; header names <em>both</em> weeks (planning week / reviewed week); debounced, confirmed saves.</td></tr>
+        <tr><td>Monthly finance</td><td>Substance unchanged (already the most table-native screen); gains the shared ladder, hairlines, visible save state.</td></tr>
+        <tr><td>Projects / Calendar</td><td>Projects repainted onto the single palette; no live calendar surface exists, so none is added.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid-2">
+      <div class="card"><h4>Build cost &amp; scope</h4><p><strong>S–M · 6–9 sessions · incremental, not a rewrite.</strong> No API, DB, <code>src/api.js</code>, <code>src/utils/*</code> or server change. A token layer, a shell change, then one session per reading-heavy surface (Today → week → habits → review/finance → modal &amp; popovers → delete the dead CSS). Roughly 1,828 dead CSS lines go before the work starts.</p></div>
+      <div class="card"><h4>What must not regress</h4><p><code>todayOrder</code> and its <code>sortOrder</code> sync (ADR-006); Monday-start weeks and the reviewed-week rule (ADR-005); recurring-task overrides (ADR-007); <code>descriptionImages</code> and the finance photo gallery (ADR-003); the WORK-toggle review area; the live <code>data/app.db</code>. The pure-text cleanup template and the goals → objectives bridge must survive being moved.</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 3 · CONCEPT B ═══════════ -->
+  <section id="concept-b">
+    <div class="sec-head"><span class="num">03</span><span class="concept-key">Concept B</span></div>
+    <h2 class="concept-title">Timeline Studio</h2>
+    <p class="tagline">Time becomes the primary axis. Drag a chip into an hour and it is scheduled and timed in one gesture; a persistent day lens answers "what now" without navigation. The most ambitious of the three and the biggest departure from your reference brief.</p>
+    <div class="pill-row">
+      <span class="pill">Surface type: Operate — a time canvas</span>
+      <span class="pill">Cold open: this week, auto-scrolled to today</span>
+      <span class="pill">Accent: one saturated now-line</span>
+      <span class="pill">Cost: L · 14–20 sessions · a third of the front end is rebuilt</span>
+    </div>
+
+    <figure class="mock" id="mock-b">
+      <div class="mock-frame">
+        <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="small" style="margin:0 0 0 8px">DayFrame — Week timeline</span></div>
+        <div class="mock-body">
+          <div class="mockB">
+            <div class="rail"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="tray">
+              <div class="small" style="color:#8892A4;margin-bottom:8px">UNSCHEDULED 5</div>
+              <div class="chip">Draft snag list</div>
+              <div class="chip">Renew i-Cable</div>
+              <div class="chip">Gym Session</div>
+              <div class="chip">Sep finance cards</div>
+            </div>
+            <div class="grid">
+              <div class="day"><div class="hd">MON</div><div class="blk b1">Standup 09:00</div></div>
+              <div class="day"><div class="hd" style="color:#7C9CFF">TUE</div><div class="blk b1">Standup 09:00</div><div class="blk b2">Deep work 10:00–12:00</div><div class="nowline"></div><div class="blk b3">Review 15:00</div></div>
+              <div class="day"><div class="hd">WED</div><div class="blk b2">Deep work 10:00</div></div>
+              <div class="day"><div class="hd">THU</div><div class="blk b3">1:1 11:00</div></div>
+              <div class="day"><div class="hd">FRI</div><div class="blk b1">Standup 09:00</div></div>
+              <div class="day"><div class="hd">SAT</div></div>
+              <div class="day"><div class="hd">SUN</div><div class="blk b3">Weekly review 20:00</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="mockB" style="display:block">
+          <div class="lens"><span><b style="color:#7C9CFF">NOW</b> Deep work · 48 min left</span><span>Next: 1:1 11:00  ·  Start  ·  Complete  ·  Defer</span></div>
+        </div>
+      </div>
+      <figcaption>Wireframe: icon rail, an unscheduled tray of draggable chips, a real hour axis with blocks sized by time, and a day lens pinned to the bottom. The bright now-line is the only saturated element on the canvas.</figcaption>
+    </figure>
+
+    <h3>Layout idea</h3>
+    <p>A dark canvas. A ~56px icon rail holds destinations; the main area is a genuine time axis — seven day columns with hour rows, so the week's shape is legible before you read a single title. Blocks are positioned and sized by time, tinted by project at low saturation. A ~280px left tray holds the unscheduled backlog as draggable chips; a ~64px bottom bar is the "day lens" (current hour, current block, start/complete/defer). Clicking a block opens an inline split editor instead of a modal. Habits become a bottom-left dot cluster. Empty hours stay empty — which is exactly the signal you need when deciding where something goes.</p>
+
+    <h3>Navigation flow (cold open → "what do I do now")</h3>
+    <ul>
+      <li><strong>Add a task</strong> — type in the always-visible tray input, <span class="kbd">Enter</span>. One action; it appears as a chip.</li>
+      <li><strong>Move it onto today</strong> — drag the chip into today's column at the intended hour: schedules <em>and</em> times it in one gesture.</li>
+      <li><strong>Log a habit</strong> — click the habit's dot in the bottom-left cluster. One click; a second click opens duration entry.</li>
+      <li><strong>Get to today's plan</strong> — it is the cold open at week zoom; the lens zoom gives a single day.</li>
+    </ul>
+
+    <h3>Key highlights</h3>
+    <div class="grid-2">
+      <div>
+        <ul>
+          <li>Drag-to-create: dragging on empty grid space creates a block with start and duration already set.</li>
+          <li>A drag ghost with a live time label, so the target hour is visible before release.</li>
+          <li>Keyboard parity for every drag: select, arrow-move, Enter-commit, undo.</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li>The three competing time fields collapse into one model in the interface — but only after an ADR.</li>
+          <li>Habit logging becomes a dot matrix: eight clicks in one place instead of eight popover round trips.</li>
+          <li>Project colour finally means something: it is the block tint.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Visual system (lead's call)</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#0B0E14"></div><div class="lbl"><b>Canvas</b>#0B0E14</div></div>
+      <div class="sw"><div class="chip" style="background:#12161F"></div><div class="lbl"><b>Surface</b>#12161F</div></div>
+      <div class="sw"><div class="chip" style="background:#1A1F2B"></div><div class="lbl"><b>Raised</b>#1A1F2B</div></div>
+      <div class="sw"><div class="chip" style="background:#E7EAF0"></div><div class="lbl"><b>Ink</b>#E7EAF0</div></div>
+      <div class="sw"><div class="chip" style="background:#98A2B3"></div><div class="lbl"><b>Muted</b>#98A2B3</div></div>
+      <div class="sw"><div class="chip" style="background:#7C9CFF"></div><div class="lbl"><b>Now-line</b>#7C9CFF</div></div>
+      <div class="sw"><div class="chip" style="background:#3B4A6B"></div><div class="lbl"><b>Tint 1</b>#3B4A6B</div></div>
+      <div class="sw"><div class="chip" style="background:#2F5D5A"></div><div class="lbl"><b>Tint 2</b>#2F5D5A</div></div>
+      <div class="sw"><div class="chip" style="background:#4A3A5C"></div><div class="lbl"><b>Tint 3</b>#4A3A5C</div></div>
+      <div class="sw"><div class="chip" style="background:#5C463A"></div><div class="lbl"><b>Tint 4</b>#5C463A</div></div>
+      <div class="sw"><div class="chip" style="background:#3E5238"></div><div class="lbl"><b>Tint 5</b>#3E5238</div></div>
+      <div class="sw"><div class="chip" style="background:#2E4260"></div><div class="lbl"><b>Tint 6</b>#2E4260</div></div>
+    </div>
+
+    <div class="cols-3">
+      <div>
+        <h4>Type scale</h4>
+        <table>
+          <thead><tr><th>Role</th><th class="num-col">px / wt</th></tr></thead>
+          <tbody>
+            <tr><td>Clock (mono)</td><td class="num-col">22 / 400</td></tr>
+            <tr><td>Day head (mono)</td><td class="num-col">12 / 600</td></tr>
+            <tr><td>Page title</td><td class="num-col">20 / 600</td></tr>
+            <tr><td>Block title</td><td class="num-col">13 / 600</td></tr>
+            <tr><td>Body</td><td class="num-col">14 / 400</td></tr>
+            <tr><td>Chip</td><td class="num-col">11.5 / 500</td></tr>
+            <tr><td>Hour rule</td><td class="num-col">10 / 500</td></tr>
+            <tr><td>Badge</td><td class="num-col">10 / 600</td></tr>
+          </tbody>
+        </table>
+        <p class="small">Every time value is monospace tabular, so columns of times line up by construction.</p>
+      </div>
+      <div>
+        <h4>Space &amp; shape</h4>
+        <ul>
+          <li>Space: 4 · 8 · 12 · 16 · 24 · 32</li>
+          <li>Hour row 44px; block minimum 20px (30 min)</li>
+          <li>Radius: 8px blocks, 6px controls, 4px chips</li>
+          <li>Borders: 1px <code>rgba(255,255,255,0.10)</code>; blocks separate by tone, not stroke</li>
+          <li>Shadow: drag ghost only</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Light / dark strategy</h4>
+        <ul>
+          <li><strong>Dark-first;</strong> a light version is a derived token set and a separate design exercise — a light timeline of a dark design tends to look washed out.</li>
+          <li>Contrast is paid for by the block tints, so text colour is fixed at 90% white inside blocks.</li>
+          <li>Ship dark only in v1; ship light only if the direction is chosen and the tint ramp is re-derived.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card"><h4>Build cost &amp; scope</h4><p><strong>L · 14–20 sessions.</strong> Rebuilt: <code>DailyPlanner</code>, <code>DayColumn</code>, <code>MiniWeekBar</code>, <code>DailyTimeline</code> (folded into one timeline surface), <code>TodayView</code> (reduced to lens + list), <code>BacklogSidebar</code> (becomes the tray), the <code>App.jsx</code> shell, and the time fields of <code>TaskModal</code>. All server code, routes and the database are untouched. It cannot ship as small user-visible slices: the shell change <em>is</em> the change.</p></div>
+      <div class="card"><h4>The blocking pre-decision</h4><p><code>scheduledTime</code>, <code>startTime</code>/<code>endTime</code> and <code>estimatedMinutes</code> must be reconciled into one time model <em>before</em> any pixel is drawn (<code>TaskModal.jsx:460-497</code>, <code>DayColumn.jsx:235-245</code>) — otherwise the timeline inherits all three. Second question: may drag remain the only way to schedule, given it has no keyboard or touch path today?</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 4 · CONCEPT C ═══════════ -->
+  <section id="concept-c">
+    <div class="sec-head"><span class="num">04</span><span class="concept-key">Concept C</span></div>
+    <h2 class="concept-title">Command Deck</h2>
+    <p class="tagline">Raw speed. A command palette as the primary navigation, one capture surface on every view, keyboard operation everywhere, and tabular monospace numbers so estimates are comparable down the page. The smallest visual change of the three and the largest change to how the app is operated.</p>
+    <div class="pill-row">
+      <span class="pill">Surface type: Command / Operate</span>
+      <span class="pill">Cold open: Today, cursor on the first unfinished item</span>
+      <span class="pill">Accent: selection &amp; commands only</span>
+      <span class="pill">Cost: M · 9–13 sessions · incremental, two new pieces</span>
+    </div>
+
+    <figure class="mock" id="mock-c">
+      <div class="mock-frame">
+        <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="small" style="margin:0 0 0 8px">DayFrame — Today + ⌘K</span></div>
+        <div class="mock-body">
+          <div class="mockC" style="flex-direction:column;width:100%">
+            <div style="display:flex;flex:1">
+              <div class="rail"></div>
+              <div class="pane">
+                <div class="now"><span><b>NOW</b> Deep work · 48 min left</span><span>j / k move · x complete · t today · ⌘K palette</span></div>
+                <div class="lrow sel"><span class="k">j</span><span class="t">Weekly review — habits summary</span><span class="n">09:30 · 45m</span></div>
+                <div class="lrow"><span class="k">k</span><span class="t">Close out finance cards for Sep</span><span class="n">— · 40m</span></div>
+                <div class="lrow"><span class="k"></span><span class="t">Parent-teacher call</span><span class="n">15:00 · 15m</span></div>
+                <div class="lrow"><span class="k"></span><span class="t">Draft renovation snag list</span><span class="n">— · 25m</span></div>
+              </div>
+            </div>
+            <div class="cmdbar"><b>&gt;</b> log 30m guitar<span style="color:#94A3B8">  ·  habits · tasks · views · actions</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Wireframe: 48px icon rail, no second header repeating the active view, one "now" strip, a dense keyboard-driven list with tabular numbers, and a permanent command bar that doubles as the save-status line.</figcaption>
+    </figure>
+
+    <h3>Layout idea</h3>
+    <p>A light, functional interface: a ~48px icon rail for destinations, one content pane, and no header restating where you already are. A permanent ~44px command bar sits at the bottom of the window, always typeable, showing the last action taken. The day is a dense ordered list — one line per task, with a monospace right column for numbers (estimate, time, project code) so durations line up. Above the list, a one-line "now" strip carries the current block, minutes remaining and the next item. Selection is a left rule plus a tint, never a card. Panels do not stack: a row expands in place; only genuinely modal work (recurrence, photos) opens a dialog.</p>
+
+    <h3>Navigation flow (cold open → "what do I do now")</h3>
+    <ul>
+      <li><strong>Add a task</strong> — <span class="kbd">Ctrl</span>+<span class="kbd">K</span> or <span class="kbd">/</span> focuses the bar, type, <span class="kbd">Enter</span>. From any view.</li>
+      <li><strong>Move a task onto today</strong> — row selected, press <span class="kbd">t</span>. One keystroke.</li>
+      <li><strong>Log a habit</strong> — <span class="kbd">h</span> lists habits in the palette; type a name, <span class="kbd">Enter</span> logs it, <code>+15</code> suffixes add duration.</li>
+      <li><strong>Get to today's plan</strong> — <span class="kbd">g</span> <span class="kbd">d</span>, or palette → "today".</li>
+    </ul>
+
+    <h3>Key highlights</h3>
+    <div class="grid-2">
+      <div>
+        <ul>
+          <li>One palette reaches every destination, every task by fuzzy title, every habit by name and every action ("defer to tomorrow", "log 30 minutes guitar").</li>
+          <li>A single global capture line — the same control the palette uses, so there is one place to type.</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li><span class="kbd">j</span>/<span class="kbd">k</span> move, <span class="kbd">x</span> complete, <span class="kbd">t</span> defer, <span class="kbd">e</span> edit in place, <span class="kbd">Ctrl</span>+<span class="kbd">Z</span> undo — replacing 12 hover-only icons.</li>
+          <li>Tabular right-aligned numbers in one mono column; all destructive actions route through one undo toast; the command bar reports "Saved 14:32".</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Visual system (lead's call)</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#FBFBFC"></div><div class="lbl"><b>Page</b>#FBFBFC</div></div>
+      <div class="sw"><div class="chip" style="background:#FFFFFF"></div><div class="lbl"><b>Surface</b>#FFFFFF</div></div>
+      <div class="sw"><div class="chip" style="background:#F4F5F7"></div><div class="lbl"><b>Surface 2</b>#F4F5F7</div></div>
+      <div class="sw"><div class="chip" style="background:#101828"></div><div class="lbl"><b>Ink</b>#101828</div></div>
+      <div class="sw"><div class="chip" style="background:#667085"></div><div class="lbl"><b>Muted</b>#667085</div></div>
+      <div class="sw"><div class="chip" style="background:#98A2B3"></div><div class="lbl"><b>Subtle</b>#98A2B3</div></div>
+      <div class="sw"><div class="chip" style="background:#4F46E5"></div><div class="lbl"><b>Command</b>#4F46E5</div></div>
+      <div class="sw"><div class="chip" style="background:#4338CA"></div><div class="lbl"><b>Command hi</b>#4338CA</div></div>
+      <div class="sw"><div class="chip" style="background:#E8E7FB"></div><div class="lbl"><b>Selected</b>#E8E7FB</div></div>
+      <div class="sw"><div class="chip" style="background:#12B76A"></div><div class="lbl"><b>Success</b>#12B76A</div></div>
+      <div class="sw"><div class="chip" style="background:#F79009"></div><div class="lbl"><b>Warning</b>#F79009</div></div>
+      <div class="sw"><div class="chip" style="background:#D92D20"></div><div class="lbl"><b>Error</b>#D92D20</div></div>
+    </div>
+
+    <div class="cols-3">
+      <div>
+        <h4>Type scale</h4>
+        <table>
+          <thead><tr><th>Role</th><th class="num-col">px / wt</th></tr></thead>
+          <tbody>
+            <tr><td>Page title</td><td class="num-col">18 / 600</td></tr>
+            <tr><td>Now strip</td><td class="num-col">15 / 600</td></tr>
+            <tr><td>Row</td><td class="num-col">14 / 400</td></tr>
+            <tr><td>Row (selected)</td><td class="num-col">14 / 500</td></tr>
+            <tr><td>Numeric col (mono)</td><td class="num-col">12.5 / 400</td></tr>
+            <tr><td>Command bar (mono)</td><td class="num-col">12.5 / 400</td></tr>
+            <tr><td>Label (caps)</td><td class="num-col">11 / 600</td></tr>
+            <tr><td>Palette group</td><td class="num-col">11 / 600</td></tr>
+          </tbody>
+        </table>
+        <p class="small">Numbers and keystrokes are monospace; prose never is.</p>
+      </div>
+      <div>
+        <h4>Space &amp; shape</h4>
+        <ul>
+          <li>Space: 2 · 4 · 8 · 12 · 16 · 24</li>
+          <li>Row height 32px — density is the feature</li>
+          <li>Radius: 6px controls, 4px chips, 8px palette</li>
+          <li>Borders do the separating; elevation only for palette and dialogs</li>
+          <li>Focus ring: 2px <code>#4F46E5</code> at 40% — visible on every focusable element (fixes F08)</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Light / dark strategy</h4>
+        <ul>
+          <li><strong>Light by default, dark as a genuine second mode</strong> — a keyboard app gets operated in the evening.</li>
+          <li>Two-mode tokens from the first commit, switched by system preference.</li>
+          <li>The palette's contrast is designed against both grounds, not derived.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card"><h4>Build cost &amp; scope</h4><p><strong>M · 9–13 sessions · incremental with two genuinely new pieces.</strong> New: the command palette (one overlay, fuzzy list over tasks/habits/projects/views/actions) and a global keyboard layer (shortcut registry, focus management, undo stack). Restyled: <code>Sidebar</code> → icon rail, the <code>App.jsx</code> shell and capture wiring, <code>TodayView</code> (dense list + selection), <code>DayColumn</code>, <code>PlannerHabitsPanel</code>, <code>TaskModal</code> (split into quick-edit + "more fields"), the review's two long lists and the finance payment table. Server, routes and DB untouched.</p></div>
+      <div class="card"><h4>What must not regress</h4><p>Everything in Concept A's list, plus the keyboard-specific risk: <strong>focus must never be trapped or lost.</strong> Today's Escape handling is document-level, and the app's single <code>tabIndex</code> is on the finance photo paste target — a global key layer could silently steal that keystroke. Inline editing must also preserve the save semantics that already work (finance notes save on blur).</p></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 5 · STACK ═══════════ -->
+  <section id="stack">
+    <div class="sec-head"><span class="num">05</span><h2>Recommended design stack</h2></div>
+    <p>The audit's own conclusion is the starting constraint: the cheapest pillars to move are <strong>keyboard affordance</strong> and <strong>information hierarchy</strong>, and both are token-and-stylesheet work with no data-model risk. So the stack question is not "what is modern?" but "what moves those two pillars furthest per unit of risk?" — for a single-maintainer, single-user, local-first app that must stay usable while it changes.</p>
+
+    <div class="callout">
+      <p><strong>Recommendation: a CSS-custom-property token layer first (no new dependency), then Radix UI primitives for the interaction shell. Defer Tailwind, shadcn/ui and Framer Motion, with explicit re-entry triggers.</strong></p>
+      <p class="small" style="margin-bottom:0">Reason in one line: the token layer buys the consistency that a utility framework is usually bought for, and Radix buys the accessibility that is genuinely hard to hand-roll (focus trap and return, Escape, aria wiring) — while paying nothing for the parts of Tailwind/shadcn/Framer that DayFrame does not currently need.</p>
+    </div>
+
+    <table>
+      <thead><tr><th style="width:210px">Piece</th><th style="width:120px">Verdict</th><th>Why, and what it costs</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Token layer</strong><br><code>src/styles/tokens.css</code></td>
+          <td><span class="sev sev-h" style="background:rgba(16,185,129,0.12);color:#0B7A57">Adopt now</span></td>
+          <td>CSS custom properties for colour, type, space, radius, motion. One file, two mode sets (light + dark written together even if dark ships later). ~1 session, 0 dependencies, reversible by deleting one file. Immediately kills F03/F04/F05/F06/F07 at the root: 71 hexes, 13 sizes, 12 radii and 51 transition values become lists you can read.</td>
+        </tr>
+        <tr>
+          <td><strong>Radix primitives</strong><br><code>@radix-ui/react-dialog</code>, <code>-popover</code>, <code>-dropdown-menu</code>, <code>-tooltip</code>, <code>-tabs</code></td>
+          <td><span class="sev sev-h" style="background:rgba(16,185,129,0.12);color:#0B7A57">Adopt now</span></td>
+          <td>Unstyled, so our CSS stays ours. Fixes the accessibility class of flaws that is hardest to hand-roll: focus trap and focus return, Escape, aria wiring, popover positioning (today's heat-map popover is positioned with no viewport clamping). Replaces <code>window.confirm</code>/<code>window.alert</code>/<code>window.prompt</code> (F27) and the hand-rolled modal/popovers. Cost: ~5 small packages, ~2 sessions for the modal+popover set, adopted per component as each surface is repainted.</td>
+        </tr>
+        <tr>
+          <td><strong>Tailwind CSS v4</strong></td>
+          <td><span class="sev sev-m">Defer</span></td>
+          <td>Its win is consistency at scale — which the token layer already delivers here. The cost is a rewrite of <code>className</code> across 28 components and ~7,700 CSS lines in one move, which destroys the "one shippable slice per session" plan that makes this app safe to change while it is in daily use. Re-entry trigger: if the component count roughly triples, or a second maintainer joins. Migration, if it ever happens, is by co-existence, not big-bang.</td>
+        </tr>
+        <tr>
+          <td><strong>shadcn/ui</strong></td>
+          <td><span class="sev sev-m">Defer</span></td>
+          <td>Requires Tailwind, so it inherits the same objection, and it brings a component vocabulary we would then own and upgrade. Radix underneath gives most of the benefit without the styling opinions. Same re-entry trigger.</td>
+        </tr>
+        <tr>
+          <td><strong>Framer Motion</strong></td>
+          <td><span class="sev sev-m">Defer</span></td>
+          <td>The motion budget for Concept A is state change under ~150ms plus two overlays; CSS transitions plus a <code>prefers-reduced-motion</code> block cover it at 0 KB (today the app has 0 reduced-motion rules — F07). Adopt only if the timeline direction (B) is chosen, where drag ghosts, live time labels and block resizing genuinely need it.</td>
+        </tr>
+        <tr>
+          <td><strong>Icon set</strong></td>
+          <td><span class="sev sev-l">Keep</span></td>
+          <td><code>react-icons</code> is already installed and used throughout; the audit's complaint (F39) is three emoji/dingbat glyphs used as chrome, not the icon library. Fix by replacing those three glyphs, not by adding a package.</td>
+        </tr>
+        <tr>
+          <td><strong>Font deliverable</strong></td>
+          <td><span class="sev sev-h" style="background:rgba(16,185,129,0.12);color:#0B7A57">Adopt now</span></td>
+          <td>Stop loading Plus Jakarta Sans from Google Fonts (<code>src/index.css:1</code>) — a local-first app should not depend on the network for its own typography, and offline it silently reflows. Self-host one variable font (or use the system stack) and keep the file in the repo.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Migration path &amp; cost</h3>
+    <table>
+      <thead><tr><th style="width:190px">Stage</th><th>Work</th><th class="num-col" style="width:120px">Sessions</th><th style="width:130px">Reversible?</th></tr></thead>
+      <tbody>
+        <tr><td>0 · Verify the baseline</td><td>Run <code>npm run test:run</code> and record the known <code>MiniWeekBar</code> failure so nothing later is blamed on the restyle. Delete the 1,828 dead CSS lines and the 4 unimported components (or revive <code>DailyShutdown</code> — that is a product call, not housekeeping).</td><td class="num-col">0.5</td><td>Yes — pure deletion</td></tr>
+        <tr><td>1 · Token layer</td><td><code>tokens.css</code>, one accent, three-and-a-bit type sizes, one focus ring, two motion durations, a reduced-motion block. Move the ~40 highest-frequency values behind tokens.</td><td class="num-col">1</td><td>Yes — one file</td></tr>
+        <tr><td>2 · Shell + cold open</td><td>Rail → top strip (A) or icon rail (C); Today becomes the cold open; the capture line gains a focus key on every view.</td><td class="num-col">1–2</td><td>Yes — one PR</td></tr>
+        <tr><td>3 · Today + habits</td><td>Rows instead of cards; persistent-in-focus row actions; one-click habit logging; remove the shared minutes input.</td><td class="num-col">2</td><td>Yes — per screen</td></tr>
+        <tr><td>4 · Week, review, finance</td><td>Repaint onto tokens; make the two weeks explicit; debounce saves with one visible status line; Radix dialogs replace native confirm/alert/prompt.</td><td class="num-col">2–3</td><td>Yes — per screen</td></tr>
+        <tr><td>5 · Keyboard layer</td><td>Visible focus everywhere, list navigation, undo toast, then the command palette.</td><td class="num-col">2</td><td>Yes — additive</td></tr>
+      </tbody>
+    </table>
+    <p class="small">Total for the recommended path: about 9–11 sessions of incremental work, each stage independently shippable, none of which touches the API, the database, <code>src/api.js</code> or <code>src/utils/*</code>. Compare: Concept B's rebuild is 14–20 sessions and cannot be sliced; the full Tailwind + shadcn route adds a multi-thousand-line mechanical diff before any user-visible improvement.</p>
+  </section>
+
+  <!-- ═══════════ 6 · COMPARISON ═══════════ -->
+  <section id="compare">
+    <div class="sec-head"><span class="num">06</span><h2>Comparison</h2></div>
+    <table>
+      <thead><tr><th style="width:200px">Dimension</th><th>A · Calm Canvas</th><th>B · Timeline Studio</th><th>C · Command Deck</th></tr></thead>
+      <tbody>
+        <tr><th>Surface archetype</th><td>Decide/Monitor — a calm day</td><td>Operate — a time canvas</td><td>Command/Operate — a workbench</td></tr>
+        <tr><th>Cold open</th><td>Today (0 clicks)</td><td>This week, scrolled to now</td><td>Today, cursor on first item</td></tr>
+        <tr><th>Add a task (from cold open)</th><td>1 key + Enter</td><td>1 action in the tray input</td><td>Ctrl+K + Enter, from any view</td></tr>
+        <tr><th>Habit logging</th><td>1 click on the rail</td><td>1 click on a dot</td><td>2 keys + Enter</td></tr>
+        <tr><th>Time clarity (pillar 2/5)</th><td>Improved, not solved — a reading of the day</td><td><strong>Solved</strong> — a real axis with blocks</td><td>Improved — "now" strip + tabular numbers</td></tr>
+        <tr><th>Keyboard affordance (pillar 1/5)</th><td>Focus visible + two row actions — small set</td><td>Drag parity by keys</td><td><strong>Whole app</strong>, palette first-class</td></tr>
+        <tr><th>Mobile dead end (F16)</th><td>Fixed — top strip is a single responsive row</td><td>Fixed in principle; a week timeline is still desktop-first</td><td>Fixed — icon rail collapses to a drawer</td></tr>
+        <tr><th>Departs from your reference brief</th><td>Least — deliberately the craft floor</td><td><strong>Most</strong> — dark-first, tinted, motion-led</td><td>Moderately — mono numerals, command bar</td></tr>
+        <tr><th>Scope</th><td>S–M · 6–9 sessions</td><td>L · 14–20 sessions</td><td>M · 9–13 sessions</td></tr>
+        <tr><th>Incremental or rewrite</th><td><strong>Incremental, sliceable per session</strong></td><td>A third of the front end is a rebuild; not sliceable</td><td>Incremental, but two new subsystems</td></tr>
+        <tr><th>Blocking pre-decision</th><td>None</td><td>One time model (3 field types) must be reconciled by ADR first</td><td>Focus-management policy for inline edit</td></tr>
+        <tr><th>Risk to core state (<code>todayOrder</code>, period windows, recurrence, photos)</th><td>Low — read-only surface changes</td><td><strong>High</strong> — a week-wide timeline must write through <code>todayOrder</code> and can ask for far more recurring instances per render</td><td>Low — additive keyboard layer over the same surfaces</td></tr>
+        <tr><th>Reversibility</th><td><strong>Highest</strong> — each screen is its own PR</td><td>Lowest — the shell change is the change</td><td>High — the palette can be dropped without touching the rest</td></tr>
+        <tr><th>Fixes the worst flaws</th><td>F16, F10, F22, F25, F26, F20, F05, F03, F11</td><td>F18, F19, F30 (time model), F33</td><td>F08, F09, F27, F28, F38, F26</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══════════ 7 · RECOMMENDATION ═══════════ -->
+  <section id="recommendation" data-chosen="concept-a">
+    <div class="sec-head"><span class="num">07</span><h2>Recommendation</h2></div>
+
+    <div class="verdict">
+      <p class="small" style="margin-bottom:6px">Recommended direction</p>
+      <p class="pick">Concept A — Calm Canvas</p>
+      <p style="margin:10px 0 0"><strong>with Concept C's keyboard discipline folded in as an engineering addition, not as a second direction:</strong> a visible focus ring and a small documented shortcut set land in A's first two stages, and the command palette becomes A's natural last slice — it is the mechanism that finally makes "capture from anywhere" one keystroke.</p>
+    </div>
+
+    <h3>Why A, in the audit's own numbers</h3>
+    <ul>
+      <li>The scorecard's lowest pillar is keyboard affordance (1/5), and four others sit at 2/5. A is the only direction that raises all six at once — and it does so on the cheapest change of the three.</li>
+      <li>It touches no data model, no route and no server code: every one of its stages is independently shippable, which is the precondition for changing the look of a tool that is in daily use.</li>
+      <li>It fixes, in priority order: the cold open (F-flow), hidden actions (F10), the habit ritual (F22), per-keystroke writes and invisible saves (F25/F26), the type ladder (F05), the palette split (F03/F04), the dead stylesheets (F11/F12) and the mobile dead end (F16) — and it gives the week bar back its day selection (F20) instead of designing around a control that does nothing.</li>
+    </ul>
+
+    <h3>What A does not fix — and why that is acceptable now</h3>
+    <p>Time clarity. Without a real axis, "where does this 90-minute block actually fit" stays a judgement call (F18/F19). That is the strongest argument for Concept B — and B's price is a reconciliation of the three competing time fields plus a third of the front end rebuilt while the app is in use. So: <strong>keep B's timeline as the next initiative, gated behind an ADR on the time model</strong>, and do not pay for it now.</p>
+
+    <h3>What happens after this deck</h3>
+    <table>
+      <thead><tr><th style="width:170px">Step</th><th>Owner / output</th></tr></thead>
+      <tbody>
+        <tr><td>Choose the direction</td><td>The team's reviewer scores the three concepts against the pillars, migration risk, regression risk and reversibility, picks <strong>one</strong>, and records it as an ADR with the token values (palette hex, type scale, spacing/radius, light/dark strategy) and the stack above.</td></tr>
+        <tr><td>Decompose the choice</td><td>The lead turns the chosen direction into an OpenSpec change plus atomic build cards — <strong>token layer first, then screen-by-screen</strong> — each with a verification card, and a guard that no screen may regress <code>todayOrder</code>, the Monday-start period windows, recurring overrides or the finance photos.</td></tr>
+        <tr><td>Then — and only then</td><td>Production frontend code. Nothing in this deck has been implemented; the only thing committed is documentation under <code>docs/design/</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-top:18px">
+      <h4>Honesty notes about this deck</h4>
+      <ul style="margin-bottom:0">
+        <li><strong>No screen was rendered or screenshotted</strong> while producing the audit or the mockups above: the mockups are hand-built wireframes expressing layout intent, not captures of a real or prototyped UI. The dev server currently runs another lane's branch with uncommitted work, so it was deliberately not used as an evidence source.</li>
+        <li>The audit's own limits carry over: no contrast measurements, no usage data, no live-DB queries, and cost figures are scope judgements rather than schedules.</li>
+        <li>The four "dead" components may carry intent — <code>DailyShutdown</code> reads and writes <code>daily_notes</code> and looks unfinished rather than abandoned. Revive-or-delete is a product decision for the chosen direction.</li>
+        <li>The card that commissioned this work described "React 18" and "no icon package". Both are wrong: the app is React 19.2 with <code>react-icons</code> installed and used. The audit's §6 records it; nothing in this deck depends on the stale claim.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    DayFrame UI/UX modernization pitch · assembled by <code>df-lead</code> from the <code>df-analyst</code> audit (<code>docs/design/2026-09-ui-ux-audit.md</code>, commit <code>c80e8b8</code>) · branch <code>docs/ui-modernization-pitch</code> · audit read against <code>origin/master</code> <code>526f3b3</code> · self-contained: inline CSS only, no external fonts, scripts, CDNs or images.
+  </footer>
+</div>
+</body>
+</html>
