@@ -1,6 +1,6 @@
 # DayFrame — Architecture
 
-Owner: `df-lead` · Last updated: 2026-09-24 (v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0 of `ui-modernization-calm-canvas`: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
+Owner: `df-lead` · Last updated: 2026-09-25 (v1.3 — §1 styling line added by card `t_65d60fc8`, stage 1 of `ui-modernization-calm-canvas`: the CSS-custom-property token layer is the styling substrate; v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
 
 DayFrame is Anderson's personal task / habit / review app. Local-first, single user, no authentication.
 Everything runs on one Windows machine; the browser is the only client.
@@ -12,12 +12,14 @@ Everything runs on one Windows machine; the browser is the only client.
 | UI | **React 19** (`react@^19.2.0`, `react-dom@^19.2.0` — `package.json:33-34`) + **Vite 8 beta** (`vite@^8.0.0-beta.13`, `package.json:52`) | `npm run dev:client` → `http://localhost:5173` | `npm run build` (`vite build`) → `dist/`, served by Express |
 | API | Node + Express 5 (`express@^5.2.1`) | `npm run dev:server` → `http://localhost:3001` | `npm run start` = `NODE_ENV=production node server/index.js` |
 | DB | SQLite (better-sqlite3) | `data/app.db` (gitignored, never committed) | same file |
+| Styling | CSS custom properties — `src/styles/tokens.css` (ADR-012), imported first in `src/main.jsx` and consumed by `index.css`, `App.css` and the component stylesheets; both mode sets declared, dark not shipped; no CSS framework | Vite HMR | bundled by `vite build` into `dist/assets/*.css` |
 
 `npm run dev` = both processes (concurrently). `npm run test:run` = vitest one-shot · `npm run lint` = eslint · `npm run build` = production build.
 
 - The client talks to the API through `src/api.js` only: the single `fetch` call site is `request()` (`src/api.js:1-12`), which is mounted on 16 service objects. No component calls `fetch` (verified by grep over `src/`).
 - Dev: Vite proxies `/api` → `:3001` (`vite.config.js:7-14`). Prod: Express serves `dist/` and falls back to `index.html` for non-API paths (`server/index.js:46-52`). `cors` is a declared dependency (`package.json:29`) but **no CORS middleware is mounted** — the app is same-origin in both modes.
 - **The server imports two client modules**: `server/routes/monthlyReviews.js:3-4` imports `src/utils/lastSaturday.js` and `src/utils/checklistTemplate.js`. Those two files are shared client/server code — a change there changes server behaviour.
+- **Styling is a CSS-custom-property token layer**, not a framework: `src/styles/tokens.css` (ADR-012) is imported **first** in `src/main.jsx` and declares colour, the eight-row type ladder, space, radius, shadow and motion, plus a second (dark) set that is declared but unreachable. `src/index.css` is the single owner of the globals — reset, `:root`/`body` ground, font family (system stack, no network request), the one `:focus-visible` recipe and the one `prefers-reduced-motion` block — and `src/App.css` carries app-shell classes only. Component stylesheets consume the tokens; the ones already written as `var(--token, fallback)` adopt them the moment a token name exists, so the layer's reach is wider than the files it edits. 0 new dependencies.
 
 Anderson is in Hong Kong (GMT+8). **A "week" starts Monday. Dates are never hardcoded** — they are computed at run time.
 
