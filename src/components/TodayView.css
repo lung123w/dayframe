@@ -405,43 +405,8 @@
   cursor: default;
 }
 
-/* Quick Capture */
-.tv-quick-capture {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border: 1.5px dashed #CBD5E1;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  background: #F8FAFC;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.tv-quick-capture:focus-within {
-  border-color: #6366F1;
-  background: #fff;
-  border-style: solid;
-}
-
-.tv-quick-capture-icon {
-  color: #94A3B8;
-  font-size: 11px;
-  flex-shrink: 0;
-}
-
-.tv-quick-capture-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 13px;
-  color: #1E293B;
-}
-
-.tv-quick-capture-input::placeholder {
-  color: #94A3B8;
-}
+/* Quick capture moved to the shell's CaptureLine (stage 2 of
+   ui-modernization-calm-canvas) — the `.tv-quick-capture*` rules went with it. */
 
 /* Edit button on task cards */
 .tv-edit-btn {
