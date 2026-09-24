@@ -1,7 +1,11 @@
 /* Daily Workflow */
 .daily-workflow {
   background: var(--surface, #fff);
-  border: 1px solid var(--border, #E2E8F0);
+  /* `--border` is the frozen composite token (`1px solid var(--hairline)`,
+     design.md §2 D2) — it is a shorthand, not a colour, so it is applied whole.
+     Written as `1px solid var(--border, …)` it became invalid at computed-value
+     time and the panel lost its border. */
+  border: var(--border);
   border-radius: 10px;
   margin-bottom: 16px;
   overflow: hidden;
@@ -20,7 +24,7 @@
 }
 
 .dw-header--expanded {
-  border-bottom: 1px solid var(--border, #E2E8F0);
+  border-bottom: var(--border);
 }
 
 .dw-header:hover {
