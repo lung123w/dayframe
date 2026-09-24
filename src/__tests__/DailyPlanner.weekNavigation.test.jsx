@@ -8,7 +8,6 @@ vi.mock('../components/DayColumn', () => ({ default: () => <div>DayColumn</div> 
 vi.mock('../components/YearlyGoals', () => ({ default: () => <div>YearlyGoals</div> }));
 vi.mock('../components/WeeklyObjectives', () => ({ default: () => <div>WeeklyObjectives</div> }));
 vi.mock('../components/DailyTimeline', () => ({ default: () => <div>DailyTimeline</div> }));
-vi.mock('../components/DailyShutdown', () => ({ default: () => <div>DailyShutdown</div> }));
 
 describe('DailyPlanner week navigation', () => {
   const defaultProps = {
