@@ -39,17 +39,27 @@ export default function MiniWeekBar({ selectedDate, onSelectDate, onPrevWeek, on
   return (
     <div className="mini-week">
       <div className="mini-week-nav">
-        <button className="mini-week-arrow" onClick={onPrevWeek}><FaChevronLeft /></button>
+        <button type="button" className="mini-week-arrow" onClick={onPrevWeek} aria-label="Previous week">
+          <FaChevronLeft />
+        </button>
         <span className="mini-week-label">{weekLabel}</span>
-        <button className="mini-week-today-btn" onClick={onGoToToday}>Today</button>
-        <button className="mini-week-arrow" onClick={onNextWeek}><FaChevronRight /></button>
+        <button type="button" className="mini-week-today-btn" onClick={onGoToToday}>
+          Today
+        </button>
+        <button type="button" className="mini-week-arrow" onClick={onNextWeek} aria-label="Next week">
+          <FaChevronRight />
+        </button>
       </div>
       <div className="mini-week-days">
         {days.map(day => (
           <button
             key={day.dateStr}
+            type="button"
             className={`mini-week-day${day.isToday ? ' mini-week-day--today' : ''}${day.isSelected ? ' mini-week-day--selected' : ''}`}
             onClick={() => onSelectDate(day.dateStr)}
+            aria-pressed={day.isSelected}
+            aria-current={day.isToday ? 'date' : undefined}
+            title={`${day.dayName} ${day.dayNum}`}
           >
             <span className="mini-week-day-name">{day.dayName}</span>
             <span className="mini-week-day-num">{day.dayNum}</span>
