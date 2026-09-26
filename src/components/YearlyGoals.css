@@ -147,7 +147,7 @@
   padding: 0.2rem;
   display: flex;
   align-items: center;
-  font-size: var(--font-label);
+  font-size: var(--font-meta);
   opacity: 0;
   transition: opacity var(--motion-state) var(--ease), color var(--motion-state) var(--ease);
   flex-shrink: 0;
