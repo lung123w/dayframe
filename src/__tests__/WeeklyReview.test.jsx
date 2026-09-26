@@ -211,22 +211,32 @@ describe('WeeklyReview', () => {
     });
   });
 
-  it('labels the habit summary as 上週習慣 with the review week range (selected week minus 1)', async () => {
-    // The chips answer the reflection about the week that just ended, so the
-    // title must name the review week, not the selected (plan) week.
+  it('names both weeks explicitly instead of hiding the reviewed week in a parenthetical', async () => {
+    // F35 / ADR-005: the selected week is the *planning* week (document, goals,
+    // key events) and `weekStart − 1` is the *reviewed* week (habit summary).
+    // Each carries its own visible label naming its dates.
     const defaultWeekStart = startOfWeek(subDays(new Date(), 1), { weekStartsOn: 1 });
+    const defaultWeekEnd = endOfWeek(defaultWeekStart, { weekStartsOn: 1 });
     const reviewWeekStart = subWeeks(defaultWeekStart, 1);
-    const reviewWeekEnd = subWeeks(endOfWeek(defaultWeekStart, { weekStartsOn: 1 }), 1);
-    const expectedReviewLabel = `上週習慣 (Review week: ${format(reviewWeekStart, 'MMM d')} – ${format(reviewWeekEnd, 'MMM d, yyyy')}):`;
+    const reviewWeekEnd = subWeeks(defaultWeekEnd, 1);
+    const planLabel = `${format(defaultWeekStart, 'MMM d')} – ${format(defaultWeekEnd, 'MMM d, yyyy')}`;
+    const reviewLabel = `${format(reviewWeekStart, 'MMM d')} – ${format(reviewWeekEnd, 'MMM d, yyyy')}`;
     mockHabitGetAll.mockResolvedValue([{ id: 1, name: 'Reading', color: '#10B981', isArchived: 0 }]);
     mockHabitEntryGetAll.mockResolvedValue([
       { habitId: 1, date: format(reviewWeekStart, 'yyyy-MM-dd'), timeSpentSeconds: 600 },
     ]);
     render(<WeeklyReview {...defaultProps} />);
     await screen.findByText('Weekly Goal Setup');
-    await waitFor(() => expect(screen.getByText(expectedReviewLabel)).toBeInTheDocument());
-    // The old hard-coded label lied about the range; make sure it is gone.
-    expect(screen.queryByText("Last week's habits:")).not.toBeInTheDocument();
+
+    expect(screen.getByText('Planning week')).toBeInTheDocument();
+    expect(screen.getByText('Reviewed week')).toBeInTheDocument();
+    expect(screen.getByText(planLabel)).toBeInTheDocument();
+    expect(screen.getByText(reviewLabel)).toBeInTheDocument();
+    // The label the old code used is gone — the difference is no longer a
+    // parenthetical annotation.
+    expect(screen.queryByText(/Review week:/)).not.toBeInTheDocument();
+    expect(screen.getByText(`Habits — reviewed week ${reviewLabel}`)).toBeInTheDocument();
+    expect(screen.getByText(`Key events — planning week ${planLabel}`)).toBeInTheDocument();
   });
 
   it('shifts the habit fetch window with the selected week (chips always trail by one week)', async () => {
@@ -304,30 +314,55 @@ describe('WeeklyReview', () => {
     );
   });
 
-  it('confirms before replacing existing objectives', async () => {
+  it('asks in-app before replacing existing objectives and writes nothing on Escape', async () => {
     const weekStart = thisWeekStart();
     mockReviewGetByWeek.mockResolvedValue({
       ...emptyDoc(weekStart),
       weeklyGoals: [{ id: 'g1', text: 'New goal', minimumStep: 's', completed: false }],
     });
     mockObjectiveGetByWeek.mockResolvedValue({ objectives: [{ text: 'old', completed: false }] });
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
     render(<WeeklyReview {...defaultProps} />);
     await screen.findByDisplayValue('New goal');
     fireEvent.click(screen.getByRole('checkbox', { name: /Write weekly goals to DayFrame/i }));
-    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent(/replace 1 existing weekly objective/i);
+
+    // Escape closes the dialog and no write is issued.
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(mockObjectiveUpsert).not.toHaveBeenCalled();
-    confirmSpy.mockRestore();
   });
 
-  it('prevents sync when there are no goals', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('replaces the objectives when the in-app dialog is confirmed', async () => {
+    const weekStart = thisWeekStart();
+    mockReviewGetByWeek.mockResolvedValue({
+      ...emptyDoc(weekStart),
+      weeklyGoals: [{ id: 'g1', text: 'New goal', minimumStep: 's', completed: false }],
+    });
+    mockObjectiveGetByWeek.mockResolvedValue({ objectives: [{ text: 'old', completed: false }] });
+    render(<WeeklyReview {...defaultProps} />);
+    await screen.findByDisplayValue('New goal');
+    fireEvent.click(screen.getByRole('checkbox', { name: /Write weekly goals to DayFrame/i }));
+
+    await screen.findByRole('dialog');
+    fireEvent.click(screen.getByRole('button', { name: 'Replace' }));
+    await waitFor(() => expect(mockObjectiveUpsert).toHaveBeenCalled());
+    expect(mockObjectiveUpsert.mock.calls[0][1]).toEqual(
+      expect.arrayContaining([expect.objectContaining({ text: 'New goal' })])
+    );
+  });
+
+  it('prevents sync when there are no goals, in an in-app dialog', async () => {
     render(<WeeklyReview {...defaultProps} />);
     await screen.findByText('Weekly Goal Setup');
     fireEvent.click(screen.getByRole('checkbox', { name: /Write weekly goals to DayFrame/i }));
-    await waitFor(() => expect(alertSpy).toHaveBeenCalled());
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent(/No weekly goals to sync/i);
+    fireEvent.click(screen.getByRole('button', { name: 'OK' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(mockObjectiveUpsert).not.toHaveBeenCalled();
-    alertSpy.mockRestore();
   });
 
   // ── Key events bridging ───────────────────────────────────────────────────
@@ -364,5 +399,67 @@ describe('WeeklyReview', () => {
         expect.objectContaining({ title: 'Launch' })
       )
     );
+  });
+
+  // ── Debounced writes + the reserved status line (design.md §8 D12) ────────
+
+  it('writes once after typing stops, not once per keystroke', async () => {
+    render(<WeeklyReview {...defaultProps} />);
+    const field = await screen.findByDisplayValue('Clean up all the items @box');
+    mockReviewUpsert.mockClear();
+
+    let text = 'Clean up all the items @box';
+    for (const ch of ' wip') {
+      text += ch;
+      fireEvent.change(field, { target: { value: text } });
+    }
+    // Four keystrokes, no write yet — the 500 ms debounce has not elapsed.
+    expect(mockReviewUpsert).not.toHaveBeenCalled();
+
+    await waitFor(() => expect(mockReviewUpsert).toHaveBeenCalledTimes(1), { timeout: 2000 });
+    expect(mockReviewUpsert.mock.calls[0][1].cleanupTasks[0].text).toBe(text);
+  });
+
+  it('flushes a pending edit before moving to another week', async () => {
+    render(<WeeklyReview {...defaultProps} />);
+    const field = await screen.findByDisplayValue('Clean up all the items @box');
+    mockReviewUpsert.mockClear();
+
+    fireEvent.change(field, { target: { value: 'Edited before navigating' } });
+    fireEvent.click(screen.getByTitle('Next week'));
+
+    await waitFor(() => expect(mockReviewUpsert).toHaveBeenCalledTimes(1), { timeout: 2000 });
+    expect(mockReviewUpsert.mock.calls[0][1].cleanupTasks[0].text).toBe('Edited before navigating');
+  });
+
+  it('shows the save state in the one reserved status line', async () => {
+    render(<WeeklyReview {...defaultProps} />);
+    const field = await screen.findByDisplayValue('Clean up all the items @box');
+    const status = screen.getByRole('status');
+    expect(status).toHaveAttribute('data-status', 'idle');
+
+    fireEvent.change(field, { target: { value: 'Renamed item' } });
+    expect(status).toHaveAttribute('data-status', 'pending');
+    expect(status).toHaveTextContent('Saving…');
+
+    await waitFor(() => expect(status).toHaveAttribute('data-status', 'saved'), { timeout: 2000 });
+    expect(status).toHaveTextContent('Saved');
+  });
+
+  it('reports a failed write as "Could not save — retry"', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockReviewUpsert.mockRejectedValueOnce(new Error('boom'));
+    render(<WeeklyReview {...defaultProps} />);
+    const field = await screen.findByDisplayValue('Clean up all the items @box');
+
+    fireEvent.change(field, { target: { value: 'Renamed item' } });
+
+    await waitFor(
+      () => expect(screen.getByRole('status')).toHaveAttribute('data-status', 'error'),
+      { timeout: 2000 }
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('Could not save —');
+    expect(screen.getByRole('button', { name: 'retry' })).toBeInTheDocument();
+    consoleSpy.mockRestore();
   });
 });

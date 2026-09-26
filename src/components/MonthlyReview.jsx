@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   FaCheckCircle,
   FaRegCircle,
@@ -18,6 +18,8 @@ import { monthlyReviewService } from '../api';
 import { currentMonthKey } from '../utils/lastSaturday.js';
 import { ABBREVIATION_GROUPS } from '../utils/abbreviations.js';
 import FinancialCards from './FinancialCards';
+import SaveStatus from './SaveStatus';
+import { useDebouncedSave } from './useDebouncedSave';
 import './MonthlyReview.css';
 
 function maskAccountNumber(accountNumber) {
@@ -261,19 +263,67 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
     }
   }, [review, isReadOnly, onDataChange]);
 
-  const handleCardFieldChange = useCallback(async (cardId, patch) => {
+  // ── Debounced writes (design.md §8 D12) ───────────────────────────────────
+  // One status line for the whole finance surface, one writer for both kinds of
+  // persisted edit it owns: the per-card fields (typed — debounced) and the
+  // notes textarea (which keeps its save-on-blur behaviour).
+  const pendingCardPatch = useRef({});
+
+  const writeReview = useCallback(async (payload) => {
     if (isReadOnly || !review || !review.id) return;
-    setBusy(true);
-    try {
-      const updated = await monthlyReviewService.updateCardEntry(review.id, cardId, patch);
+    if (payload && payload.kind === 'notes') {
+      const updated = await monthlyReviewService.updateNotes(review.id, payload.notes);
       setReview(updated);
       onDataChange && onDataChange();
-    } catch (err) {
-      console.error('Card entry update failed:', err);
-    } finally {
-      setBusy(false);
+      return;
     }
+    const patches = pendingCardPatch.current;
+    pendingCardPatch.current = {};
+    const cardIds = Object.keys(patches);
+    if (cardIds.length === 0) return;
+    let latest = null;
+    for (const cardId of cardIds) {
+      latest = await monthlyReviewService.updateCardEntry(review.id, Number(cardId), patches[cardId]);
+    }
+    if (latest) {
+      const serverEntries = new Map((latest.cardEntries || []).map((e) => [e.cardId, e]));
+      setReview((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          cardEntries: prev.cardEntries.map((e) =>
+            Object.prototype.hasOwnProperty.call(patches, e.cardId)
+              ? serverEntries.get(e.cardId) || e
+              : e
+          ),
+        };
+      });
+    }
+    onDataChange && onDataChange();
   }, [review, isReadOnly, onDataChange]);
+
+  const {
+    status: saveStatus,
+    schedule: scheduleSave,
+    saveNow: saveNowDebounced,
+    retry: retrySave,
+  } = useDebouncedSave(writeReview);
+
+  const handleCardFieldChange = useCallback((cardId, patch) => {
+    if (isReadOnly || !review || !review.id) return;
+    // The table's inputs are controlled by this state, so show the edit now and
+    // write it once the typing pauses.
+    setReview((prev) => (
+      prev
+        ? {
+            ...prev,
+            cardEntries: prev.cardEntries.map((e) => (e.cardId === cardId ? { ...e, ...patch } : e)),
+          }
+        : prev
+    ));
+    pendingCardPatch.current[cardId] = { ...(pendingCardPatch.current[cardId] || {}), ...patch };
+    scheduleSave({ kind: 'cards' });
+  }, [isReadOnly, review, scheduleSave]);
 
   const handleMarkComplete = useCallback(async () => {
     if (isReadOnly || !review || !review.id) return;
@@ -303,19 +353,13 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
     }
   }, [review, onDataChange]);
 
-  const handleNotesChange = useCallback(async (notes) => {
-    if (isReadOnly || !review || !review.id) return;
-    setBusy(true);
-    try {
-      const updated = await monthlyReviewService.updateNotes(review.id, notes);
-      setReview(updated);
-      onDataChange && onDataChange();
-    } catch (err) {
-      console.error('Notes update failed:', err);
-    } finally {
-      setBusy(false);
-    }
-  }, [review, isReadOnly, onDataChange]);
+  const handleNotesChange = useCallback((notes) => {
+    if (isReadOnly || !review || !review.id) return undefined;
+    // Save-on-blur is kept (design.md §8 D12): the write happens when the field
+    // loses focus, reported in the same reserved status line, and never once
+    // per keystroke.
+    return saveNowDebounced({ kind: 'notes', notes });
+  }, [review, isReadOnly, saveNowDebounced]);
 
   const handleSavePhotos = useCallback(async (nextPhotos) => {
     if (isReadOnly || !review || !review.id) return;
@@ -431,7 +475,7 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
       <div className="mfr-root">
         <div className="mfr-header">
           <button className="btn btn-secondary" onClick={() => setShowManageCards(false)}>
-            \u2190 Back to Review
+            ‹ Back to Review
           </button>
         </div>
         <FinancialCards
@@ -451,6 +495,7 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
           <span className="mfr-month-label">{review ? formatMonthLabel(review.monthKey) : 'Loading\u2026'}</span>
         </div>
         <div className="mfr-header-actions">
+          <SaveStatus status={saveStatus} onRetry={retrySave} className="mfr-save-status" />
           {review && (
             <span className={`mfr-status-badge mfr-status-${review.status}`}>
               {review.status === 'completed' ? 'Completed' : review.status === 'in_progress' ? 'In progress' : 'Pending'}

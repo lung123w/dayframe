@@ -1,0 +1,36 @@
+/* -- The one reserved save-status line (design.md §8 D12) -- */
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--space-4);
+  min-width: 0;
+  font-size: var(--font-meta);
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.save-status-text--saved {
+  color: var(--success-text);
+}
+
+.save-status-text--error {
+  color: var(--error-text);
+}
+
+.save-status-retry {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--font-meta);
+  color: var(--accent-hover);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.save-status-retry:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
