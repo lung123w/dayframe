@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -6,19 +6,28 @@ import {
   FaBold, FaItalic, FaStrikethrough, FaCode,
   FaHeading, FaListUl, FaListOl, FaLink, FaUndo, FaRedo
 } from 'react-icons/fa';
+import { PromptDialog } from './AppDialog';
 import './RichTextEditor.css';
 
 const MenuBar = ({ editor }) => {
+  // The link URL is asked for in an in-app dialog (design.md §3 D7): the old
+  // native prompt was the last one under src/.
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+
   if (!editor) return null;
 
-  const addLink = () => {
-    const url = window.prompt('Enter URL:');
-    if (url) {
-      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  const addLink = () => setLinkDialogOpen(true);
+
+  const applyLink = (url) => {
+    setLinkDialogOpen(false);
+    const trimmed = (url || '').trim();
+    if (trimmed) {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: trimmed }).run();
     }
   };
 
   return (
+    <>
     <div className="rich-editor-toolbar">
       <button type="button" onClick={() => editor.chain().focus().toggleBold().run()}
         className={editor.isActive('bold') ? 'is-active' : ''} title="Bold">
@@ -78,6 +87,16 @@ const MenuBar = ({ editor }) => {
         <FaRedo />
       </button>
     </div>
+    <PromptDialog
+      open={linkDialogOpen}
+      title="Add a link"
+      label="Link URL"
+      placeholder="https://…"
+      confirmLabel="Add link"
+      onConfirm={applyLink}
+      onCancel={() => setLinkDialogOpen(false)}
+    />
+    </>
   );
 };
 

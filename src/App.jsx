@@ -10,6 +10,7 @@ import TopStrip from './components/TopStrip';
 import CaptureLine from './components/CaptureLine';
 import { readCaptureDefaults, writeCaptureDefaults } from './components/captureDefaults';
 import MonthlyReview from './components/MonthlyReview';
+import { ConfirmDialog } from './components/AppDialog';
 import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService, financialCardService, monthlyReviewService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
 import { syncSortOrderFromTodayOrder } from './utils/syncTodayOrder';
@@ -41,6 +42,10 @@ function App() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('today');
+
+  // In-app dialogs (design.md §3 D7) replacing the native confirm / alert.
+  const [pendingTaskDelete, setPendingTaskDelete] = useState(null);
+  const [noticeDialog, setNoticeDialog] = useState(null);
 
   // Project management state
   const [showProjectModal, setShowProjectModal] = useState(false);
@@ -145,17 +150,24 @@ function App() {
     }
   };
 
-  const handleDeleteTask = async (taskId) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      try {
-        await subtaskService.deleteByTaskId(taskId);
-        await taskService.delete(taskId);
-        await loadData();
-        setShowTaskModal(false);
-        setSelectedTask(null);
-      } catch (err) {
-        console.error('Failed to delete task:', err);
-      }
+  const handleDeleteTask = (taskId) => {
+    // Ask in-app (design.md §3 D7): Escape closes without deleting and focus
+    // returns to the control that asked.
+    setPendingTaskDelete(taskId);
+  };
+
+  const confirmDeleteTask = async () => {
+    const taskId = pendingTaskDelete;
+    setPendingTaskDelete(null);
+    if (taskId == null) return;
+    try {
+      await subtaskService.deleteByTaskId(taskId);
+      await taskService.delete(taskId);
+      await loadData();
+      setShowTaskModal(false);
+      setSelectedTask(null);
+    } catch (err) {
+      console.error('Failed to delete task:', err);
     }
   };
 
@@ -323,7 +335,10 @@ function App() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Backup failed:', err);
-      alert('Backup failed. See console for details.');
+      setNoticeDialog({
+        title: 'Backup failed',
+        message: 'The export could not be created. See the console for details.',
+      });
     }
   };
 
@@ -471,6 +486,26 @@ function App() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={pendingTaskDelete != null}
+        title="Delete this task?"
+        description="The task and its subtasks will be removed. This cannot be undone."
+        confirmLabel="Delete task"
+        tone="danger"
+        onConfirm={confirmDeleteTask}
+        onCancel={() => setPendingTaskDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={!!noticeDialog}
+        title={noticeDialog ? noticeDialog.title : 'DayFrame'}
+        description={noticeDialog ? noticeDialog.message : ''}
+        confirmLabel="OK"
+        cancelLabel={null}
+        onConfirm={() => setNoticeDialog(null)}
+        onCancel={() => setNoticeDialog(null)}
+      />
     </div>
   );
 }
