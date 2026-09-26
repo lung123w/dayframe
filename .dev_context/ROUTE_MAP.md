@@ -1,6 +1,6 @@
 # DayFrame — Route Map
 
-Owner: `df-lead` · Last updated: 2026-09-24 (v1.2 — §1 revised by card `t_aa4715eb`, stage 0 of `ui-modernization-calm-canvas`: the four dead components and their stylesheets are deleted; every verb, mount and period parameter still re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`)
+Owner: `df-lead` · Last updated: 2026-09-26 (v1.3 — §1 reflects the stage-0 deletions of `ui-modernization-calm-canvas` (card `t_aa4715eb`: four dead components + their stylesheets deleted); v1.2 — every verb, mount and period parameter re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`, plus the `/api/habits` `frequency` contract (`fix-habit-frequency-normalization`))
 
 ## 1. UI surfaces
 
@@ -39,7 +39,7 @@ Base `http://localhost:3001/api` · JSON in/out · **no auth** (local single-use
 | `/api/projects` | `GET /` · `GET /:id` · `POST /` · `PUT /:id` · `DELETE /:id` | `DELETE` nulls `tasks.projectId` via the FK `ON DELETE SET NULL` + `PRAGMA foreign_keys = ON` (`server/db.js:12, 39`) — the route itself does not touch tasks |
 | `/api/team-members` | full CRUD | assignee directory only (no auth) |
 | `/api/subtasks` | `GET /` · `GET /by-task/:taskId` · `POST /` · `PUT /:id` · `PUT /:id/toggle` · `DELETE /:id` · `DELETE /by-task/:taskId` | cascade with parent task; `PUT /:id/toggle` is the checkbox path |
-| `/api/habits` | `GET /` · `GET /:id` · `POST /` · `PUT /:id` · `DELETE /:id` | `frequency` JSON; archive via `isArchived`; `GET /` accepts `?includeArchived=1` (default: non-archived only, `ORDER BY sortOrder`) |
+| `/api/habits` | `GET /` · `GET /:id` · `POST /` · `PUT /:id` · `DELETE /:id` | `frequency` is **always an object** in every response (normalized at the API boundary by `server/habitFrequency.js` — `server/routes/habits.js:21, 52, 79`): `weekly` always carries a numeric `timesPerWeek` (default 1), `weekdays` always an array `days` (default `[]`), anything else or malformed → `{type:'daily'}`; a `PUT` rewrites the stored cell single-encoded, so a doubly-encoded row self-heals (ADR-012). Archive via `isArchived`; `GET /` accepts `?includeArchived=1` (default: non-archived only, `ORDER BY sortOrder`) |
 | `/api/habit-entries` | `GET /` · `GET /by-habit/:habitId` · `POST /` · `PUT /:id` · `DELETE /by-date` · `DELETE /:id` | filters `?habitId=&from=&to=` (each optional, `ORDER BY date`); **UNIQUE(habitId, date)** — POST on an existing day returns **409** `{"error":"Entry already exists for this habit and date"}` **without writing**; correct path = GET → `DELETE /by-date?habitId=&date=` → POST, or PUT the existing id |
 | `/api/weekly-objectives` | `GET /` · `PUT /` | `?weekStart=YYYY-MM-DD`; without it → latest 12 rows. `GET` for a missing week returns an **unsaved** `{weekStart, objectives: []}`; `PUT` requires `weekStart` + an `objectives` **array** (else 400) |
 | `/api/weekly-reviews` | `GET /` · `PUT /` | `?weekStart=`; without it → latest 12 rows. `GET` for a missing week returns an **unsaved** default document; `PUT` requires `weekStart` and upserts `cleanupTasks`, `gratitudeEntries`, `reflectionAnswers`, `weeklyGoals`, `syncFlags`; **no DELETE endpoint** — clear by PUTting empty values |
