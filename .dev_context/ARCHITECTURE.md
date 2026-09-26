@@ -1,6 +1,6 @@
 # DayFrame — Architecture
 
-Owner: `df-lead` · Last updated: 2026-09-26 (v1.4 — §2 Today's children + the habit rail, §4.1 the day loop and §4.2 the habit write path revised by card `t_7fd24929`, stage 3 of `ui-modernization-calm-canvas`: rows instead of cards, focus-reachable row actions, one 5-second undo, one-click habit logging; v1.3 — §1 styling line added by card `t_65d60fc8`, stage 1 of `ui-modernization-calm-canvas`: the CSS-custom-property token layer is the styling substrate; v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
+Owner: `df-lead` · Last updated: 2026-09-26 (v1.5 — §2 the dialog shell + the status line, §3 the focused day, §4.3 both week labels and debounced saves, §4.4 the finance save path, revised by card `t_63c2607b`, stage 4 of `ui-modernization-calm-canvas`: `AppDialog`/`ConfirmDialog`/`PromptDialog` replace every `window.confirm/alert/prompt`, one reserved save-status line per persisting surface, the two dead day-select controls wired; v1.4 — §2 Today's children + the habit rail, §4.1 the day loop and §4.2 the habit write path revised by card `t_7fd24929`, stage 3 of `ui-modernization-calm-canvas`: rows instead of cards, focus-reachable row actions, one 5-second undo, one-click habit logging; v1.3 — §1 styling line added by card `t_65d60fc8`, stage 1 of `ui-modernization-calm-canvas`: the CSS-custom-property token layer is the styling substrate; v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
 
 DayFrame is Anderson's personal task / habit / review app. Local-first, single user, no authentication.
 Everything runs on one Windows machine; the browser is the only client.
@@ -37,7 +37,8 @@ graph TD
     App --> Projects["ProjectsView.jsx"]
     App --> Review["WeeklyReview.jsx"]
     App --> Finance["MonthlyReview.jsx"]
-    App --> Modals["App-level modals: TaskModal · ProjectModal"]
+    App --> Modals["App-level modals: TaskModal · ProjectModal — now Dialog-owned (stage 4)"]
+    App --> Dlg["AppDialog.jsx — the one Radix dialog shell (stage 4): AppDialog · ConfirmDialog · PromptDialog, with the focus trap, Escape dismissal and focus return"]
 
     Today --> Timeline["DailyTimeline.jsx"]
     Today --> PHPanel["PlannerHabitsPanel.jsx — today's habits (collapsed rail) + DailyWorkflow"]
@@ -45,14 +46,14 @@ graph TD
     Today --> Undo["UndoToast.jsx — one 5-second undo for complete / defer / reorder"]
     Today --> RowAct["TooltipButton.jsx — tooltipped icon actions (move up/down, edit)"]
 
-    Planner --> Mini["MiniWeekBar.jsx"]
+    Planner --> Mini["MiniWeekBar.jsx — week nav (prev · Today · next) + 7 day buttons"]
     Planner --> DayCol["DayColumn.jsx (×7)"]
     Planner --> Backlog["BacklogSidebar.jsx"]
     Planner --> Yearly["YearlyGoals.jsx"]
     Planner --> WObj["WeeklyObjectives.jsx — weekly objectives + key-events day columns"]
 
     Habits --> Heatmap["HabitHeatmap.jsx"]
-    Habits --> HModal["HabitModal.jsx"]
+    Habits --> HModal["HabitModal.jsx — Dialog-owned"]
     Heatmap --> TP["TimePopover.jsx — Radix popover"]
     Heatmap --> RP["RepsPopover.jsx — Radix popover"]
     PHPanel --> TP
@@ -64,6 +65,17 @@ graph TD
     Finance --> Cards["FinancialCards.jsx"]
     Yearly --> Rich["RichTextEditor.jsx"]
     Modals --> Rich
+
+    Review --> Save["SaveStatus.jsx — the one reserved save-status line (stage 4)"]
+    Finance --> Save
+    WObj --> Save
+
+    Review --> Dlg
+    Finance --> Dlg
+    Projects --> Dlg
+    Modals --> Dlg
+    HModal --> Dlg
+    Rich --> Dlg
 
     Habits --> API["src/api.js — 16 service objects, one per resource"]
     WObj --> API
@@ -81,6 +93,10 @@ Notes verified against the import graph:
 - **Deleted in stage 0 of `ui-modernization-calm-canvas`** (ADR-012; card `t_aa4715eb`, branch `feat/ui-s0-dead-code`): `Calendar.jsx`/`.css`, `DayPanel.jsx`/`.css`, `OutstandingTasks.jsx`/`.css`, `DailyShutdown.jsx`/`.css` — four components with 0 importers, 1,828 CSS lines (`Calendar.css` 916, `DayPanel.css` 486, `OutstandingTasks.css` 353, `DailyShutdown.css` 73). `DailyShutdown` was **deleted, not revived** (`design.md` §4/D8): the `daily_notes` rows, the table and `GET/PUT /api/daily-notes` are untouched, so no data was removed, and the audit's F42 (a daily close-out ritual) stays an **open item** for a later change once Today's rows have landed. The `vi.mock('../components/DailyShutdown', …)` that was its last remaining reference went with it. `package.json` was **not** touched — `@fullcalendar/*` is now an unused declared dependency, and removing it is its own decision.
 - **The shell, stage 2 of `ui-modernization-calm-canvas`** (ADR-012; card `t_5d2bcf9d`, branch `feat/ui-s2-shell`): `Sidebar.jsx`/`.css` were renamed to `TopStrip.jsx`/`.css` (`git mv`) and now render one ~52px top strip — the app name plus the period as the page title, four text destinations (Today · Week · Habits · Review) and a Radix `dropdown-menu` "More" overflow holding Finance / Projects / Backup / Notifications. All six views stay reachable at 1440 / 768 / 420px, which closes F16 (the rail was `display: none` below 768px). `CaptureLine.jsx`/`.css` is mounted **once**, by `App.jsx` in `.app-chrome` directly under the strip, so quick capture is a shell element: `TodayView.jsx` no longer renders an input of its own. `src/components/captureDefaults.js` owns the client-only D9 preference (`localStorage['dayframe.captureDefaults']`) — no API, schema or settings-row change.
 - **Today + habits, stage 3 of `ui-modernization-calm-canvas`** (ADR-012; card `t_7fd24929`, branch `feat/ui-s3-today-habits`): the Today list, the Week view's day columns and the backlog render **rows** (one line per entry, hairline separated, title at body size, metadata in one muted size) instead of cards — no card fill, no left colour stripe, no shadow. Row actions (move up/down, defer, edit) are revealed on **focus** as well as hover and are always visible where `@media (hover: none)` matches, so nothing is hover-only (audit F10); the up/down arrows remain as the touch reorder controls. Completing, deferring or reordering a row offers **one** 5-second undo (`UndoToast.jsx`, the pattern of `HabitTracker.css:215-242` — the habit-delete toast is untouched). The three hand-rolled popovers (`TimePopover`, `RepsPopover`, `DeferPopover`) and the heat-map popover now render through `RadixPopover.jsx`, a thin `@radix-ui/react-popover` shell that owns the anchor, the portal and the viewport clamping; icon-only buttons use `TooltipButton.jsx` (`@radix-ui/react-tooltip`, `aria-label` kept as the accessible name). The Today habit rail is collapsed to one "N of M done" line until it is activated (view-local state) and one activation on a not-done row writes the day with zero minutes.
+- **Week / review / finance, stage 4 of `ui-modernization-calm-canvas`** (ADR-012; card `t_63c2607b`, branch `feat/ui-s4-week-review-finance`): three pieces, all presentation.
+  1. **The dialogs are Radix-owned.** `src/components/AppDialog.jsx` is the one dialog shell (`@radix-ui/react-dialog`) and exports `AppDialog` (the shell), `ConfirmDialog` (the `window.confirm`/`window.alert` replacement — `cancelLabel={null}` renders the single-action alert form) and `PromptDialog` (the `window.prompt` replacement). It owns the focus trap, Escape dismissal and focus return; focus returns through `onCloseAutoFocus` rather than a `Dialog.Trigger`, because several call sites are re-rendered or unmounted by the very mutation they guard. `Dialog.Content` is rendered **inside** `Dialog.Overlay` so the app's existing `.modal-overlay`/`.modal-content` centring (`.modal-overlay { display:flex }`) keeps working. Call sites: `App.jsx` (task delete + the backup-failure notice), `ProjectsView.jsx` (project delete), `ProjectModal.jsx` (project delete), `WeeklyReview.jsx` (the objectives-replacement confirm and the "nothing to sync" alert) and `RichTextEditor.jsx` (the link-URL prompt). `TaskModal`, `HabitModal` and `ProjectModal` render their shells through `AppDialog` too, which is what gives them Escape dismissal. There are **0** `window.confirm|alert|prompt` call sites under `src/` (design.md §3 D7).
+  2. **One debounced writer and one reserved status line per persisting surface** (`src/components/useDebouncedSave.js` + `SaveStatus.jsx`, design.md §8 D12): 500 ms after the last keystroke, flushed on blur and on navigating away (and on unmount), with `Saving…` / `Saved` (fades after ~2 s) / `Could not save — retry` in a reserved `role="status" aria-live="polite"` line. Typing is debounced; discrete actions (a checkbox, an add, a remove) still write immediately; the finance notes textarea keeps its save-on-blur behaviour, now reported in the same line. No write fires per keystroke on any surface.
+  3. **Both weeks are named** (F35 / ADR-005) and the two dead day-select controls work (F20). See §3 and §4.3.
 
 ## 3. State ownership
 
@@ -112,6 +128,7 @@ flowchart LR
 - `CaptureLine` keeps its own input text and its D9 defaults in local state and re-reads `localStorage['dayframe.captureDefaults']` at capture time, so nothing about capture lives in `App.jsx` beyond passing `projects` down and calling `loadData` when a task lands.
 - `HabitTracker` receives **no props** (`App.jsx:397-399`): it fetches habits and entries itself. `WeeklyReview` and `MonthlyReview` receive only the slice they need.
 - `todayOrder` is an ordered array of task keys stored as a generic settings row (`App.jsx:202-211`, `settingsService`).
+- **Stage 4 adds no app-level state.** Two pieces of state exist and both are view-local: `DailyPlanner`'s `focusedDay` (F20 — the day button in the week bar and a day column's own header both set it; it drives the column emphasis, the `.mini-week-day[aria-pressed]` marker and the horizontal scroll, and it is cleared whenever the week moves) and the save status, which lives inside `useDebouncedSave` in the surface that persists (WeeklyReview, MonthlyReview, WeeklyObjectives) and is rendered by `SaveStatus`. `App.jsx` gained only two dialog flags — `pendingTaskDelete` (the id awaiting confirmation) and `noticeDialog` (the backup-failure notice) — neither of which is shared with a view.
 
 ## 4. The five main user flows
 
@@ -129,7 +146,7 @@ flowchart TD
     Done --> Reload
 ```
 
-Evidence: `src/components/CaptureLine.jsx` (capture, the `/` key, the D9 defaults; `src/components/captureDefaults.js` owns the localStorage key), `src/components/TodayView.jsx:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:152-184` (recurring status override logic), `src/App.jsx:202-211` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation). Stage 3 of `ui-modernization-calm-canvas` restyled this surface without moving any of that logic: the row markup, the focus-revealed `.tv-row-actions`, the `UndoToast` and the Radix `RadixPopover` shell are presentation only.
+Evidence: `src/components/CaptureLine.jsx` (capture, the `/` key, the D9 defaults; `src/components/captureDefaults.js` owns the localStorage key), `src/components/TodayView.jsx:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:152-184` (recurring status override logic), `src/App.jsx:202-211` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation). Stage 3 of `ui-modernization-calm-canvas` restyled this surface without moving any of that logic: the row markup, the focus-revealed `.tv-row-actions`, the `UndoToast` and the Radix `RadixPopover` shell are presentation only. **Stage 4** wired the Week view's two dead day-select controls (`DailyPlanner.handleSelectDay`, `DayColumn`'s header): activating a day in the week bar or a column's own header sets a view-local focused day that emphasises that column and scrolls it into view — no app state, no route (`design.md` §3 D7/D12 scope; F20).
 
 ### 4.2 Habit logging (one click, and the 409 trap)
 
@@ -165,15 +182,19 @@ Evidence: `src/components/HabitTracker.jsx` (`handleToggleToday` = one click, `h
 flowchart TD
     Sel["Week selector (‹ Prev / Next ›, 'This Week')"] --> Plan["Plan week = selected week"]
     Sel --> Rev["Review week = selected week − 1 (subWeeks(weekStartDate, 1))"]
+    Sel --> Lbl["Two explicit labels (stage 4, F35): 'Planning week Sep 21 – Sep 27, 2026' and 'Reviewed week Sep 14 – Sep 20, 2026' — neither is a parenthetical"]
     Plan --> Doc["GET/PUT /api/weekly-reviews?weekStart — cleanupTasks, gratitudeEntries, reflectionAnswers, weeklyGoals, syncFlags"]
-    Plan --> KE["Key-events day grid (7 day columns) for the plan week"]
+    Plan --> KE["Key-events day grid (7 day columns) for the plan week, labelled 'Key events — planning week <dates>'"]
     Plan --> Obj["Weekly objectives panel in the planner reads the same weekStart"]
-    Rev --> Hab["Habit chips: GET /api/habit-entries?from=reviewWeekStart&to=reviewWeekEnd"]
-    Doc --> Bridge["'Write weekly goals to DayFrame' → PUT /api/weekly-objectives (replaces the planner objectives)"]
-    Bridge --> Obj
+    Rev --> Hab["Habit chips: GET /api/habit-entries?from=reviewWeekStart&to=reviewWeekEnd, labelled 'Habits — reviewed week <dates>'"]
+    Doc --> Deb["One debounced writer (stage 4): 500 ms after the last keystroke, flushed on blur / week change / unmount → SaveStatus line (Saving… / Saved / Could not save — retry)"]
+    Doc --> Dlg2["ConfirmDialog (stage 4): 'Replace this week's objectives?' — Escape closes it without a write"]
+    Bridge["'Write weekly goals to DayFrame'"] --> Dlg2
+    Dlg2 --> BridgePut["PUT /api/weekly-objectives"]
+    BridgePut --> Obj
 ```
 
-Evidence: `src/components/WeeklyReview.jsx:292-327` (default = last Monday; `reviewWeekStart = subWeeks(weekStartDate, 1)`), `:343-345` (doc + reviewed-week habit fetch), `:512-528` (goals → `weekly_objectives` bridge, with an existing-objectives warning), `src/components/WeeklyObjectives.jsx:221-239`.
+Evidence: `src/components/WeeklyReview.jsx:292-327` (default = last Monday; `reviewWeekStart = subWeeks(weekStartDate, 1)`), `:343-345` (doc + reviewed-week habit fetch), `:512-528` (goals → `weekly_objectives` bridge, with an existing-objectives warning), `src/components/WeeklyObjectives.jsx:221-239`. **Stage 4** rewrote the write path without moving the period model: the same `weeklyReviewService.upsert(weekStart, doc)` payload is now handed to `useDebouncedSave` instead of firing per keystroke, week navigation awaits `flush()` before it moves the window, and the replacement warning is `ConfirmDialog` rather than `window.confirm`. Verified on the branch with the selected week at W = Sep 21–27: the habit fetch went out as `?from=2026-09-14&to=2026-09-20` (= W−1) while the document stayed on `?weekStart=2026-09-21`.
 
 ### 4.4 Monthly finance review
 
@@ -186,15 +207,15 @@ flowchart TD
     Gen -->|no, other month| Default["GET /by-month → unsaved default object"]
     Gen -->|yes| Detail["GET /by-month carries the base64 photo gallery"]
     Detail --> Check["Toggle checklist item → PATCH /:id/checklist/:itemId (pending → in_progress)"]
-    Detail --> Card["Per-card fields → PATCH /:id/card-entry/:cardId (7-field allow-list)"]
-    Detail --> Notes["Notes → PATCH /:id/notes"]
+    Detail --> Card["Per-card fields → PATCH /:id/card-entry/:cardId (7-field allow-list) — debounced (stage 4): merged per card, one PATCH 500 ms after typing stops"]
+    Detail --> Notes["Notes → PATCH /:id/notes — save on blur (kept), reported in the same status line"]
     Detail --> Photo["Paste photo (≤ 8 MB each) → PATCH /:id/images"]
     Detail --> Sync["POST /:id/sync-cards — re-align cardEntries with active financial_cards"]
     Detail --> Done2["POST /:id/complete (or /reopen)"]
     Cur -.-> RO["Any month that is not the current month is read-only in the UI (isReadOnly = selectedMonthKey !== current)"]
 ```
 
-Evidence: `server/routes/monthlyReviews.js:100-115` (list strips `images`; `/current` get-or-creates), `:118-130` (`/by-month`), `:190-232` (checklist / card-entry), `:271-288` (`images`), `:294-331` (`sync-cards`), `src/components/MonthlyReview.jsx:51` (`MAX_PHOTO_BYTES = 8 * 1024 * 1024`), `:218-219` (`isReadOnly`), `src/utils/checklistTemplate.js:11-57` (the 20-item, 5-section template).
+Evidence: `server/routes/monthlyReviews.js:100-115` (list strips `images`; `/current` get-or-creates), `:118-130` (`/by-month`), `:190-232` (checklist / card-entry), `:271-288` (`images`), `:294-331` (`sync-cards`), `src/components/MonthlyReview.jsx:51` (`MAX_PHOTO_BYTES = 8 * 1024 * 1024`), `:218-219` (`isReadOnly`), `src/utils/checklistTemplate.js:11-57` (the 20-item, 5-section template). **Stage 4 changed nothing in substance here**: `isReadOnly = selectedMonthKey !== currentMonthKey` still gates every write, the ≤8 MB cap and the read-only thumbnail + lightbox rules are untouched, and the paste zone still disappears on a non-current month. What changed is only *when* a typed card field is written — the per-card patches are merged into one object and sent 500 ms after typing stops (one PATCH per card, not one per keystroke) — plus the reserved status line in the header.
 
 ### 4.5 App bootstrap side effects (fires on every mount)
 
