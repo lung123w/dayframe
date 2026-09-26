@@ -17,6 +17,7 @@ import { isDateApplicable, formatTimeSpent, formatCount } from '../utils/habits'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import TimePopover from './TimePopover';
 import RepsPopover from './RepsPopover';
+import TooltipButton from './TooltipButton';
 import './HabitHeatmap.css';
 
 const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -125,9 +126,8 @@ export default function HabitHeatmap({ entries, frequency, color, trackType, onT
       // Already completed — toggle off (delete), no popover
       onToggleDate(cell.dateStr, 0);
     } else {
-      // Show time/reps popover
-      const rect = e.currentTarget.getBoundingClientRect();
-      setCellPopover({ dateStr: cell.dateStr, x: rect.right + 4, y: rect.top });
+      // Show the time/reps refinement popover, anchored to the cell
+      setCellPopover({ dateStr: cell.dateStr, el: e.currentTarget });
     }
   };
 
@@ -140,8 +140,7 @@ export default function HabitHeatmap({ entries, frequency, color, trackType, onT
     if (isCount) {
       return (
         <RepsPopover
-          x={cellPopover.x}
-          y={cellPopover.y}
+          anchorEl={cellPopover.el}
           onSave={onSave}
           onClose={() => setCellPopover(null)}
         />
@@ -149,8 +148,7 @@ export default function HabitHeatmap({ entries, frequency, color, trackType, onT
     }
     return (
       <TimePopover
-        x={cellPopover.x}
-        y={cellPopover.y}
+        anchorEl={cellPopover.el}
         onSave={onSave}
         onClose={() => setCellPopover(null)}
       />
@@ -172,13 +170,21 @@ export default function HabitHeatmap({ entries, frequency, color, trackType, onT
     <div className="habit-calendar">
       {expanded && (
         <div className="cal-header">
-          <button className="cal-nav-btn" onClick={() => setViewDate(prev => subMonths(prev, 1))}>
+          <TooltipButton
+            className="cal-nav-btn"
+            label="Previous month"
+            onClick={() => setViewDate(prev => subMonths(prev, 1))}
+          >
             <FaChevronLeft />
-          </button>
+          </TooltipButton>
           <span className="cal-month-title">{format(viewDate, 'MMMM yyyy')}</span>
-          <button className="cal-nav-btn" onClick={() => setViewDate(prev => addMonths(prev, 1))}>
+          <TooltipButton
+            className="cal-nav-btn"
+            label="Next month"
+            onClick={() => setViewDate(prev => addMonths(prev, 1))}
+          >
             <FaChevronRight />
-          </button>
+          </TooltipButton>
         </div>
       )}
 

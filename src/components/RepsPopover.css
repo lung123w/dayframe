@@ -1,59 +1,41 @@
-/* ── Reps Popover ── */
+/* ── Reps Popover — the reps refinement (Radix owns position) ── */
 
 .reps-popover {
-  position: fixed;
-  background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
-  padding: 12px 14px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  z-index: 1100;
+  padding: var(--space-3) var(--space-3);
   min-width: 200px;
-  animation: popover-fade-in 120ms ease-out;
-}
-
-@keyframes popover-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .reps-popover-label {
   display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748B;
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-2);
 }
 
 .reps-popover-row {
   display: flex;
   align-items: stretch;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .reps-popover-step {
   width: 36px;
-  background: #F1F5F9;
-  color: #1E293B;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
-  font-size: 18px;
-  font-weight: 700;
+  background: var(--surface-2);
+  color: var(--text-body);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  font-size: var(--font-body-lg);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background-color 150ms ease;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background-color var(--motion-state) var(--ease);
+  font-family: inherit;
 }
 
 .reps-popover-step:hover:not(:disabled) {
-  background: #E2E8F0;
+  background: var(--hairline);
 }
 
 .reps-popover-step:disabled {
@@ -63,46 +45,48 @@
 
 .reps-popover-input {
   flex: 1;
-  padding: 6px 10px;
-  font-size: 16px;
-  font-weight: 600;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-body-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: inherit;
+  color: var(--text-body);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
   text-align: center;
-  outline: none;
-  transition: border-color 150ms ease;
+  transition: border-color var(--motion-state) var(--ease);
   box-sizing: border-box;
   min-width: 0;
 }
 
 .reps-popover-input:focus {
-  border-color: #6366F1;
+  border-color: var(--accent);
 }
 
 .reps-popover-actions {
   display: flex;
-  gap: 6px;
-  margin-top: 8px;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .reps-popover-btn {
   flex: 1;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 6px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-control);
   cursor: pointer;
-  border: 1px solid #E2E8F0;
-  transition: all 150ms ease;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  border: var(--border);
+  transition: background-color var(--motion-state) var(--ease);
+  font-family: inherit;
 }
 
 .reps-popover-btn.save {
-  background: #6366F1;
-  color: white;
-  border-color: #6366F1;
+  background: var(--accent);
+  color: var(--surface);
+  border-color: var(--accent);
 }
 
 .reps-popover-btn.save:hover {
-  background: #4F46E5;
+  background: var(--accent-hover);
 }

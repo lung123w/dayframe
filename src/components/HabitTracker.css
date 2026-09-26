@@ -1,37 +1,32 @@
 .habit-tracker {
-  padding: 0 24px 24px;
+  padding: 0 var(--space-5) var(--space-5);
 }
 
 .habit-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .habit-empty {
   grid-column: 1 / -1;
   text-align: center;
-  color: #64748B;
-  padding: 48px 24px;
-  background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
+  color: var(--text-muted);
+  padding: var(--space-7) var(--space-5);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
 }
 
 .habit-card {
-  background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
-  padding: 16px 20px;
-  transition: box-shadow 150ms ease;
-}
-
-.habit-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
+  padding: var(--space-4);
 }
 
 .habit-card.expanded {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent);
 }
 
 .habit-card-header {
@@ -44,7 +39,7 @@
 .habit-card-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .habit-color-dot {
@@ -56,133 +51,143 @@
 
 .habit-name {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1E293B;
+  font-size: var(--font-section);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
 }
 
 .habit-streak {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #F97316;
+  gap: var(--space-1);
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-semibold);
+  color: var(--warning-text);
 }
 
 .habit-card-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .habit-frequency {
-  font-size: 12px;
-  color: #64748B;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
 }
 
 .habit-card-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
   flex-wrap: wrap;
 }
 
-.mark-done-wrapper {
-  position: relative;
-}
-
 .btn-sm {
-  padding: 4px 10px;
-  font-size: 12px;
-  border-radius: 6px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-meta);
+  border-radius: var(--radius-control);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   cursor: pointer;
-  font-weight: 500;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  border: 1px solid #E2E8F0;
-  transition: all 150ms ease;
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  border: var(--border);
+  transition: background-color var(--motion-state) var(--ease), border-color var(--motion-state) var(--ease);
 }
 
 .btn-success {
-  background: #10B981;
-  color: white;
-  border-color: #10B981;
+  background: var(--success);
+  color: var(--surface);
+  border-color: var(--success);
 }
 
 .btn-success:hover {
-  background: #059669;
+  background: var(--success-text);
+  border-color: var(--success-text);
 }
 
 .btn-outline {
-  background: white;
-  color: #1E293B;
+  background: var(--surface);
+  color: var(--text-body);
 }
 
 .btn-outline:hover {
-  border-color: #F97316;
-  color: #F97316;
+  border-color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .btn-danger {
-  background: #EF4444;
-  color: white;
-  border-color: #EF4444;
+  background: var(--error);
+  color: var(--surface);
+  border-color: var(--error);
 }
 
 .btn-danger:hover {
-  background: #DC2626;
+  background: var(--error-text);
+  border-color: var(--error-text);
 }
 
-.manual-time-input {
+/* Each habit row owns its own value field (F23 — the shared input is gone). */
+.habit-value-input {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .time-input {
-  width: 50px;
-  padding: 4px 6px;
-  font-size: 12px;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
+  width: 56px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-meta);
+  font-family: inherit;
+  color: var(--text-body);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
   text-align: center;
 }
 
 .today-time {
-  font-size: 12px;
-  color: #64748B;
-  margin-left: 4px;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+  margin-left: var(--space-1);
 }
 
 .habit-card .btn-icon {
-  color: #94A3B8;
+  color: var(--text-subtle);
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-control);
 }
 
-.habit-card .btn-icon:hover {
-  background: #F1F5F9;
-  color: #1E293B;
+.habit-card .btn-icon:hover,
+.habit-card .btn-icon:focus-visible {
+  background: var(--surface-2);
+  color: var(--text-body);
 }
 
 .habit-card-heatmap {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #F1F5F9;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--border);
   overflow-x: auto;
 }
 
 .habit-card-expanded {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #E2E8F0;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--border);
 }
 
 .habit-stats {
   display: flex;
-  gap: 24px;
+  gap: var(--space-5);
 }
 
 .habit-stat {
@@ -192,26 +197,32 @@
 }
 
 .habit-stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1E293B;
+  font-size: var(--font-section);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
 }
 
 .habit-stat-label {
-  font-size: 11px;
-  color: #64748B;
+  font-size: var(--font-label);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .habit-description {
-  margin-top: 12px;
-  font-size: 13px;
-  color: #64748B;
-  line-height: 1.5;
+  margin-top: var(--space-3);
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+  line-height: var(--font-leading-body);
 }
 
-/* Undo delete toast */
+.stat-value--success {
+  color: var(--success-text);
+}
+
+/* Undo delete toast — unchanged (card §3.6: the habit-delete undo stays where
+   it is; the Today row undo is the shared `UndoToast` component). */
 .undo-toast {
   position: fixed;
   bottom: 24px;

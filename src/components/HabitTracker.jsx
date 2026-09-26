@@ -3,12 +3,23 @@ import { format } from 'date-fns';
 import { FaPlus, FaFire, FaCheck, FaClock, FaEdit, FaUndo } from 'react-icons/fa';
 import HabitHeatmap from './HabitHeatmap';
 import HabitModal from './HabitModal';
-import TimePopover from './TimePopover';
-import RepsPopover from './RepsPopover';
+import TooltipButton from './TooltipButton';
 import { habitService, habitEntryService } from '../api';
 import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent, formatCount, getEntryValue, getTrackType } from '../utils/habits';
 import './HabitTracker.css';
 
+/**
+ * The Habits view (stage 3 of `ui-modernization-calm-canvas`).
+ *
+ * - One activation on a not-done habit writes the day with zero minutes; a
+ *   second activation deletes the day's entry. No popover stands in the way of
+ *   logging (the spec's "Logging a habit is one action").
+ * - Each row owns its own value field: the old single shared minutes input is
+ *   gone, so typing in one row cannot change another (F23).
+ * - The value field + Log is the refinement path: it PUTs an entry that
+ *   already exists and POSTs only when the day has no entry at all, so the day
+ *   is never written twice (ADR-008's 409).
+ */
 export default function HabitTracker() {
   const [habits, setHabits] = useState([]);
   const [entriesByHabit, setEntriesByHabit] = useState({});
@@ -16,15 +27,12 @@ export default function HabitTracker() {
   const [showModal, setShowModal] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
 
-  // Manual time input
-  const [manualMinutes, setManualMinutes] = useState('');
+  // Per-row refinement values — one entry per habit id, never shared.
+  const [rowValues, setRowValues] = useState({});
 
   // Undo delete state
   const [pendingDelete, setPendingDelete] = useState(null);
   const deleteTimerRef = useRef(null);
-
-  // "Mark Done" popover state
-  const [todayPopover, setTodayPopover] = useState(null); // { habitId, x, y }
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -77,6 +85,7 @@ export default function HabitTracker() {
     };
   }, []);
 
+  // One activation: write the day with zero minutes, or unmark it.
   const handleToggleToday = async (habit, value = 0) => {
     try {
       const entries = entriesByHabit[habit.id] || [];
@@ -96,10 +105,14 @@ export default function HabitTracker() {
     }
   };
 
-  const handleLogManualTime = async (habitId) => {
+  const handleRowValueChange = (habitId, value) => {
+    setRowValues(prev => ({ ...prev, [habitId]: value }));
+  };
+
+  const handleLogRowValue = async (habitId) => {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
-    const raw = parseInt(manualMinutes);
+    const raw = parseInt(rowValues[habitId], 10);
     if (!raw || raw <= 0) return;
     const isCount = getTrackType(habit) === 'count';
 
@@ -134,7 +147,7 @@ export default function HabitTracker() {
         }
       }
 
-      setManualMinutes('');
+      setRowValues(prev => ({ ...prev, [habitId]: '' }));
       await loadData();
     } catch (err) {
       console.error('Failed to log manual time:', err);
@@ -269,7 +282,7 @@ export default function HabitTracker() {
             </div>
             <div className="stat-card">
               <span className="stat-label">Done Today</span>
-              <span className="stat-value" style={{ color: '#10B981' }}>
+              <span className="stat-value stat-value--success">
                 {habits.filter(h => (entriesByHabit[h.id] || []).some(e => e.date === today)).length}
               </span>
             </div>
@@ -292,10 +305,12 @@ export default function HabitTracker() {
           const isCount = getTrackType(habit) === 'count';
           const totalValue = entries.reduce((sum, e) => sum + getEntryValue(e, habit), 0);
           const isExpanded = expandedHabitId === habit.id;
+          const rowValue = rowValues[habit.id] ?? '';
+          const valueUnit = isCount ? 'reps' : 'minutes';
 
           return (
             <div key={habit.id} className={`habit-card ${isExpanded ? 'expanded' : ''}`}>
-              <div className="habit-card-header" onClick={() => { setExpandedHabitId(isExpanded ? null : habit.id); setManualMinutes(''); }}>
+              <div className="habit-card-header" onClick={() => { setExpandedHabitId(isExpanded ? null : habit.id); }}>
                 <div className="habit-card-info">
                   <span className="habit-color-dot" style={{ backgroundColor: habit.color }} />
                   <h3 className="habit-name">{habit.name}</h3>
@@ -307,74 +322,43 @@ export default function HabitTracker() {
                 </div>
                 <div className="habit-card-meta">
                   <span className="habit-frequency">{getFrequencyLabel(habit.frequency)}</span>
-                  <button
+                  <TooltipButton
+                    label="Edit habit"
                     className="btn-icon"
                     onClick={(e) => { e.stopPropagation(); openEditModal(habit); }}
-                    title="Edit habit"
                   >
                     <FaEdit />
-                  </button>
+                  </TooltipButton>
                 </div>
               </div>
 
               <div className="habit-card-actions">
-                <div className="mark-done-wrapper" onClick={e => e.stopPropagation()}>
-                  <button
-                    className={`btn btn-sm ${todayEntry ? 'btn-success' : 'btn-outline'}`}
-                    onClick={(e) => {
-                      if (todayEntry) {
-                        // Already done — toggle off (delete), no popover
-                        handleToggleToday(habit);
-                      } else {
-                        // Show time popover
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setTodayPopover({ habitId: habit.id, x: rect.left, y: rect.bottom + 4 });
-                      }
-                    }}
-                  >
-                    <FaCheck /> {todayEntry ? 'Done' : 'Mark Done'}
-                  </button>
-                  {todayPopover && todayPopover.habitId === habit.id && (
-                    isCount ? (
-                      <RepsPopover
-                        x={todayPopover.x}
-                        y={todayPopover.y}
-                        onSave={(reps) => {
-                          handleToggleToday(habit, reps);
-                          setTodayPopover(null);
-                        }}
-                        onClose={() => setTodayPopover(null)}
-                      />
-                    ) : (
-                      <TimePopover
-                        x={todayPopover.x}
-                        y={todayPopover.y}
-                        onSave={(seconds) => {
-                          handleToggleToday(habit, seconds);
-                          setTodayPopover(null);
-                        }}
-                        onClose={() => setTodayPopover(null)}
-                      />
-                    )
-                  )}
-                </div>
+                <button
+                  className={`btn btn-sm ${todayEntry ? 'btn-success' : 'btn-outline'}`}
+                  aria-pressed={!!todayEntry}
+                  aria-label={todayEntry ? `Unmark ${habit.name} for today` : `Mark ${habit.name} done`}
+                  onClick={() => handleToggleToday(habit)}
+                >
+                  <FaCheck /> {todayEntry ? 'Done' : 'Mark Done'}
+                </button>
 
-                <div className="manual-time-input" onClick={e => e.stopPropagation()}>
+                <div className="habit-value-input">
                   <input
                     type="number"
                     min="1"
                     placeholder={isCount ? 'reps' : 'min'}
-                    value={manualMinutes}
-                    onChange={e => setManualMinutes(e.target.value)}
+                    aria-label={`${habit.name} ${valueUnit} today`}
+                    value={rowValue}
+                    onChange={e => handleRowValueChange(habit.id, e.target.value)}
                     className="time-input"
                   />
-                  <button
+                  <TooltipButton
+                    label={isCount ? `Add reps to ${habit.name}` : `Add time to ${habit.name}`}
                     className="btn btn-sm btn-outline"
-                    onClick={() => handleLogManualTime(habit.id)}
-                    title={isCount ? 'Add reps' : 'Log time'}
+                    onClick={() => handleLogRowValue(habit.id)}
                   >
                     <FaClock />
-                  </button>
+                  </TooltipButton>
                 </div>
 
                 {todayEntry && getEntryValue(todayEntry, habit) > 0 && (

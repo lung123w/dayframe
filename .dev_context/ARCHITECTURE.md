@@ -1,6 +1,6 @@
 # DayFrame — Architecture
 
-Owner: `df-lead` · Last updated: 2026-09-25 (v1.3 — §1 styling line added by card `t_65d60fc8`, stage 1 of `ui-modernization-calm-canvas`: the CSS-custom-property token layer is the styling substrate; v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
+Owner: `df-lead` · Last updated: 2026-09-26 (v1.4 — §2 Today's children + the habit rail, §4.1 the day loop and §4.2 the habit write path revised by card `t_7fd24929`, stage 3 of `ui-modernization-calm-canvas`: rows instead of cards, focus-reachable row actions, one 5-second undo, one-click habit logging; v1.3 — §1 styling line added by card `t_65d60fc8`, stage 1 of `ui-modernization-calm-canvas`: the CSS-custom-property token layer is the styling substrate; v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
 
 DayFrame is Anderson's personal task / habit / review app. Local-first, single user, no authentication.
 Everything runs on one Windows machine; the browser is the only client.
@@ -40,8 +40,10 @@ graph TD
     App --> Modals["App-level modals: TaskModal · ProjectModal"]
 
     Today --> Timeline["DailyTimeline.jsx"]
-    Today --> PHPanel["PlannerHabitsPanel.jsx — today's habits + DailyWorkflow"]
+    Today --> PHPanel["PlannerHabitsPanel.jsx — today's habits (collapsed rail) + DailyWorkflow"]
     Today --> Defer["DeferPopover.jsx"]
+    Today --> Undo["UndoToast.jsx — one 5-second undo for complete / defer / reorder"]
+    Today --> RowAct["TooltipButton.jsx — tooltipped icon actions (move up/down, edit)"]
 
     Planner --> Mini["MiniWeekBar.jsx"]
     Planner --> DayCol["DayColumn.jsx (×7)"]
@@ -51,9 +53,12 @@ graph TD
 
     Habits --> Heatmap["HabitHeatmap.jsx"]
     Habits --> HModal["HabitModal.jsx"]
-    Heatmap --> TP["TimePopover.jsx"]
-    Heatmap --> RP["RepsPopover.jsx"]
+    Heatmap --> TP["TimePopover.jsx — Radix popover"]
+    Heatmap --> RP["RepsPopover.jsx — Radix popover"]
     PHPanel --> TP
+    TP --> Pop["RadixPopover.jsx — the one popover shell (Radix anchor + portal + viewport clamping)"]
+    RP --> Pop
+    Defer --> Pop
     PHPanel --> Workflow["DailyWorkflow.jsx"]
 
     Finance --> Cards["FinancialCards.jsx"]
@@ -75,6 +80,7 @@ Notes verified against the import graph:
 - The planner view is also wrapped by an App-level toolbar (New Task / New Project / Total-Done-Pending stats) rendered in `App.jsx:346-375`.
 - **Deleted in stage 0 of `ui-modernization-calm-canvas`** (ADR-012; card `t_aa4715eb`, branch `feat/ui-s0-dead-code`): `Calendar.jsx`/`.css`, `DayPanel.jsx`/`.css`, `OutstandingTasks.jsx`/`.css`, `DailyShutdown.jsx`/`.css` — four components with 0 importers, 1,828 CSS lines (`Calendar.css` 916, `DayPanel.css` 486, `OutstandingTasks.css` 353, `DailyShutdown.css` 73). `DailyShutdown` was **deleted, not revived** (`design.md` §4/D8): the `daily_notes` rows, the table and `GET/PUT /api/daily-notes` are untouched, so no data was removed, and the audit's F42 (a daily close-out ritual) stays an **open item** for a later change once Today's rows have landed. The `vi.mock('../components/DailyShutdown', …)` that was its last remaining reference went with it. `package.json` was **not** touched — `@fullcalendar/*` is now an unused declared dependency, and removing it is its own decision.
 - **The shell, stage 2 of `ui-modernization-calm-canvas`** (ADR-012; card `t_5d2bcf9d`, branch `feat/ui-s2-shell`): `Sidebar.jsx`/`.css` were renamed to `TopStrip.jsx`/`.css` (`git mv`) and now render one ~52px top strip — the app name plus the period as the page title, four text destinations (Today · Week · Habits · Review) and a Radix `dropdown-menu` "More" overflow holding Finance / Projects / Backup / Notifications. All six views stay reachable at 1440 / 768 / 420px, which closes F16 (the rail was `display: none` below 768px). `CaptureLine.jsx`/`.css` is mounted **once**, by `App.jsx` in `.app-chrome` directly under the strip, so quick capture is a shell element: `TodayView.jsx` no longer renders an input of its own. `src/components/captureDefaults.js` owns the client-only D9 preference (`localStorage['dayframe.captureDefaults']`) — no API, schema or settings-row change.
+- **Today + habits, stage 3 of `ui-modernization-calm-canvas`** (ADR-012; card `t_7fd24929`, branch `feat/ui-s3-today-habits`): the Today list, the Week view's day columns and the backlog render **rows** (one line per entry, hairline separated, title at body size, metadata in one muted size) instead of cards — no card fill, no left colour stripe, no shadow. Row actions (move up/down, defer, edit) are revealed on **focus** as well as hover and are always visible where `@media (hover: none)` matches, so nothing is hover-only (audit F10); the up/down arrows remain as the touch reorder controls. Completing, deferring or reordering a row offers **one** 5-second undo (`UndoToast.jsx`, the pattern of `HabitTracker.css:215-242` — the habit-delete toast is untouched). The three hand-rolled popovers (`TimePopover`, `RepsPopover`, `DeferPopover`) and the heat-map popover now render through `RadixPopover.jsx`, a thin `@radix-ui/react-popover` shell that owns the anchor, the portal and the viewport clamping; icon-only buttons use `TooltipButton.jsx` (`@radix-ui/react-tooltip`, `aria-label` kept as the accessible name). The Today habit rail is collapsed to one "N of M done" line until it is activated (view-local state) and one activation on a not-done row writes the day with zero minutes.
 
 ## 3. State ownership
 
@@ -114,17 +120,18 @@ flowchart LR
 ```mermaid
 flowchart TD
     Start["Open app (default view: today — the cold open)"] --> Capture["Shell capture line (CaptureLine.jsx), present on every view: type + Enter → POST /api/tasks with dueDate = today (Hong Kong, computed at run time) and status = pending; the / key focuses it; D9 capture defaults are read from localStorage"]
-    Capture --> List["Today list = tasks due today (recurring expanded via generateRecurringTasks) + overdue pending tasks"]
+    Capture --> List["Today list = rows (stage 3), not cards: tasks due today (recurring expanded via generateRecurringTasks) + overdue pending tasks; a row takes focus (tabIndex 0) and its actions appear on focus or hover — and always where hover is unavailable"]
     List --> Pull["'Pull to today' rewrites every overdue task's dueDate to today (Promise.all of PUTs)"]
-    List --> Order["Drag to reorder → PUT /api/settings/todayOrder + PUT sortOrder on each real task"]
-    List --> Done["Toggle status → PUT /api/tasks/:id (recurring instance ⇒ statusOverrides / statusFromOverrides instead)"]
+    List --> Order["Drag to reorder, or the row's up/down text arrows (touch) → PUT /api/settings/todayOrder + PUT sortOrder on each real task; the row toast offers a 5-second undo"]
+    List --> Done["Toggle status → PUT /api/tasks/:id (recurring instance ⇒ statusOverrides / statusFromOverrides instead); the row toast offers a 5-second undo"]
+    List --> DeferR["Defer → taskService.update(dueDate) via the Radix DeferPopover; undo restores the previous dueDate"]
     Order --> Reload["App.loadData() — full refetch of 7 collections"]
     Done --> Reload
 ```
 
-Evidence: `src/components/CaptureLine.jsx` (capture, the `/` key, the D9 defaults; `src/components/captureDefaults.js` owns the localStorage key), `src/components/TodayView.jsx:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:152-184` (recurring status override logic), `src/App.jsx:202-211` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation).
+Evidence: `src/components/CaptureLine.jsx` (capture, the `/` key, the D9 defaults; `src/components/captureDefaults.js` owns the localStorage key), `src/components/TodayView.jsx:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:152-184` (recurring status override logic), `src/App.jsx:202-211` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation). Stage 3 of `ui-modernization-calm-canvas` restyled this surface without moving any of that logic: the row markup, the focus-revealed `.tv-row-actions`, the `UndoToast` and the Radix `RadixPopover` shell are presentation only.
 
-### 4.2 Habit logging (the write path with a trap)
+### 4.2 Habit logging (one click, and the 409 trap)
 
 ```mermaid
 sequenceDiagram
@@ -134,20 +141,23 @@ sequenceDiagram
     participant E as routes/habitEntries.js
     participant D as SQLite
 
-    U->>V: log duration / reps for a date
-    V->>E: GET /api/habit-entries?habitId&from&to
-    E-->>V: existing entry? (id, date, timeSpentSeconds)
-    alt entry exists
-        V->>E: PUT /:id (replace value) or DELETE /by-date then POST
-    else no entry
-        V->>E: POST /api/habit-entries
+    U->>V: one activation on a not-done habit row (Today rail or Habits view)
+    V->>E: POST /api/habit-entries {habitId, date: today, timeSpentSeconds: 0}
+    E->>D: INSERT (UNIQUE(habitId, date))
+    Note over V: no popover, no confirmation — the day is logged with zero minutes
+    U->>V: optional refinement (the row's Time/Reps action, or the row's own value field + Log)
+    alt entry exists (it always does after the one-click write)
+        V->>E: PUT /api/habit-entries/:id (replace the value)
+    else no entry at all (value field used first)
+        V->>E: POST /api/habit-entries {..., timeSpentSeconds: value}
     end
-    E->>D: INSERT / UPDATE (UNIQUE(habitId, date))
-    Note over E: a second POST for the same day is refused with HTTP 409<br/>"Entry already exists…" — the stale value survives
+    U->>V: second activation on a done row
+    V->>E: DELETE /api/habit-entries/by-date?habitId&date
+    Note over E: a second POST for the same day is refused with HTTP 409<br/>"Entry already exists…" — the stale value survives ADR-008
     V->>V: reload entries, recompute streak (calculateCurrentStreak)
 ```
 
-Evidence: `src/components/HabitTracker.jsx:80-97` (toggle/delete path), `server/routes/habitEntries.js:31-49` (409 on conflict), `:52-63` (PUT), `:66-70` (delete by date), `src/utils/habits.js:39-85` (streaks).
+Evidence: `src/components/HabitTracker.jsx` (`handleToggleToday` = one click, `handleLogRowValue` = the per-row refinement, one value field per row), `src/components/PlannerHabitsPanel.jsx` (`handleToggleToday` / `handleRefineToday`, collapsed rail), `server/routes/habitEntries.js:31-49` (409 on conflict), `:52-63` (PUT), `:66-70` (delete by date), `src/utils/habits.js:39-85` (streaks). **The 409 trap is unchanged and still the reason the refinement PUTs instead of POSTing**: a second POST for the same day does not update — it answers 409 and the stale value survives (ADR-008). `count` stays inert (ADR-011).
 
 ### 4.3 Weekly review + planning (one selector, two weeks)
 

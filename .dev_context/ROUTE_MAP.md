@@ -1,6 +1,6 @@
 # DayFrame — Route Map
 
-Owner: `df-lead` · Last updated: 2026-09-24 (v1.2 — §1 revised by card `t_aa4715eb`, stage 0 of `ui-modernization-calm-canvas`: the four dead components and their stylesheets are deleted; every verb, mount and period parameter still re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`)
+Owner: `df-lead` · Last updated: 2026-09-26 (v1.3 — §1 revised by card `t_7fd24929`, stage 3 of `ui-modernization-calm-canvas`: rows on Today / the Week day columns / the backlog, focus-reachable row actions, one-click habit logging and the Radix popover + tooltip owners; v1.2 — §1 revised by card `t_aa4715eb`, stage 0 of `ui-modernization-calm-canvas`: the four dead components and their stylesheets are deleted; every verb, mount and period parameter still re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`)
 
 ## 1. UI surfaces
 
@@ -8,11 +8,13 @@ There is **no client-side router**. `App.jsx` holds `activeView` and renders one
 
 **Stage 2 of `ui-modernization-calm-canvas` (ADR-012)** replaced the 220px rail (`Sidebar.jsx`/`.css`, now `TopStrip.jsx`/`.css`) with the strip: four text destinations (Today · Week · Habits · Review) plus a **"More" overflow** built on `@radix-ui/react-dropdown-menu` holding Finance · Projects · Backup · Notifications. That also closes the audit's F16 mobile dead end — the old rail was `display: none` below 768px (`Sidebar.css:93-98`), while the strip is one responsive row that wraps and keeps all six views reachable at 1440 / 768 / 420px.
 
+**Stage 3 of `ui-modernization-calm-canvas` (ADR-012)** turns the list surfaces into rows: Today, the Week view's day columns and the backlog render one hairline-separated line per entry (title at body size, right-aligned muted metadata) with no card fill, colour stripe or shadow, and every row action (move up/down, defer, edit) is reachable by keyboard focus and by touch — the actions appear on `:focus-within` as well as `:hover`, and are always visible where `@media (hover: none)` matches, so no row action depends on hover alone (F10). Popovers in these surfaces are Radix: `TimePopover`, `RepsPopover`, `DeferPopover` and the heat-map popover render through `RadixPopover.jsx` (viewport clamping, portal, Escape and outside dismissal), and icon-only actions use `TooltipButton.jsx`. Logging a habit is one action: a single activation on a not-done row writes the day with zero minutes and the duration is an optional in-place refinement (PUT), never a second POST (ADR-008's 409).
+
 | View (`activeView`) | Component | What it is |
 |---|---|---|
-| `today` | `TodayView.jsx` (+ `DailyTimeline`, `PlannerHabitsPanel`, `DeferPopover`) | Today's tasks, overdue pull-to-today, per-day ordering (`todayOrder`), today's habits + daily workflow. **Quick capture is no longer here** — it is the shell's `CaptureLine.jsx` (stage 2), which writes `dueDate = today` and lands in this list |
-| `planner` | `DailyPlanner.jsx` (+ `MiniWeekBar`, 7× `DayColumn`, `BacklogSidebar`, `YearlyGoals`, `WeeklyObjectives`) | Week/day time-block planner; yearly goals; weekly objectives + a key-events day grid. An App-level toolbar (`App.jsx:346-375`) adds New Task / New Project / Total-Done-Pending stats |
-| `habits` | `HabitTracker.jsx` (+ `HabitHeatmap`, `HabitModal`, `TimePopover`, `RepsPopover`) | Habit list with streak counts, heatmap, per-day logging. Fetches its own data (no props from `App.jsx`); `GET /api/habits` returns non-archived habits only |
+| `today` | `TodayView.jsx` (+ `DailyTimeline`, `PlannerHabitsPanel`, `DeferPopover`, `UndoToast`) | Today's tasks **as hairline-separated rows** (stage 3: one line per task, a completion circle, the title at body size, right-aligned muted metadata), overdue pull-to-today, per-day ordering (`todayOrder`), a 5-second undo for complete / defer / reorder, today's habits (collapsed to one "N of M done" line until activated) + daily workflow. **Quick capture is no longer here** — it is the shell's `CaptureLine.jsx` (stage 2), which writes `dueDate = today` and lands in this list |
+| `planner` | `DailyPlanner.jsx` (+ `MiniWeekBar`, 7× `DayColumn`, `BacklogSidebar`, `YearlyGoals`, `WeeklyObjectives`) | Week/day time-block planner; the day columns and the backlog render rows too (stage 3); yearly goals; weekly objectives + a key-events day grid. An App-level toolbar (`App.jsx:346-375`) adds New Task / New Project / Total-Done-Pending stats |
+| `habits` | `HabitTracker.jsx` (+ `HabitHeatmap`, `HabitModal`, `TimePopover`, `RepsPopover`) | Habit list with streak counts, heatmap, per-day logging. One activation on a not-done habit writes the day with zero minutes; each row owns its own value field for the duration/reps refinement (the shared minutes input is gone, F23). Fetches its own data (no props from `App.jsx`); `GET /api/habits` returns non-archived habits only |
 | `projects` | `ProjectsView.jsx` | Projects: list + create / edit / delete (props only, no child components). The backlog lives in the **planner**, not here (`BacklogSidebar` is a child of `DailyPlanner`) |
 | `review` | `WeeklyReview.jsx` | Weekly review + planning in 3 sections (Weekly Miscellaneous Cleanup · Weekly Gratitude · Weekly Goal Setup incl. reflection prompts, goal list and the key-events day grid). No child components. |
 | `finance` | `MonthlyReview.jsx` (+ `FinancialCards`) | Monthly finance review: checklist, per-card payment entries, notes, photos (paste), reference panel |
@@ -23,8 +25,11 @@ Modals / popovers and **who actually renders them** (verified by the import grap
 |---|---|
 | `TaskModal`, `ProjectModal` | `App.jsx:429-457` |
 | `HabitModal` | `HabitTracker.jsx:5` |
-| `DeferPopover` | `TodayView.jsx:5` |
-| `TimePopover`, `RepsPopover` | `HabitTracker`, `HabitHeatmap`, `PlannerHabitsPanel` |
+| `DeferPopover` | `TodayView.jsx` — rendered per row inside `.tv-row-actions`, with the row's "Defer" text action as its Radix trigger |
+| `TimePopover`, `RepsPopover` | `HabitTracker` (heat-map cells), `PlannerHabitsPanel` (`HabitHeatmap` cells + the rail's per-row Time/Reps refinement) |
+| `RadixPopover` | the one popover shell (stage 3): every popover above renders through it, so Radix owns the anchor, the portal and the viewport clamping |
+| `TooltipButton` | the icon-only row actions in `TodayView`, `DayColumn`, `HabitTracker`, `HabitHeatmap` — the tooltip replaces `title=`, `aria-label` stays the accessible name |
+| `UndoToast` | `TodayView` — the single 5-second undo for complete / defer / reorder (the habit-delete toast in `HabitTracker` is separate and untouched) |
 | `RichTextEditor` | `TaskModal`, `YearlyGoals` |
 
 **Deleted in stage 0 of `ui-modernization-calm-canvas` (ADR-012; card `t_aa4715eb`, branch `feat/ui-s0-dead-code`):** `Calendar.jsx`/`.css`, `DayPanel.jsx`/`.css`, `OutstandingTasks.jsx`/`.css`, `DailyShutdown.jsx`/`.css` — four components and 1,828 lines of CSS, imported by no live component. `DailyShutdown` is **deleted, not revived** (`design.md` §4/D8): `/api/daily-notes` and its rows are untouched (see §2) and the audit's F42 close-out ritual stays an open item.

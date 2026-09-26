@@ -1,27 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import RadixPopover from './RadixPopover';
 import './RepsPopover.css';
 
-export default function RepsPopover({ x, y, onSave, onClose, initialValue = 0 }) {
+/**
+ * The reps refinement. `count` is inert on the server (ADR-011) — this
+ * component and its call sites are restyled here, never "fixed".
+ */
+export default function RepsPopover({ anchorEl, point, onSave, onClose, initialValue = 0 }) {
   const [count, setCount] = useState(() => {
     const n = Number(initialValue);
     return Number.isFinite(n) && n > 0 ? n : 0;
   });
-  const ref = useRef(null);
   const inputRef = useRef(null);
+  const inputId = useId();
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
-        onClose();
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [onClose]);
 
   const clamp = (n) => (Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0);
 
@@ -49,8 +44,8 @@ export default function RepsPopover({ x, y, onSave, onClose, initialValue = 0 })
   };
 
   return (
-    <div className="reps-popover" ref={ref} style={{ left: x, top: y }}>
-      <label className="reps-popover-label" htmlFor="reps-popover-input">Reps</label>
+    <RadixPopover anchorEl={anchorEl} point={point} className="reps-popover" onClose={onClose}>
+      <label className="reps-popover-label" htmlFor={inputId}>Reps</label>
       <div className="reps-popover-row">
         <button
           type="button"
@@ -62,7 +57,7 @@ export default function RepsPopover({ x, y, onSave, onClose, initialValue = 0 })
           −
         </button>
         <input
-          id="reps-popover-input"
+          id={inputId}
           ref={inputRef}
           type="number"
           min="0"
@@ -83,6 +78,6 @@ export default function RepsPopover({ x, y, onSave, onClose, initialValue = 0 })
       <div className="reps-popover-actions">
         <button className="reps-popover-btn save" onClick={handleSave}>Save</button>
       </div>
-    </div>
+    </RadixPopover>
   );
 }
