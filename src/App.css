@@ -7,14 +7,18 @@
    so the shell can no longer win a race against them, and the ground is the
    one `index.css` declares.
 
-   Stage 2 of `ui-modernization-calm-canvas` (ADR-012) repainted the shell: the
+   Stage 2 of `ui-modernization-calm-canvas` (ADR-013) repainted the shell: the
    220px rail is now a 52px top strip plus the capture line (`.app-chrome`), the
    layout is a column, and the toolbar below is on the token layer. The
    `.project-chip*`, `.filter-*` and `.calendar-day-layout*` rules removed here
-   had no importer left (the calendar components went in stage 0); the
-   fill-based `.btn-blue` / `.btn-success` / `.btn-danger` variants keep their
-   literal hexes — each carries a white-on-fill contrast decision that has no
-   token yet, and stage 4 owns them.
+   had no importer left (the calendar components went in stage 0).
+
+   The fill-based `.btn-success` / `.btn-danger` variants carried literals for
+   one more stage ("a white-on-fill contrast decision that has no token yet").
+   The token sweep (card `t_e904b822`) retired them: both variants now read the
+   same way as `HabitTracker.css`'s — the fill is the state token, the ink is
+   `--surface` (the palette's white), and the hover step is the darker
+   `*-text` companion D4 derived.
    ========================================================================== */
 
 /* ── LAYOUT ── */
@@ -121,10 +125,10 @@
   text-decoration: none;
 }
 
-/* Primary = the reserved accent (ADR-012: the orange CTA is retired) */
+/* Primary = the reserved accent (ADR-013: the orange CTA is retired) */
 .btn-primary {
   background: var(--accent);
-  color: #FFFFFF;
+  color: var(--surface);
   border-color: var(--accent);
 }
 
@@ -146,29 +150,30 @@
   color: var(--text-heading);
 }
 
-/* Fill-based variants — literal until stage 4 gives them a token pair
-   (white text needs a darker fill than `--success`/`--error` provide). */
+/* Fill-based variants — the success fill is `--success`, and its hover step is
+   the darker `--success-text` so white ink keeps its contrast (the same pairing
+   `HabitTracker.css` ships). */
 .btn-success {
-  background: #16A34A;
-  color: white;
-  border-color: #16A34A;
+  background: var(--success);
+  color: var(--surface);
+  border-color: var(--success);
 }
 
 .btn-success:hover {
-  background: #15803D;
-  border-color: #15803D;
+  background: var(--success-text);
+  border-color: var(--success-text);
 }
 
 .btn-danger {
   background: var(--surface);
-  color: #DC2626;
-  border-color: #FECACA;
+  color: var(--error);
+  border-color: var(--error-soft);
 }
 
 .btn-danger:hover {
-  background: #DC2626;
-  color: white;
-  border-color: #DC2626;
+  background: var(--error);
+  color: var(--surface);
+  border-color: var(--error);
 }
 
 /* ── RESPONSIVE ── */

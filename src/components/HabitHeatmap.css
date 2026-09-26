@@ -1,4 +1,10 @@
-/* ── Habit Calendar (monthly grid) ── */
+/* ── Habit Calendar (monthly grid) ──
+   Repainted onto the token layer by the sweep (card `t_e904b822`, spec
+   `ui-presentation-system`). Two notes: the palette has no sub-4.5:1 text tone
+   by design (D4 bans the light slate-400 tone as text), so the padding/rest-day
+   numbers keep their de-emphasis through `opacity` over `--text-subtle` rather
+   than through a lighter literal; and the tooltip is an overlay, so it takes
+   the system's one shadow, `--shadow-overlay`. */
 
 .habit-calendar {
   position: relative;
@@ -15,30 +21,30 @@
 }
 
 .cal-month-title {
-  font-size: 14px;
+  font-size: var(--font-row);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-body);
   min-width: 140px;
   text-align: center;
 }
 
 .cal-nav-btn {
   background: transparent;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
+  border: var(--border);
+  border-radius: var(--radius-control);
   padding: 4px 8px;
   cursor: pointer;
-  color: #64748B;
-  font-size: 12px;
+  color: var(--text-muted);
+  font-size: var(--font-meta);
   display: flex;
   align-items: center;
-  transition: all 150ms ease;
+  transition: all var(--motion-state) var(--ease);
 }
 
 .cal-nav-btn:hover {
-  border-color: #CBD5E1;
-  color: #1E293B;
-  background: #F8FAFC;
+  border-color: var(--text-subtle);
+  color: var(--text-body);
+  background: var(--surface-2);
 }
 
 /* 7-column grid */
@@ -51,9 +57,9 @@
 /* Day-of-week headers */
 .cal-day-header {
   text-align: center;
-  font-size: 11px;
+  font-size: var(--font-label);
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 4px 0;
@@ -63,12 +69,12 @@
 .cal-cell {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: opacity 150ms ease, background-color 150ms ease;
+  transition: opacity var(--motion-state) var(--ease), background-color var(--motion-state) var(--ease);
 }
 
 .cal-cell:hover {
@@ -76,9 +82,9 @@
 }
 
 .cal-day-num {
-  font-size: 12px;
+  font-size: var(--font-meta);
   font-weight: 500;
-  color: #334155;
+  color: var(--text-body);
   position: relative;
   z-index: 1;
 }
@@ -89,7 +95,8 @@
 }
 
 .cal-cell.outside-month .cal-day-num {
-  color: #CBD5E1;
+  color: var(--text-subtle);
+  opacity: 0.5;
 }
 
 .cal-cell.outside-month:hover {
@@ -98,12 +105,12 @@
 
 /* Future cells */
 .cal-cell.future {
-  background: #F8FAFC;
+  background: var(--surface-2);
   cursor: default;
 }
 
 .cal-cell.future .cal-day-num {
-  color: #94A3B8;
+  color: var(--text-subtle);
 }
 
 .cal-cell.future:hover {
@@ -113,12 +120,13 @@
 /* Not-applicable cells (rest days) */
 .cal-cell.not-applicable {
   background: transparent;
-  border: 1px dashed #E2E8F0;
+  border: 1px dashed var(--hairline);
   cursor: default;
 }
 
 .cal-cell.not-applicable .cal-day-num {
-  color: #CBD5E1;
+  color: var(--text-subtle);
+  opacity: 0.5;
 }
 
 .cal-cell.not-applicable:hover {
@@ -127,7 +135,7 @@
 
 /* Missed cells — fixed red/pink background */
 .cal-cell.missed {
-  background-color: #FEE2E2;
+  background-color: var(--error-soft);
 }
 
 /* Completed cells — X mark */
@@ -143,8 +151,8 @@
   left: 50%;
   width: 60%;
   height: 2px;
-  border-radius: 1px;
-  background: var(--habit-color, #10B981);
+  border-radius: var(--radius-control);
+  background: var(--habit-color, var(--success));
   z-index: 0;
 }
 
@@ -159,21 +167,21 @@
 /* Today highlight — ring border via box-shadow (set inline) */
 .cal-cell.today .cal-day-num {
   font-weight: 700;
-  color: #1E293B;
+  color: var(--text-body);
 }
 
-/* Tooltip */
+/* Tooltip — an overlay, so it carries the system's one shadow */
 .cal-tooltip {
   position: fixed;
-  background: #1E293B;
-  color: white;
+  background: var(--text-body);
+  color: var(--surface);
   padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: var(--radius-control);
+  font-size: var(--font-meta);
   z-index: 1000;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-overlay);
 }
 
 /* Toggle button: "Show month" / "Show week" */
@@ -182,15 +190,15 @@
   margin: 6px auto 0;
   background: transparent;
   border: none;
-  color: #64748B;
-  font-size: 12px;
+  color: var(--text-muted);
+  font-size: var(--font-meta);
   cursor: pointer;
   padding: 2px 8px;
-  border-radius: 4px;
-  transition: color 150ms ease, background-color 150ms ease;
+  border-radius: var(--radius-control);
+  transition: color var(--motion-state) var(--ease), background-color var(--motion-state) var(--ease);
 }
 
 .cal-toggle-btn:hover {
-  color: #1E293B;
-  background: #F1F5F9;
+  color: var(--text-body);
+  background: var(--surface-2);
 }

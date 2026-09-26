@@ -38,6 +38,15 @@
   --hairline: #E7E5DF;
   --focus-ring: #635BFF;
 
+  /* State grounds. D2 freezes the state *fills* (--success, --error) but names
+     no soft ground, and the token sweep (card t_e904b822) found three roles
+     that need one: a passed/inactive status chip, a missed-day cell and a
+     destructive affordance's hover ground. Named in the D2 style,
+     `--<role>-<shade>`. Declared for the light set only — the sweep repaints
+     light-mode surfaces, and D5 does not restate the companions it omits. */
+  --success-soft: #D1FAE5;
+  --error-soft: #FEE2E2;
+
   /* ── Type ───────────────────────────────────────────────────────────────── */
   /* ADR-012's eight-row ladder: each row carries a size and a weight. D2
      freezes the eight size names; the weight/leading companions below are what
