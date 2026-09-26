@@ -4,11 +4,13 @@ Owner: `df-lead` · Last updated: 2026-09-24 (v1.2 — §1 revised by card `t_aa
 
 ## 1. UI surfaces
 
-There is **no client-side router**. `App.jsx` holds `activeView` and renders one view at a time; `Sidebar.jsx` switches it. `activeView` defaults to **`planner`** (`src/App.jsx:41`).
+There is **no client-side router**. `App.jsx` holds `activeView` and renders one view at a time inside one shared shell: `TopStrip.jsx` is the 52px strip that switches the view and `CaptureLine.jsx` is the shell's single capture line, present on every view (`src/App.jsx` mounts both in `.app-chrome`). `activeView` defaults to **`today`** — Today is the cold open (`src/App.jsx:41`).
+
+**Stage 2 of `ui-modernization-calm-canvas` (ADR-012)** replaced the 220px rail (`Sidebar.jsx`/`.css`, now `TopStrip.jsx`/`.css`) with the strip: four text destinations (Today · Week · Habits · Review) plus a **"More" overflow** built on `@radix-ui/react-dropdown-menu` holding Finance · Projects · Backup · Notifications. That also closes the audit's F16 mobile dead end — the old rail was `display: none` below 768px (`Sidebar.css:93-98`), while the strip is one responsive row that wraps and keeps all six views reachable at 1440 / 768 / 420px.
 
 | View (`activeView`) | Component | What it is |
 |---|---|---|
-| `today` | `TodayView.jsx` (+ `DailyTimeline`, `PlannerHabitsPanel`, `DeferPopover`) | Today's tasks + quick capture, overdue pull-to-today, per-day ordering (`todayOrder`), today's habits + daily workflow |
+| `today` | `TodayView.jsx` (+ `DailyTimeline`, `PlannerHabitsPanel`, `DeferPopover`) | Today's tasks, overdue pull-to-today, per-day ordering (`todayOrder`), today's habits + daily workflow. **Quick capture is no longer here** — it is the shell's `CaptureLine.jsx` (stage 2), which writes `dueDate = today` and lands in this list |
 | `planner` | `DailyPlanner.jsx` (+ `MiniWeekBar`, 7× `DayColumn`, `BacklogSidebar`, `YearlyGoals`, `WeeklyObjectives`) | Week/day time-block planner; yearly goals; weekly objectives + a key-events day grid. An App-level toolbar (`App.jsx:346-375`) adds New Task / New Project / Total-Done-Pending stats |
 | `habits` | `HabitTracker.jsx` (+ `HabitHeatmap`, `HabitModal`, `TimePopover`, `RepsPopover`) | Habit list with streak counts, heatmap, per-day logging. Fetches its own data (no props from `App.jsx`); `GET /api/habits` returns non-archived habits only |
 | `projects` | `ProjectsView.jsx` | Projects: list + create / edit / delete (props only, no child components). The backlog lives in the **planner**, not here (`BacklogSidebar` is a child of `DailyPlanner`) |
@@ -28,6 +30,8 @@ Modals / popovers and **who actually renders them** (verified by the import grap
 **Deleted in stage 0 of `ui-modernization-calm-canvas` (ADR-012; card `t_aa4715eb`, branch `feat/ui-s0-dead-code`):** `Calendar.jsx`/`.css`, `DayPanel.jsx`/`.css`, `OutstandingTasks.jsx`/`.css`, `DailyShutdown.jsx`/`.css` — four components and 1,828 lines of CSS, imported by no live component. `DailyShutdown` is **deleted, not revived** (`design.md` §4/D8): `/api/daily-notes` and its rows are untouched (see §2) and the audit's F42 close-out ritual stays an open item.
 
 Removed: the "Plan My Day" button + `DailyPlanningModal` (commit `dc6869b`, ADR-006).
+
+**Shell elements added in stage 2 of `ui-modernization-calm-canvas` (ADR-012):** `TopStrip.jsx`/`.css` (mounted by `App.jsx`, the 52px strip plus its Radix "More" menu) and `CaptureLine.jsx`/`.css` (mounted by `App.jsx` directly under the strip, so it is a shell element rather than a Today element). `CaptureLine` owns the whole quick-capture contract that used to live in `TodayView.jsx` — create with `dueDate` = today's Hong Kong date computed at run time and `status: 'pending'`, clear on Enter, clear on Escape, ignore empty input, no reload — plus the `/` focus key (any view; it does not fire while a text field, the rich-text editor or an open dialog has focus) and the D9 preference `localStorage['dayframe.captureDefaults']` = `{"projectId": <number|null>, "priority": "low"|"medium"|"high"}`, read on capture and written whenever a capture or an edit sets either value (`src/components/captureDefaults.js` is the single owner of that key). It is **client-only**: no API, schema or settings row was added.
 
 ## 2. REST API
 

@@ -6,7 +6,9 @@ import HabitTracker from './components/HabitTracker';
 import DailyPlanner from './components/DailyPlanner';
 import TodayView from './components/TodayView';
 import WeeklyReview from './components/WeeklyReview';
-import Sidebar from './components/Sidebar';
+import TopStrip from './components/TopStrip';
+import CaptureLine from './components/CaptureLine';
+import { readCaptureDefaults, writeCaptureDefaults } from './components/captureDefaults';
 import MonthlyReview from './components/MonthlyReview';
 import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService, financialCardService, monthlyReviewService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
@@ -38,7 +40,7 @@ function App() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [activeView, setActiveView] = useState('planner');
+  const [activeView, setActiveView] = useState('today');
 
   // Project management state
   const [showProjectModal, setShowProjectModal] = useState(false);
@@ -125,6 +127,15 @@ function App() {
           await subtaskService.create({ parentTaskId: newTask.id, ...sub });
         }
       }
+
+      // D9 — an edit that sets a project or a priority becomes the next
+      // capture's default. Client-only: no API, schema or settings change.
+      const storedDefaults = readCaptureDefaults();
+      writeCaptureDefaults({
+        projectId: 'projectId' in taskData ? taskData.projectId : storedDefaults.projectId,
+        priority: 'priority' in taskData ? taskData.priority : storedDefaults.priority,
+      });
+
       await loadData();
       setShowTaskModal(false);
       setSelectedTask(null);
@@ -318,12 +329,17 @@ function App() {
 
   return (
     <div className="app">
-      <Sidebar
-        currentView={activeView}
-        onNavigate={setActiveView}
-        onNotifications={requestNotificationPermission}
-        onBackup={handleBackup}
-      />
+      <div className="app-chrome">
+        <TopStrip
+          currentView={activeView}
+          onNavigate={setActiveView}
+          onNotifications={requestNotificationPermission}
+          onBackup={handleBackup}
+        />
+
+        {/* One capture line for the whole app — present on every view. */}
+        <CaptureLine projects={projects} onCaptured={loadData} />
+      </div>
 
       <main className="app-main">
 
@@ -360,13 +376,13 @@ function App() {
                   </div>
                   <div className="stat-card">
                     <span className="stat-label">Done</span>
-                    <span className="stat-value" style={{ color: '#10B981' }}>
+                    <span className="stat-value" style={{ color: 'var(--success-text)' }}>
                       {tasks.filter((t) => t.status === 'completed').length}
                     </span>
                   </div>
                   <div className="stat-card">
                     <span className="stat-label">Pending</span>
-                    <span className="stat-value" style={{ color: '#6366F1' }}>
+                    <span className="stat-value" style={{ color: 'var(--accent)' }}>
                       {tasks.filter((t) => t.status === 'pending').length}
                     </span>
                   </div>
