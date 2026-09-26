@@ -137,7 +137,7 @@ export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
               const project = getProject(projectId);
               return (
                 <div key={projectId} className="backlog-group">
-                  <div className="backlog-group-header" style={{ borderLeftColor: project?.color || '#94A3B8' }}>
+                  <div className="backlog-group-header">
                     <span className="backlog-group-name">{project?.name || 'No Project'}</span>
                     <span className="backlog-group-count">{groupTasks.length}</span>
                   </div>
@@ -151,10 +151,15 @@ export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
                         onDragStart={e => handleDragStart(e, task)}
                       >
                         <FaGripVertical className="backlog-grip" />
-                        <span className="backlog-task-title" onClick={() => onTaskClick(task)}>
+                        <button
+                          type="button"
+                          className="backlog-task-title"
+                          aria-label={`Open ${task.title}`}
+                          onClick={() => onTaskClick(task)}
+                        >
                           {task.title}
                           {isOverdue && <span className="overdue-badge">Overdue</span>}
-                        </span>
+                        </button>
                         <span className={`backlog-priority backlog-priority--${task.priority}`} />
                       </div>
                     );

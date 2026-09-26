@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { FaPlus, FaCircle, FaCheckCircle, FaSpinner, FaTrash, FaEdit, FaClock } from 'react-icons/fa';
 import { generateRecurringTasks } from '../utils/recurrence';
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
+import TooltipButton from './TooltipButton';
 import './DayColumn.css';
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -179,7 +180,6 @@ export default function DayColumn({
         <div
           key={taskKey}
           className={`dc-task dc-task--mini${isCompleted ? ' dc-task--done' : ''}`}
-          style={{ borderLeftColor: project?.color || '#E2E8F0' }}
           title={task.title}
           draggable
           onDragStart={(e) => {
@@ -191,12 +191,13 @@ export default function DayColumn({
             e.currentTarget.classList.remove('dc-task--dragging');
           }}
         >
-          <button
+          <TooltipButton
             className="dc-status-btn"
+            label="Cycle task status"
             onClick={() => onStatusUpdate(task, STATUS_CYCLE[task.status], task.isRecurringInstance ? 'single' : undefined)}
           >
             {STATUS_ICON[task.status]}
-          </button>
+          </TooltipButton>
           <span className={`dc-task-title dc-task-title--mini${isCompleted ? ' dc-task-title--done' : ''}`}>
             {task.title}
           </span>
@@ -208,7 +209,6 @@ export default function DayColumn({
       <div
         key={taskKey}
         className={`dc-task${isCompleted ? ' dc-task--done' : ''}`}
-        style={{ borderLeftColor: project?.color || '#E2E8F0' }}
         draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.isRecurringInstance ? task.recurringSourceId : task.id, sourceDate: dateStr }));
@@ -219,13 +219,13 @@ export default function DayColumn({
           e.currentTarget.classList.remove('dc-task--dragging');
         }}
       >
-        <button
+        <TooltipButton
           className="dc-status-btn"
-          title={`Cycle status`}
+          label="Cycle task status"
           onClick={() => onStatusUpdate(task, STATUS_CYCLE[task.status], task.isRecurringInstance ? 'single' : undefined)}
         >
           {STATUS_ICON[task.status]}
-        </button>
+        </TooltipButton>
 
         <div className="dc-task-content">
           <div className="dc-task-title-row">
@@ -259,14 +259,14 @@ export default function DayColumn({
                 <button className="dc-estimate-save" onClick={() => handleEstimateSave(task)}>OK</button>
               </span>
             ) : (
-              <button
+              <TooltipButton
                 className="dc-estimate-btn"
-                title="Set time estimate"
+                label="Set time estimate"
                 onClick={() => { setEditingEstimate(taskKey); setEstimateValue(task.estimatedMinutes ?? ''); }}
               >
                 <FaClock />
                 {task.estimatedMinutes ? <span className="dc-estimate-label">{formatMinutes(task.estimatedMinutes)}</span> : null}
-              </button>
+              </TooltipButton>
             )}
           </div>
 
@@ -308,8 +308,8 @@ export default function DayColumn({
 
         {expanded && (
           <div className="dc-task-actions">
-            <button className="dc-action-btn" title="Edit" onClick={() => onTaskClick(task)}><FaEdit /></button>
-            {onDeleteTask && <button className="dc-action-btn dc-action-btn--delete" title="Delete" onClick={() => onDeleteTask(task.id)}><FaTrash /></button>}
+            <TooltipButton className="dc-action-btn" label="Edit" onClick={() => onTaskClick(task)}><FaEdit /></TooltipButton>
+            {onDeleteTask && <TooltipButton className="dc-action-btn dc-action-btn--delete" label="Delete" onClick={() => onDeleteTask(task.id)}><FaTrash /></TooltipButton>}
           </div>
         )}
       </div>
@@ -341,16 +341,16 @@ export default function DayColumn({
           )}
           <span className="dc-task-count">{dayTasks.length}</span>
         </div>
-        <button 
-          className="dc-header-add-btn" 
+        <TooltipButton
+          className="dc-header-add-btn"
+          label="Add task"
           onClick={(e) => {
             e.stopPropagation();
             onNewTask(dateStr);
           }}
-          title="Add task"
         >
           <FaPlus />
-        </button>
+        </TooltipButton>
       </div>
 
       <div className="dc-body">
