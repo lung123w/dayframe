@@ -1,6 +1,6 @@
 # DayFrame — Architecture
 
-Owner: `df-lead` · Last updated: 2026-09-20 (v1.1 — every statement re-verified against the code at `master` `526f3b3`)
+Owner: `df-lead` · Last updated: 2026-09-24 (v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0 of `ui-modernization-calm-canvas`: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
 
 DayFrame is Anderson's personal task / habit / review app. Local-first, single user, no authentication.
 Everything runs on one Windows machine; the browser is the only client.
@@ -70,7 +70,7 @@ Notes verified against the import graph:
 - `DailyPlanner` also owns `BacklogSidebar`, `YearlyGoals` and `WeeklyObjectives` (`src/components/DailyPlanner.jsx:4-8`). `BacklogSidebar` is **not** in ProjectsView.
 - `WeeklyReview.jsx` imports no local component: it renders its own three sections, its own habit chips and its own key-events day grid (`WeeklyReview.jsx:597-844`). `WeeklyObjectives.jsx` (the planner panel) is a *different* key-events UI that also carries the weekly objectives (`WeeklyObjectives.jsx:189, 328-336`).
 - The planner view is also wrapped by an App-level toolbar (New Task / New Project / Total-Done-Pending stats) rendered in `App.jsx:346-375`.
-- **Dead code (imported by nothing):** `Calendar.jsx`, `DailyShutdown.jsx`, `DayPanel.jsx`, `OutstandingTasks.jsx` (verified: 0 importers; `DailyShutdown` survives only as a `vi.mock` in `src/__tests__/DailyPlanner.weekNavigation.test.jsx:11`). Do not treat them as live surfaces.
+- **Deleted in stage 0 of `ui-modernization-calm-canvas`** (ADR-012; card `t_aa4715eb`, branch `feat/ui-s0-dead-code`): `Calendar.jsx`/`.css`, `DayPanel.jsx`/`.css`, `OutstandingTasks.jsx`/`.css`, `DailyShutdown.jsx`/`.css` — four components with 0 importers, 1,828 CSS lines (`Calendar.css` 916, `DayPanel.css` 486, `OutstandingTasks.css` 353, `DailyShutdown.css` 73). `DailyShutdown` was **deleted, not revived** (`design.md` §4/D8): the `daily_notes` rows, the table and `GET/PUT /api/daily-notes` are untouched, so no data was removed, and the audit's F42 (a daily close-out ritual) stays an **open item** for a later change once Today's rows have landed. The `vi.mock('../components/DailyShutdown', …)` that was its last remaining reference went with it. `package.json` was **not** touched — `@fullcalendar/*` is now an unused declared dependency, and removing it is its own decision.
 
 ## 3. State ownership
 
@@ -226,7 +226,8 @@ Evidence: `src/App.jsx:80-95` (bootstrap), `:67-74` (default project), `src/util
 
 - Single user, no auth, no multi-tenancy — "who did what" is not modelled (see DATA_MODEL §3).
 - Vite dev server proxies `/api` to `:3001`; the API must be running or every view renders empty (`loadData` swallows the error into `console.error`, `App.jsx:75-77`).
-- `npx vitest run` = **30 test files / 331 tests**; from the app there are 28 files under `src/__tests__/`, of which **1 test fails pre-existing**: `MiniWeekBar.test.jsx:38-39` expects 9 buttons (7 day + 2 arrow) and the render yields 10. Two further files under `not relevant/CodeNomad/` (gitignored, not part of the app) fail to collect — noise, not regressions.
+- **Test and lint counts must be scoped, and the scoping changes the numbers.** Nested checkouts under the gitignored `.worktrees/` are collected by an unscoped run from the repo root: re-measured 2026-09-24 on stage 0 of `ui-modernization-calm-canvas` (four nested checkouts parked there), `npm run test:run` = **138 files / 1,635 tests / 5 failed** — one copy of the `MiniWeekBar` failure per nested checkout — and `npm run lint` (`eslint .`) = **669 problems**. The counts scale with how many checkouts are parked under `.worktrees/`; they are a collection artefact, never a regression.
+- **The scoped baseline (stage 0, card `t_aa4715eb`):** `npx vitest run --exclude='**/.worktrees/**'` = **27 files / 326 tests / 1 failed** in a worktree of the app's own tracked source, `npx eslint src` = **8 problems (8 errors, 0 warnings)**, `npx vite build` = success. The single failure is the pre-existing `MiniWeekBar.test.jsx:38-39`: it expects 9 buttons (7 day + 2 arrow) and the render yields 10. The main working tree reports **28 files / 331 tests** for the same code because it additionally carries the untracked `src/__tests__/wrModeStorage.test.jsx` (POL-003 — never touch it), and 30 files once the two files under `not relevant/CodeNomad/` (gitignored, not part of the app) are counted with their collection errors.
 - Habit **count tracking is inert on master**: the UI sends `trackType` and `count` but neither is persisted (`DATA_MODEL.md` §6). Anything reading `entry.count` reads `undefined`.
 - The repo may carry **uncommitted work from another worker**; always `git status` first and never stage someone else's hunks (DECISION_LOG POL-002, POL-003).
 - **The GitHub repo `lung123w/dayframe` is public** (`api.github.com/repos/lung123w/dayframe` → `"private": false`) while `server/routes/financialCards.js:6-16` seeds real account numbers into source. Treat every commit as public.

@@ -1,6 +1,6 @@
 # DayFrame — Route Map
 
-Owner: `df-lead` · Last updated: 2026-09-20 (v1.1 — every verb, mount and period parameter re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`; v1.2 — `/api/habits` `frequency` contract (`fix-habit-frequency-normalization`))
+Owner: `df-lead` · Last updated: 2026-09-26 (v1.3 — §1 reflects the stage-0 deletions of `ui-modernization-calm-canvas` (card `t_aa4715eb`: four dead components + their stylesheets deleted); v1.2 — every verb, mount and period parameter re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`, plus the `/api/habits` `frequency` contract (`fix-habit-frequency-normalization`))
 
 ## 1. UI surfaces
 
@@ -25,7 +25,7 @@ Modals / popovers and **who actually renders them** (verified by the import grap
 | `TimePopover`, `RepsPopover` | `HabitTracker`, `HabitHeatmap`, `PlannerHabitsPanel` |
 | `RichTextEditor` | `TaskModal`, `YearlyGoals` |
 
-**Dead code — imported by no live component:** `Calendar.jsx`, `DailyShutdown.jsx`, `DayPanel.jsx`, `OutstandingTasks.jsx` (`DailyShutdown` survives only as a `vi.mock` in `src/__tests__/DailyPlanner.weekNavigation.test.jsx:11`). Do not build on them and do not treat them as current surfaces.
+**Deleted in stage 0 of `ui-modernization-calm-canvas` (ADR-012; card `t_aa4715eb`, branch `feat/ui-s0-dead-code`):** `Calendar.jsx`/`.css`, `DayPanel.jsx`/`.css`, `OutstandingTasks.jsx`/`.css`, `DailyShutdown.jsx`/`.css` — four components and 1,828 lines of CSS, imported by no live component. `DailyShutdown` is **deleted, not revived** (`design.md` §4/D8): `/api/daily-notes` and its rows are untouched (see §2) and the audit's F42 close-out ritual stays an open item.
 
 Removed: the "Plan My Day" button + `DailyPlanningModal` (commit `dc6869b`, ADR-006).
 
