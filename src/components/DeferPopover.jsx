@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { addDays, addWeeks, addMonths } from 'date-fns';
 import { FaTimes } from 'react-icons/fa';
+import RadixPopover from './RadixPopover';
 import './DeferPopover.css';
 
 function toLocalDateStr(date) {
@@ -10,61 +11,56 @@ function toLocalDateStr(date) {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
 }
 
-export default function DeferPopover({ task, onDefer, onClose, anchorRef }) {
-  const popoverRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
-        if (anchorRef?.current && !anchorRef.current.contains(e.target)) {
-          onClose();
-        }
-      }
-    };
-
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [onClose, anchorRef]);
+/**
+ * Defer a task. `trigger` is rendered by the caller (a row's text action) and
+ * becomes the Radix trigger, so the popover is anchored to the action that
+ * opened it and Radix owns the toggle, the outside dismissal and the clamping
+ * (design.md §3 D7 — the old version positioned itself off a ref and had no
+ * viewport clamping).
+ */
+export default function DeferPopover({ task, onDefer, trigger }) {
+  const [open, setOpen] = useState(false);
 
   const handleQuickDefer = (daysToAdd) => {
     const newDate = addDays(new Date(), daysToAdd);
     onDefer(task, toLocalDateStr(newDate));
+    setOpen(false);
   };
 
   const handleNextWeek = () => {
-    const newDate = addWeeks(new Date(), 1);
-    onDefer(task, toLocalDateStr(newDate));
+    onDefer(task, toLocalDateStr(addWeeks(new Date(), 1)));
+    setOpen(false);
   };
 
   const handleNextMonth = () => {
-    const newDate = addMonths(new Date(), 1);
-    onDefer(task, toLocalDateStr(newDate));
+    onDefer(task, toLocalDateStr(addMonths(new Date(), 1)));
+    setOpen(false);
   };
 
   const handleSomeday = () => {
     onDefer(task, null);
+    setOpen(false);
   };
 
   const handleDateChange = (e) => {
     const dateStr = e.target.value;
     if (dateStr) {
       onDefer(task, dateStr);
+      setOpen(false);
     }
   };
 
   return (
-    <div className="defer-popover" ref={popoverRef}>
+    <RadixPopover
+      trigger={trigger}
+      open={open}
+      onOpenChange={setOpen}
+      className="defer-popover"
+      sideOffset={6}
+    >
       <div className="defer-popover-header">
         <span className="defer-popover-title">Defer task</span>
-        <button className="defer-popover-close" onClick={onClose} aria-label="Close">
+        <button className="defer-popover-close" onClick={() => setOpen(false)} aria-label="Close">
           <FaTimes />
         </button>
       </div>
@@ -94,9 +90,8 @@ export default function DeferPopover({ task, onDefer, onClose, anchorRef }) {
           className="defer-date-input"
           min={toLocalDateStr(new Date())}
           onChange={handleDateChange}
-          autoFocus
         />
       </div>
-    </div>
+    </RadixPopover>
   );
 }

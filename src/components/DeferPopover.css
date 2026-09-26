@@ -1,111 +1,100 @@
 .defer-popover {
-  position: absolute;
-  z-index: 1000;
-  background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 12px;
+  padding: var(--space-3);
   min-width: 220px;
-  margin-top: 4px;
 }
 
 .defer-popover-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border);
 }
 
 .defer-popover-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1E293B;
+  font-size: var(--font-row);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
 }
 
 .defer-popover-close {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 2px;
-  color: #94A3B8;
-  font-size: 12px;
+  padding: var(--space-1);
+  color: var(--text-subtle);
+  font-size: var(--font-meta);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
+  border-radius: var(--radius-control);
+  transition: color var(--motion-fast) var(--ease), background-color var(--motion-fast) var(--ease);
 }
 
 .defer-popover-close:hover {
-  color: #64748B;
-  background: #F1F5F9;
+  color: var(--text-body);
+  background: var(--surface-2);
 }
 
 .defer-quick-options {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .defer-quick-btn {
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #475569;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-body);
+  background: var(--surface-2);
+  border: var(--border);
+  border-radius: var(--radius-control);
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s ease;
+  transition: border-color var(--motion-state) var(--ease), color var(--motion-state) var(--ease);
   text-align: center;
 }
 
 .defer-quick-btn:hover {
-  background: #EEF2FF;
-  border-color: #6366F1;
-  color: #6366F1;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .defer-quick-btn--someday {
-  color: #94A3B8;
-  font-style: italic;
+  color: var(--text-subtle);
 }
 
 .defer-quick-btn--someday:hover {
-  background: #FEF3C7;
-  border-color: #F59E0B;
-  color: #D97706;
+  border-color: var(--warning);
+  color: var(--warning-text);
 }
 
 .defer-date-picker {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .defer-date-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: #64748B;
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
 }
 
 .defer-date-input {
-  padding: 6px 8px;
-  font-size: 13px;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
+  padding: var(--space-2);
+  font-size: var(--font-meta);
+  border: var(--border);
+  border-radius: var(--radius-control);
   font-family: inherit;
-  color: #1E293B;
-  background: white;
-  outline: none;
-  transition: border-color 0.15s;
+  color: var(--text-body);
+  background: var(--surface);
+  transition: border-color var(--motion-fast) var(--ease);
 }
 
 .defer-date-input:focus {
-  border-color: #6366F1;
+  border-color: var(--accent);
 }
