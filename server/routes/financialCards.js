@@ -1,28 +1,50 @@
 import { Router } from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import db from '../db.js';
 
 const router = Router();
 
-const SEED_CARDS = [
-  { name: 'Hang Seng Integrated Account', institution: 'Hang Seng Bank', cardType: 'bank', accountNumber: '290 697630 882' },
-  { name: 'HSBC One Account', institution: 'HSBC', cardType: 'bank', accountNumber: '551 662 042883' },
-  { name: 'Hang Seng Credit Card', institution: 'Hang Seng Bank', cardType: 'credit', accountNumber: '4548 8920 2973 7963' },
-  { name: 'HSBC VISA Signature', institution: 'HSBC', cardType: 'credit', accountNumber: '4966 0405 1670 4244' },
-  { name: 'HSBC RED', institution: 'HSBC', cardType: 'credit', accountNumber: '5289 4600 0709 2734' },
-  { name: 'Citibank Octopus', institution: 'Citibank', cardType: 'credit', accountNumber: '4617 2670 0862 2260' },
-  { name: 'BEA World Master', institution: 'BEA', cardType: 'credit', accountNumber: '5452 2903 0029 1597' },
-  { name: 'BEA Titanium', institution: 'BEA', cardType: 'credit', accountNumber: '5408 2051 0112 9551' },
-  { name: 'BOC Credit Card', institution: 'BOC', cardType: 'credit', accountNumber: '6251 7228 8072' },
-];
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Optional seed list, deliberately NOT in tracked source: this repo is public and
+// the list carries real account numbers (see .dev_context/DECISION_LOG.md POL-006).
+// File: <repo>/data/seed-cards.json — an array of { name, institution, cardType, accountNumber }.
+// Absent, unreadable or non-array => nothing is seeded.
+const SEED_FILE = path.join(__dirname, '..', '..', 'data', 'seed-cards.json');
+
+function readSeedCards() {
+  if (!fs.existsSync(SEED_FILE)) return [];
+  try {
+    const parsed = JSON.parse(fs.readFileSync(SEED_FILE, 'utf8'));
+    if (!Array.isArray(parsed)) {
+      console.warn(`[financial-cards] ${SEED_FILE} is not a JSON array — seeding nothing`);
+      return [];
+    }
+    return parsed.filter((card) => card && typeof card === 'object' && !Array.isArray(card));
+  } catch (err) {
+    console.warn(`[financial-cards] cannot read ${SEED_FILE} (${err.message}) — seeding nothing`);
+    return [];
+  }
+}
 
 function seedIfEmpty() {
   const count = db.prepare('SELECT COUNT(*) AS n FROM financial_cards').get().n;
   if (count > 0) return;
+  const seedCards = readSeedCards();
+  if (seedCards.length === 0) return;
   const insert = db.prepare(
     'INSERT INTO financial_cards (name, institution, cardType, accountNumber, displayOrder, active) VALUES (?, ?, ?, ?, ?, 1)'
   );
-  SEED_CARDS.forEach((c, i) => {
-    insert.run(c.name, c.institution, c.cardType, c.accountNumber, i);
+  seedCards.forEach((c, i) => {
+    insert.run(
+      String(c.name ?? ''),
+      String(c.institution ?? ''),
+      String(c.cardType ?? 'credit'),
+      String(c.accountNumber ?? ''),
+      i
+    );
   });
 }
 
