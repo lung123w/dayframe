@@ -1,12 +1,17 @@
-/* Daily Workflow */
+/* Daily Workflow — repainted onto the token layer by the sweep (card
+   `t_e904b822`). Every `var(--name, fallback)` pair here named a property the
+   layer does not declare (`--surface-hover`, `--surface-3`, `--text`) or leaned
+   on a fallback that duplicated a real token, so the site now consumes the real
+   name. Declaring those names instead would have repainted every other
+   stylesheet that still carries them (design.md §10's hazard). */
 .daily-workflow {
-  background: var(--surface, #fff);
+  background: var(--surface);
   /* `--border` is the frozen composite token (`1px solid var(--hairline)`,
      design.md §2 D2) — it is a shorthand, not a colour, so it is applied whole.
      Written as `1px solid var(--border, …)` it became invalid at computed-value
      time and the panel lost its border. */
   border: var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-surface);
   margin-bottom: 16px;
   overflow: hidden;
 }
@@ -18,9 +23,9 @@
   padding: 10px 14px;
   cursor: pointer;
   user-select: none;
-  background: var(--surface-2, #F8FAFC);
+  background: var(--surface-2);
   border-bottom: none;
-  transition: background 0.15s;
+  transition: background var(--motion-state) var(--ease);
 }
 
 .dw-header--expanded {
@@ -28,28 +33,28 @@
 }
 
 .dw-header:hover {
-  background: var(--surface-hover, #F1F5F9);
+  background: var(--surface-2);
 }
 
 .dw-toggle-icon {
-  color: var(--text-muted, #94A3B8);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--font-meta);
   flex-shrink: 0;
 }
 
 .dw-title {
   font-weight: 600;
-  font-size: 13px;
-  color: var(--text, #1E293B);
+  font-size: var(--font-row);
+  color: var(--text-body);
   flex: 1;
 }
 
 .dw-progress {
-  font-size: 12px;
+  font-size: var(--font-meta);
   font-weight: 600;
-  color: var(--text-muted, #64748B);
-  background: var(--surface-3, #E2E8F0);
-  border-radius: 10px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-radius: var(--radius-pill);
   padding: 2px 8px;
 }
 
@@ -62,11 +67,11 @@
   align-items: center;
   gap: 10px;
   padding: 6px 14px;
-  transition: background 0.1s;
+  transition: background var(--motion-fast) var(--ease);
 }
 
 .dw-step:hover {
-  background: var(--surface-hover, #F8FAFC);
+  background: var(--surface-2);
 }
 
 .dw-step:hover .dw-delete-btn {
@@ -77,20 +82,20 @@
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  accent-color: var(--accent, #6366F1);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
 .dw-step-text {
   flex: 1;
-  font-size: 13px;
-  color: var(--text, #1E293B);
+  font-size: var(--font-row);
+  color: var(--text-body);
   line-height: 1.4;
 }
 
 .dw-step--done .dw-step-text {
   text-decoration: line-through;
-  color: var(--text-muted, #94A3B8);
+  color: var(--text-muted);
 }
 
 .dw-delete-btn {
@@ -98,17 +103,17 @@
   border: none;
   cursor: pointer;
   padding: 3px 5px;
-  color: var(--text-muted, #94A3B8);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--font-meta);
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
-  border-radius: 4px;
+  transition: opacity var(--motion-state) var(--ease), color var(--motion-state) var(--ease);
+  border-radius: var(--radius-control);
   flex-shrink: 0;
 }
 
 .dw-delete-btn:hover {
-  color: #EF4444;
-  background: #FEE2E2;
+  color: var(--error);
+  background: var(--error-soft);
 }
 
 .dw-add-step {
@@ -119,8 +124,8 @@
 }
 
 .dw-add-icon {
-  color: var(--text-muted, #94A3B8);
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: var(--font-meta);
   flex-shrink: 0;
 }
 
@@ -131,10 +136,10 @@
      replacement indicator, so the global `:focus-visible` recipe
      (`src/index.css`) is what makes it visible now. */
   background: transparent;
-  font-size: 13px;
-  color: var(--text, #1E293B);
+  font-size: var(--font-row);
+  color: var(--text-body);
 }
 
 .dw-add-input::placeholder {
-  color: var(--text-muted, #94A3B8);
+  color: var(--text-muted);
 }

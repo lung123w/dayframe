@@ -1,3 +1,10 @@
+/* Finance cards — repainted onto the token layer by the sweep (card
+   `t_e904b822`, spec `ui-presentation-system`). The file leaned on a family of
+   undefined custom properties (`--surface-color`, `--border-color`,
+   `--input-bg`) whose fallbacks *were* the palette; each site now names the
+   real token. `--surface-color` had no single meaning — the form panel and the
+   input ground are `--surface`, the table head and the icon hover are
+   `--surface-2`. */
 .fc-root {
   padding: 1rem 1.5rem;
   box-sizing: border-box;
@@ -13,28 +20,28 @@
 
 .fc-header h2 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: var(--font-page-title);
 }
 
 .fc-error {
   padding: 0.75rem 1rem;
-  background: #fee2e2;
-  color: #991b1b;
-  border-radius: 6px;
+  background: var(--error-soft);
+  color: var(--error-text);
+  border-radius: var(--radius-control);
   margin-bottom: 1rem;
 }
 
 .fc-form-wrapper {
-  background: var(--surface-color, #f9fafb);
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 8px;
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
   padding: 1rem;
   margin-bottom: 1rem;
 }
 
 .fc-form-wrapper h3 {
   margin: 0 0 0.75rem 0;
-  font-size: 1.05rem;
+  font-size: var(--font-section);
 }
 
 .fc-form {
@@ -47,8 +54,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.85rem;
-  color: var(--text-muted, #6b7280);
+  font-size: var(--font-row);
+  color: var(--text-muted);
 }
 
 .fc-form label > span {
@@ -58,10 +65,10 @@
 .fc-form input,
 .fc-form select {
   padding: 0.4rem 0.6rem;
-  font-size: 0.9rem;
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 6px;
-  background: var(--input-bg, #fff);
+  font-size: var(--font-row);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
   color: inherit;
 }
 
@@ -75,30 +82,30 @@
 .fc-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--font-row);
   margin-bottom: 1rem;
 }
 
 .fc-table th,
 .fc-table td {
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  border-bottom: var(--border);
   padding: 0.6rem 0.5rem;
   text-align: left;
   vertical-align: middle;
 }
 
 .fc-table th {
-  background: var(--surface-color, #f9fafb);
+  background: var(--surface-2);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
 }
 
 .fc-mono {
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: var(--font-row);
 }
 
 .fc-row-inactive {
@@ -126,15 +133,15 @@
 .fc-status-active,
 .fc-status-inactive {
   padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-label);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.fc-status-active { background: #d1fae5; color: #065f46; }
-.fc-status-inactive { background: #f3f4f6; color: #6b7280; }
+.fc-status-active { background: var(--success-soft); color: var(--success-text); }
+.fc-status-inactive { background: var(--surface-2); color: var(--text-muted); }
 
 .fc-actions {
   display: flex;
@@ -144,8 +151,8 @@
 
 .btn-icon {
   background: transparent;
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 4px;
+  border: var(--border);
+  border-radius: var(--radius-control);
   padding: 0.3rem 0.45rem;
   cursor: pointer;
   color: inherit;
@@ -153,32 +160,32 @@
   align-items: center;
   justify-content: center;
 }
-.btn-icon:hover:not(:disabled) { background: var(--surface-color, #f3f4f6); }
+.btn-icon:hover:not(:disabled) { background: var(--surface-2); }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-icon-danger:hover:not(:disabled) { color: #b91c1c; border-color: #fecaca; }
+.btn-icon-danger:hover:not(:disabled) { color: var(--error-text); border-color: var(--error-soft); }
 
 .fc-section-title {
   margin: 1.5rem 0 0.5rem 0;
-  font-size: 0.95rem;
-  color: var(--text-muted, #6b7280);
+  font-size: var(--font-body);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .btn {
   padding: 0.4rem 0.85rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  border-radius: var(--radius-control);
+  font-size: var(--font-row);
   cursor: pointer;
   border: 1px solid transparent;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
-.btn-primary { background: #4f46e5; color: #fff; border-color: #4f46e5; }
-.btn-primary:hover:not(:disabled) { background: #4338ca; }
-.btn-secondary { background: #fff; color: #374151; border-color: #d1d5db; }
-.btn-secondary:hover:not(:disabled) { background: #f9fafb; }
+.btn-primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-secondary { background: var(--surface); color: var(--text-body); border-color: var(--hairline); }
+.btn-secondary:hover:not(:disabled) { background: var(--surface-2); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 768px) {
