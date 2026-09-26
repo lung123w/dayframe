@@ -96,7 +96,7 @@
 }
 
 .top-strip-more-caret {
-  font-size: 10px;
+  font-size: var(--font-label);
   margin-left: var(--space-1);
   color: var(--text-subtle);
 }
