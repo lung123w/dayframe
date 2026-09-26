@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FaInbox, FaTimes, FaGripVertical } from 'react-icons/fa';
 import { getNextOccurrenceFrom } from '../utils/recurrence';
+import { handleRowKeyDown, tomorrowDateStr } from './keyboard';
 import './BacklogSidebar.css';
 
 function toLocalDateStr(date) {
@@ -26,7 +27,7 @@ function isUnscheduledVisible(task, today) {
   return isOverduePending(task);
 }
 
-export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
+export default function BacklogSidebar({ tasks, projects, onTaskClick, onAssignDate, onStatusUpdate }) {
   const [filterProject, setFilterProject] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('unscheduled'); // 'all-pending' | 'unscheduled'
@@ -122,7 +123,7 @@ export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
         )}
       </div>
 
-      <div className="backlog-body">
+      <div className="backlog-body" data-kbd-list="backlog">
         {displayTasks.length === 0 ? (
           <div className="backlog-empty">
             {viewMode === 'all-pending'
@@ -147,6 +148,16 @@ export default function BacklogSidebar({ tasks, projects, onTaskClick }) {
                       <div
                         key={task.id}
                         className={`backlog-task ${isOverdue ? 'overdue' : ''}`}
+                        tabIndex={0}
+                        data-kbd-row="true"
+                        onKeyDown={(event) => handleRowKeyDown(event, {
+                          onToggle: onStatusUpdate
+                            ? () => onStatusUpdate(task, task.status === 'completed' ? 'pending' : 'completed')
+                            : undefined,
+                          onDefer: onAssignDate && !task.isRecurring
+                            ? () => onAssignDate(task, new Date(`${tomorrowDateStr()}T12:00:00`))
+                            : undefined,
+                        })}
                         draggable
                         onDragStart={e => handleDragStart(e, task)}
                       >

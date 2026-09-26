@@ -3,6 +3,7 @@ import { FaPlus, FaCircle, FaCheckCircle, FaSpinner, FaTrash, FaEdit, FaClock } 
 import { generateRecurringTasks } from '../utils/recurrence';
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import TooltipButton from './TooltipButton';
+import { handleRowKeyDown, tomorrowDateStr } from './keyboard';
 import './DayColumn.css';
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -76,6 +77,7 @@ export default function DayColumn({
   onDeleteTask,
   onSubtaskToggle,
   onEstimateChange,
+  onAssignDate,
   onDragOver,
   onDrop,
   onDayClick,
@@ -175,6 +177,26 @@ export default function DayColumn({
     const taskKey = task.isRecurringInstance ? `${task.id}-${task.instanceDate}` : task.id;
     const isEditingEst = editingEstimate === taskKey;
 
+    // Stage 5 keyboard layer: every row is its own focus target and carries the
+    // row-scoped keys. `t` (defer to tomorrow) is offered only where the write
+    // is both meaningful and safe — a non-recurring task dated today or earlier.
+    // Writing `dueDate` on a recurring source would move the whole series, so a
+    // recurring instance gets `x` but not `t`.
+    const canDefer = Boolean(
+      onAssignDate
+      && !task.isRecurring
+      && !task.isRecurringInstance
+      && dateStr <= toLocalDateStr(new Date())
+    );
+    const rowKeyboard = {
+      'data-kbd-row': 'true',
+      tabIndex: 0,
+      onKeyDown: (event) => handleRowKeyDown(event, {
+        onToggle: () => onStatusUpdate(task, STATUS_CYCLE[task.status], task.isRecurringInstance ? 'single' : undefined),
+        onDefer: canDefer ? () => onAssignDate(task, new Date(`${tomorrowDateStr()}T12:00:00`)) : undefined,
+      }),
+    };
+
     // Mini column: compact single-line display
     if (!expanded) {
       return (
@@ -182,6 +204,7 @@ export default function DayColumn({
           key={taskKey}
           className={`dc-task dc-task--mini${isCompleted ? ' dc-task--done' : ''}`}
           title={task.title}
+          {...rowKeyboard}
           draggable
           onDragStart={(e) => {
             e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.isRecurringInstance ? task.recurringSourceId : task.id, sourceDate: dateStr }));
@@ -210,6 +233,7 @@ export default function DayColumn({
       <div
         key={taskKey}
         className={`dc-task${isCompleted ? ' dc-task--done' : ''}`}
+        {...rowKeyboard}
         draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.isRecurringInstance ? task.recurringSourceId : task.id, sourceDate: dateStr }));
@@ -356,7 +380,7 @@ export default function DayColumn({
         </TooltipButton>
       </div>
 
-      <div className="dc-body">
+      <div className="dc-body" data-kbd-list="day">
         {todoTasks.length === 0 && doneTasks.length === 0 ? (
           <div className="dc-empty">
             {expanded ? (
