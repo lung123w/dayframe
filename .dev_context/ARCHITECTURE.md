@@ -1,6 +1,6 @@
 # DayFrame — Architecture
 
-Owner: `df-lead` · Last updated: 2026-09-26 (v1.5 — §2 the dialog shell + the status line, §3 the focused day, §4.3 both week labels and debounced saves, §4.4 the finance save path, revised by card `t_63c2607b`, stage 4 of `ui-modernization-calm-canvas`: `AppDialog`/`ConfirmDialog`/`PromptDialog` replace every `window.confirm/alert/prompt`, one reserved save-status line per persisting surface, the two dead day-select controls wired; v1.4 — §2 Today's children + the habit rail, §4.1 the day loop and §4.2 the habit write path revised by card `t_7fd24929`, stage 3 of `ui-modernization-calm-canvas`: rows instead of cards, focus-reachable row actions, one 5-second undo, one-click habit logging; v1.3 — §1 styling line added by card `t_65d60fc8`, stage 1 of `ui-modernization-calm-canvas`: the CSS-custom-property token layer is the styling substrate; v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
+Owner: `df-lead` · Last updated: 2026-09-26 (v1.6 — §2 the keyboard layer, §3 `paletteOpen`, §4.6 the keyboard layer's handler map and its rules, revised by card `t_4925715f`, stage 5 of `ui-modernization-calm-canvas`: one frozen key map in `src/components/keyboard.js` + `useKeyboardLayer.js`, visible focus on every list row with 0 surviving outline suppressions, and the droppable `CommandPalette.jsx`; §4's heading drops "five" because §4.6 is not a flow; v1.5 — §2 the dialog shell + the status line, §3 the focused day, §4.3 both week labels and debounced saves, §4.4 the finance save path, revised by card `t_63c2607b`, stage 4 of `ui-modernization-calm-canvas`: `AppDialog`/`ConfirmDialog`/`PromptDialog` replace every `window.confirm/alert/prompt`, one reserved save-status line per persisting surface, the two dead day-select controls wired; v1.4 — §2 Today's children + the habit rail, §4.1 the day loop and §4.2 the habit write path revised by card `t_7fd24929`, stage 3 of `ui-modernization-calm-canvas`: rows instead of cards, focus-reachable row actions, one 5-second undo, one-click habit logging; v1.3 — §1 styling line added by card `t_65d60fc8`, stage 1 of `ui-modernization-calm-canvas`: the CSS-custom-property token layer is the styling substrate; v1.2 — §2/§7 revised by card `t_aa4715eb`, stage 0: the four dead components and their stylesheets are deleted; every other statement still re-verified against the code at `master` `526f3b3`)
 
 DayFrame is Anderson's personal task / habit / review app. Local-first, single user, no authentication.
 Everything runs on one Windows machine; the browser is the only client.
@@ -38,6 +38,8 @@ graph TD
     App --> Review["WeeklyReview.jsx"]
     App --> Finance["MonthlyReview.jsx"]
     App --> Modals["App-level modals: TaskModal · ProjectModal — now Dialog-owned (stage 4)"]
+    App --> Palette["CommandPalette.jsx — command palette (the droppable slice)"]
+    App --> Kbd["keyboard.js + useKeyboardLayer.js — the frozen key map, one document handler"]
     App --> Dlg["AppDialog.jsx — the one Radix dialog shell (stage 4): AppDialog · ConfirmDialog · PromptDialog, with the focus trap, Escape dismissal and focus return"]
 
     Today --> Timeline["DailyTimeline.jsx"]
@@ -97,6 +99,10 @@ Notes verified against the import graph:
   1. **The dialogs are Radix-owned.** `src/components/AppDialog.jsx` is the one dialog shell (`@radix-ui/react-dialog`) and exports `AppDialog` (the shell), `ConfirmDialog` (the `window.confirm`/`window.alert` replacement — `cancelLabel={null}` renders the single-action alert form) and `PromptDialog` (the `window.prompt` replacement). It owns the focus trap, Escape dismissal and focus return; focus returns through `onCloseAutoFocus` rather than a `Dialog.Trigger`, because several call sites are re-rendered or unmounted by the very mutation they guard. `Dialog.Content` is rendered **inside** `Dialog.Overlay` so the app's existing `.modal-overlay`/`.modal-content` centring (`.modal-overlay { display:flex }`) keeps working. Call sites: `App.jsx` (task delete + the backup-failure notice), `ProjectsView.jsx` (project delete), `ProjectModal.jsx` (project delete), `WeeklyReview.jsx` (the objectives-replacement confirm and the "nothing to sync" alert) and `RichTextEditor.jsx` (the link-URL prompt). `TaskModal`, `HabitModal` and `ProjectModal` render their shells through `AppDialog` too, which is what gives them Escape dismissal. There are **0** `window.confirm|alert|prompt` call sites under `src/` (design.md §3 D7).
   2. **One debounced writer and one reserved status line per persisting surface** (`src/components/useDebouncedSave.js` + `SaveStatus.jsx`, design.md §8 D12): 500 ms after the last keystroke, flushed on blur and on navigating away (and on unmount), with `Saving…` / `Saved` (fades after ~2 s) / `Could not save — retry` in a reserved `role="status" aria-live="polite"` line. Typing is debounced; discrete actions (a checkbox, an add, a remove) still write immediately; the finance notes textarea keeps its save-on-blur behaviour, now reported in the same line. No write fires per keystroke on any surface.
   3. **Both weeks are named** (F35 / ADR-005) and the two dead day-select controls work (F20). See §3 and §4.3.
+- **The keyboard layer, stage 5 of `ui-modernization-calm-canvas`** (ADR-012; card `t_4925715f`, branch `feat/ui-s5-keyboard`): three pieces of presentation, no behaviour moved.
+  1. **One key map, two owners.** `src/components/keyboard.js` (plain `.js` — a component file may not export helpers, `react-refresh/only-export-components`) holds the frozen map, the "am I allowed to fire" test (`isTypingContext`, `isOverlayOpen`) and the two DOM operations the layer needs (`moveRowFocus`, `handleRowKeyDown`). `src/components/useKeyboardLayer.js` registers the app-level half **once**, from `App.jsx`. See §4.6 for the division of ownership.
+  2. **Visible focus everywhere.** `src/index.css` keeps the single global `:focus-visible` recipe on the three focus tokens; stage 5 removed the last three sites that suppressed the outline without a replacement (`DailyWorkflow.css`'s add-step field and `YearlyGoals.css`'s textarea + add field), so **0 `outline: none` declarations remain under `src/**/*.css`**. Every list row is its own focus target (`tabIndex={0}` + `data-kbd-row`) and each list container carries `data-kbd-list`, which is what scopes `j`/`k`; the app's single pre-existing `tabIndex` (`MonthlyReview.jsx`'s photo paste zone) is untouched.
+  3. **The command palette is the droppable last slice.** `src/components/CommandPalette.jsx`/`.css` + its one mount in `App.jsx` + the `Ctrl/⌘ + K` entry in `useKeyboardLayer.js`. Deleting those three leaves everything else working (proved by removal — see the card comment). Its footer renders the key map, which is the in-app discoverability affordance `design.md` §6 asks for. It adds no router, no `activeView` value and no app state beyond the boolean that opens it.
 
 ## 3. State ownership
 
@@ -129,8 +135,9 @@ flowchart LR
 - `HabitTracker` receives **no props** (`App.jsx:397-399`): it fetches habits and entries itself. `WeeklyReview` and `MonthlyReview` receive only the slice they need.
 - `todayOrder` is an ordered array of task keys stored as a generic settings row (`App.jsx:202-211`, `settingsService`).
 - **Stage 4 adds no app-level state.** Two pieces of state exist and both are view-local: `DailyPlanner`'s `focusedDay` (F20 — the day button in the week bar and a day column's own header both set it; it drives the column emphasis, the `.mini-week-day[aria-pressed]` marker and the horizontal scroll, and it is cleared whenever the week moves) and the save status, which lives inside `useDebouncedSave` in the surface that persists (WeeklyReview, MonthlyReview, WeeklyObjectives) and is rendered by `SaveStatus`. `App.jsx` gained only two dialog flags — `pendingTaskDelete` (the id awaiting confirmation) and `noticeDialog` (the backup-failure notice) — neither of which is shared with a view.
+- **Stage 5 adds exactly one piece of app-level state**: `App.jsx`'s `paletteOpen` boolean, which is what the droppable command palette needs to open and close. The keyboard layer itself owns no state — it reads the DOM (`[data-kbd-row]` / `[data-kbd-list]`), and the only module-level value is the `g` chord's armed flag in `keyboard.js`. The row keys drive each surface's own callbacks, so `x`/`t` move the same core state (`todayOrder` + `sortOrder`, the recurring status override, `dueDate`) that the pointer path moves.
 
-## 4. The five main user flows
+## 4. The main user flows
 
 ### 4.1 Daily loop — quick capture → schedule → complete
 
@@ -236,6 +243,24 @@ sequenceDiagram
 
 Evidence: `src/App.jsx:80-95` (bootstrap), `:67-74` (default project), `src/utils/notifications.js:17-68`, `src/utils/monthlyReviewReminder.js:16-55`.
 **Why this matters:** the reminder bootstrap explains recurring "Monthly Financial Review" duplicates — it is idempotent by exact title only, so any renamed/duplicated task re-triggers creation.
+
+### 4.6 The keyboard layer (stage 5) — where each handler is registered
+
+One frozen map (`design.md` §6 D10), four registration points, and no key handled twice:
+
+| Key | Registered in | Scope |
+|---|---|---|
+| `/` | `CaptureLine.jsx` (a document `keydown`) | Focuses the shell's capture input; needs that component's own ref, so it stayed where stage 2 put it |
+| `j` / `k` | `useKeyboardLayer.js` (a document `keydown`, mounted once by `App.jsx`) | Moves focus between `[data-kbd-row]` elements inside the focused row's `[data-kbd-list]` container, or the first list on the screen when nothing is focused |
+| `x` / `t` | each row's own `onKeyDown` (`handleRowKeyDown` from `keyboard.js`) | Toggles completion / defers to tomorrow **through the surface's existing callbacks**, so the keyboard drives the same handlers as the pointer |
+| `u` | `UndoToast.jsx` (a document `keydown`, alive only while the toast is) | Runs the toast's own undo callback — one undo mechanism, and it works after the acted-on row has left the list |
+| `g` then `t/w/h/r/f/p` | `useKeyboardLayer.js` | Switches the one `activeView` string; the chord is armed for 1.5 s and disarms on the next keystroke |
+| `Escape` | every overlay's own dismissable layer (Radix dialog/popover/menu, the two lightboxes) | Closes the open overlay; the layer deliberately adds nothing here |
+| `Ctrl/⌘ + K` | `useKeyboardLayer.js` | Opens/closes `CommandPalette.jsx` |
+
+**Rules that make the layer safe.** A handler fires only when `isTypingContext(document.activeElement)` is false — an `<input>`, `<textarea>`, `<select>`, a `contenteditable`/`.ProseMirror` editor, or anything inside an open `[role="dialog"]`/`[aria-modal]`; `Escape` and `Ctrl/⌘ + K` are the two deliberate exceptions (a chord is not a character anyone types). No handler consumes Tab, and `preventDefault()` is called only on a key the handler actually acted on. While the `g` chord is armed the row handlers stand down (`keyboard.js`'s module-level `isGotoArmed()`), so `g` then `t` means "go to Today" rather than "defer this row".
+
+**What the layer does not do.** It adds no router, no seventh `activeView` value and no app-level state except `App.jsx`'s `paletteOpen` boolean. Row state is the surfaces' own: `TodayView` supplies `x`/`t` from the handlers its own buttons use (so completing still offers the stage-3 undo), `DayColumn` supplies `x` on every row and `t` only where the write is safe (a non-recurring task dated today or earlier — writing `dueDate` on a recurring source would move the whole series), and `BacklogSidebar` supplies both from the props `DailyPlanner` already passes. The `t` key writes `dueDate` = tomorrow computed at run time (CONV-003); it never hardcodes a date.
 
 ## 5. Period model (the app's hard part)
 

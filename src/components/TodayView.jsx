@@ -7,6 +7,7 @@ import TooltipButton from './TooltipButton';
 import UndoToast from './UndoToast';
 import { generateRecurringTasks } from '../utils/recurrence';
 import { mergeOrder } from '../utils/todayOrder';
+import { handleRowKeyDown, tomorrowDateStr } from './keyboard';
 import { taskService } from '../api';
 import './TodayView.css';
 
@@ -198,6 +199,11 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
         key={key}
         className={`tv-task${isCompleted ? ' tv-task--done' : ''}${isOverdue ? ' tv-task--overdue tv-task--draggable' : ''}`}
         tabIndex={0}
+        data-kbd-row="true"
+        onKeyDown={(event) => handleRowKeyDown(event, {
+          onToggle: () => handleToggleStatus(task),
+          onDefer: isCompleted ? undefined : () => handleDefer(task, tomorrowDateStr()),
+        })}
         draggable={isDraggable}
         onDragStart={isDraggable ? (e) => handleDragStart(e, key, isOverdue) : undefined}
         onDragOver={isDraggable ? handleDragOver : undefined}
@@ -328,7 +334,7 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
           <PlannerHabitsPanel onDataChange={onDataChange} />
         </div>
 
-        <div className="today-tasks-panel">
+        <div className="today-tasks-panel" data-kbd-list="today">
           {/* Overdue section */}
           {overdueTasks.length > 0 && (
             <div className="tv-section">

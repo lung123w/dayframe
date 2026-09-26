@@ -61,8 +61,9 @@ button {
 *::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
 
 /* The one focus recipe (D2/D6). The app had 0 `:focus-visible` rules and 27
-   `outline: none` sites; a component that still suppresses the outline is
-   repainted — and loses that suppression — in its own stage. */
+   sites that suppressed the outline; a component that still suppresses it is
+   repainted — and loses that suppression — in its own stage. Stage 5 brought
+   the count of surviving suppressions to 0. */
 :focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);

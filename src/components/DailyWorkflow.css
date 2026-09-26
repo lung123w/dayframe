@@ -127,7 +127,9 @@
 .dw-add-input {
   flex: 1;
   border: none;
-  outline: none;
+  /* Stage 5 removed this rule's outline suppression — the field supplied no
+     replacement indicator, so the global `:focus-visible` recipe
+     (`src/index.css`) is what makes it visible now. */
   background: transparent;
   font-size: 13px;
   color: var(--text, #1E293B);
