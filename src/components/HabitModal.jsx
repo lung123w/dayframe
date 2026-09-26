@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaTimes, FaTrash, FaArchive } from 'react-icons/fa';
+import { AppDialog } from './AppDialog';
 import './HabitModal.css';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -9,7 +10,7 @@ function getInitialFreq(habit) {
   return habit?.frequency || { type: 'daily' };
 }
 
-export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose, entriesCount = 0 }) {
+export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose, entriesCount = 0, open = true }) {
   const initFreq = getInitialFreq(habit);
   const [name, setName] = useState(habit?.name || '');
   const [description, setDescription] = useState(habit?.description || '');
@@ -41,8 +42,13 @@ export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal habit-modal" onClick={e => e.stopPropagation()}>
+    <AppDialog
+      open={open}
+      onClose={onClose}
+      ariaLabel={habit ? 'Edit Habit' : 'New Habit'}
+      className="modal habit-modal"
+      overlayClassName="modal-overlay"
+    >
         <div className="modal-header">
           <h2>{habit ? 'Edit Habit' : 'New Habit'}</h2>
           <button className="btn-icon" onClick={onClose}><FaTimes /></button>
@@ -199,7 +205,6 @@ export default function HabitModal({ habit, onSave, onDelete, onArchive, onClose
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </AppDialog>
   );
 }

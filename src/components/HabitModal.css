@@ -1,17 +1,17 @@
 .habit-modal {
   max-width: 480px;
-  background: white;
-  border-radius: 12px;
-  padding: 24px 28px;
+  background: var(--surface);
+  border-radius: var(--radius-surface);
+  padding: var(--space-5) 28px;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1.5px solid #E2E8F0;
+  border: var(--border);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .color-picker {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
@@ -21,69 +21,69 @@
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
-  transition: border-color 150ms ease;
+  transition: border-color var(--motion-state) var(--ease);
 }
 
 .color-swatch:hover {
-  border-color: #94A3B8;
+  border-color: var(--text-subtle);
 }
 
 .color-swatch.active {
-  border-color: #1E293B;
-  box-shadow: 0 0 0 2px white, 0 0 0 4px #1E293B;
+  border-color: var(--text-body);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--text-body);
 }
 
 .freq-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .freq-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: var(--space-2);
+  font-size: var(--font-row);
   cursor: pointer;
 }
 
 .freq-option input[type="radio"] {
-  accent-color: #F97316;
+  accent-color: var(--accent);
 }
 
 .weekday-picker {
   display: flex;
-  gap: 4px;
-  margin-top: 8px;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .weekday-btn {
   padding: 6px 10px;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
-  background: white;
+  border: var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-medium);
   font-family: 'Plus Jakarta Sans', sans-serif;
-  transition: all 150ms ease;
+  transition: all var(--motion-state) var(--ease);
 }
 
 .weekday-btn:hover {
-  border-color: #F97316;
+  border-color: var(--accent);
 }
 
 .weekday-btn.active {
-  background: #F97316;
-  color: white;
-  border-color: #F97316;
+  background: var(--accent);
+  color: var(--surface);
+  border-color: var(--accent);
 }
 
 .weekly-count {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .weekly-count input {
@@ -91,26 +91,26 @@
 }
 
 .track-type-warning {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #B45309;
-  background: #FEF3C7;
-  border: 1px solid #FDE68A;
-  border-radius: 6px;
+  margin-top: var(--space-2);
+  font-size: var(--font-meta);
+  color: var(--warning-text);
+  background: var(--surface-2);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-control);
   padding: 6px 10px;
 }
 
 .modal-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #E2E8F0;
+  padding-top: var(--space-4);
+  border-top: var(--border);
 }
 
 .modal-actions-right {
   margin-left: auto;
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }

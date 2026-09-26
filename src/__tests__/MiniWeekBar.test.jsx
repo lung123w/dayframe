@@ -26,17 +26,32 @@ describe('MiniWeekBar Component', () => {
     vi.useRealTimers();
   });
 
-  it('should render 7 day buttons (Mon-Sun)', () => {
-    render(<MiniWeekBar {...defaultProps} />);
+  it('should render 7 day buttons (Mon-Sun) plus the week controls', () => {
+    const { container } = render(<MiniWeekBar {...defaultProps} />);
 
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     dayNames.forEach(name => {
       expect(screen.getByText(name)).toBeInTheDocument();
     });
 
-    // 7 day buttons + 2 arrow buttons = 9 total buttons
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(9);
+    // The component's real control set: 7 day buttons + ‹ prev + "Today" +
+    // next › = 10. The old expectation of 9 counted only the two arrows and
+    // forgot the "Today" button, so it had been failing since the bar gained it.
+    expect(container.querySelectorAll('.mini-week-day')).toHaveLength(7);
+    expect(container.querySelectorAll('.mini-week-arrow')).toHaveLength(2);
+    expect(container.querySelectorAll('.mini-week-today-btn')).toHaveLength(1);
+    expect(screen.getAllByRole('button')).toHaveLength(10);
+  });
+
+  it('labels the two week arrows and marks the selected day', () => {
+    const { container } = render(<MiniWeekBar {...defaultProps} />);
+
+    expect(screen.getByLabelText('Previous week')).toBeInTheDocument();
+    expect(screen.getByLabelText('Next week')).toBeInTheDocument();
+
+    const dayButtons = container.querySelectorAll('.mini-week-day');
+    expect(dayButtons[0]).toHaveAttribute('aria-pressed', 'true');
+    expect(dayButtons[1]).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('should display the week label with correct date range', () => {

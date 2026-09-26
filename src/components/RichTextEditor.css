@@ -1,19 +1,19 @@
 /* Rich Text Editor - TipTap based editor component */
 
 .rich-editor-container {
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
+  border: var(--border);
+  border-radius: var(--radius-surface);
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--surface);
 }
 
 .rich-editor-toolbar {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 6px 8px;
-  border-bottom: 1px solid #E2E8F0;
-  background: #F8FAFC;
+  padding: 6px var(--space-2);
+  border-bottom: var(--border);
+  background: var(--surface-2);
   flex-wrap: wrap;
 }
 
@@ -22,24 +22,24 @@
   align-items: center;
   justify-content: center;
   gap: 1px;
-  padding: 4px 6px;
+  padding: var(--space-1) 6px;
   border: none;
   background: transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   cursor: pointer;
-  color: #64748B;
-  font-size: 13px;
-  transition: all 150ms ease;
+  color: var(--text-subtle);
+  font-size: var(--font-row);
+  transition: all var(--motion-state) var(--ease);
 }
 
 .rich-editor-toolbar button:hover {
-  background: #E2E8F0;
-  color: #1E293B;
+  background: var(--hairline);
+  color: var(--text-body);
 }
 
 .rich-editor-toolbar button.is-active {
-  background: #F97316;
-  color: #FFFFFF;
+  background: var(--accent);
+  color: var(--surface);
 }
 
 .rich-editor-toolbar button:disabled {
@@ -50,13 +50,13 @@
 .toolbar-divider {
   width: 1px;
   height: 20px;
-  background: #E2E8F0;
-  margin: 0 4px;
+  background: var(--hairline);
+  margin: 0 var(--space-1);
 }
 
 .heading-level {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
 }
 
 .rich-editor-content {
@@ -66,34 +66,33 @@
 }
 
 .rich-editor-content .tiptap {
-  padding: 12px;
-  outline: none;
+  padding: var(--space-3);
   min-height: 120px;
-  font-size: 14px;
+  font-size: var(--font-row);
   line-height: 1.6;
-  color: #1E293B;
+  color: var(--text-body);
 }
 
 .rich-editor-content .tiptap p {
-  margin: 0 0 8px 0;
+  margin: 0 0 var(--space-2) 0;
 }
 
 .rich-editor-content .tiptap h1,
 .rich-editor-content .tiptap h2,
 .rich-editor-content .tiptap h3 {
-  margin: 16px 0 8px 0;
-  color: #1E293B;
-  font-weight: 700;
+  margin: var(--space-4) 0 var(--space-2) 0;
+  color: var(--text-body);
+  font-weight: var(--font-weight-semibold);
 }
 
-.rich-editor-content .tiptap h1 { font-size: 24px; }
-.rich-editor-content .tiptap h2 { font-size: 20px; }
-.rich-editor-content .tiptap h3 { font-size: 16px; }
+.rich-editor-content .tiptap h1 { font-size: var(--font-page-title); }
+.rich-editor-content .tiptap h2 { font-size: var(--font-page-title); }
+.rich-editor-content .tiptap h3 { font-size: var(--font-body-lg); }
 
 .rich-editor-content .tiptap ul,
 .rich-editor-content .tiptap ol {
-  padding-left: 24px;
-  margin: 0 0 8px 0;
+  padding-left: var(--space-5);
+  margin: 0 0 var(--space-2) 0;
 }
 
 .rich-editor-content .tiptap li {
@@ -101,20 +100,20 @@
 }
 
 .rich-editor-content .tiptap code {
-  background: #F1F5F9;
-  border-radius: 3px;
-  padding: 2px 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-control);
+  padding: 2px var(--space-1);
   font-family: 'Fira Code', monospace;
-  font-size: 13px;
-  color: #E11D48;
+  font-size: var(--font-row);
+  color: var(--error-text);
 }
 
 .rich-editor-content .tiptap pre {
-  background: #1E293B;
-  color: #E2E8F0;
-  border-radius: 6px;
-  padding: 12px 16px;
-  margin: 8px 0;
+  background: var(--text-body);
+  color: var(--hairline);
+  border-radius: var(--radius-control);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-2) 0;
   overflow-x: auto;
 }
 
@@ -125,7 +124,7 @@
 }
 
 .rich-editor-content .tiptap a {
-  color: #3B82F6;
+  color: var(--accent);
   text-decoration: none;
   cursor: pointer;
 }
@@ -135,8 +134,8 @@
 }
 
 .rich-editor-content .tiptap blockquote {
-  border-left: 3px solid #E2E8F0;
-  padding-left: 12px;
-  margin: 8px 0;
-  color: #64748B;
+  border-left: 3px solid var(--hairline);
+  padding-left: var(--space-3);
+  margin: var(--space-2) 0;
+  color: var(--text-subtle);
 }
