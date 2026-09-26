@@ -1,13 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+/* =============================================================================
+   The single owner of the app's global rules (D6): reset, the :root and body
+   baseline, the font family, the one :focus-visible recipe and the one
+   prefers-reduced-motion block. Design values come from `src/styles/tokens.css`
+   (imported before this file in `src/main.jsx`); this file no longer re-states
+   any of them, and it no longer fetches a font (D3 — a local-first app must not
+   need the network for its own typography).
+   ========================================================================== */
 
 :root {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  font-family: var(--font-stack);
+  line-height: var(--font-leading-body);
+  font-weight: var(--font-weight-regular);
 
+  /* No token for this one: D2 freezes none, and which mechanism selects a mode
+     is the dark-mode stage's decision (D5, ADR-012). */
   color-scheme: light;
-  color: #1E293B;
-  background-color: #EFF6FF;
+  color: var(--text-body);
+  background-color: var(--page);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -36,11 +45,11 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
-  line-height: 1.2;
+  line-height: var(--font-leading-tight);
 }
 
 button {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-stack);
 }
 
 * {
@@ -51,3 +60,22 @@ button {
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
 
+/* The one focus recipe (D2/D6). The app had 0 `:focus-visible` rules and 27
+   `outline: none` sites; a component that still suppresses the outline is
+   repainted — and loses that suppression — in its own stage. */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* The one reduced-motion block (D6). The app had 0 before this stage; it is
+   declared here rather than in tokens.css, which declares custom properties
+   only (D1). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

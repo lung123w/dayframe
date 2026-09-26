@@ -1,0 +1,110 @@
+/* =============================================================================
+   DayFrame design tokens — stage 1 of `ui-modernization-calm-canvas`.
+
+   Names and values are frozen by ADR-012 (`.dev_context/DECISION_LOG.md`) and
+   `openspec/changes/ui-modernization-calm-canvas/design.md` §2 (D1–D6). Nothing
+   here is a free choice: the derived tones are the measured values in D4.
+
+   This file DECLARES custom properties only (D1) — no element selector, no rule
+   that styles anything, so importing it first cannot change specificity.
+
+   Both mode sets are declared in this first commit (D5). Dark is NOT wired:
+   the mechanism that selects a mode belongs to the stage that ships dark mode,
+   so the dark set sits under `:root.dark` and is inert until something puts
+   that class on <html>. The app ships light-only (ADR-012).
+   ========================================================================== */
+
+:root {
+  /* ── Colour ─────────────────────────────────────────────────────────────── */
+  --page: #FAFAF9;
+  --surface: #FFFFFF;
+  --surface-2: #F7F6F3;
+  --text-heading: #0F172A;
+  --text-body: #1E293B;
+  /* 4.56:1 on --page, 4.76:1 on --surface, 4.40:1 on --surface-2 — page and
+     surface text only; on --surface-2 use --text-subtle or stronger (D4). */
+  --text-muted: #64748B;
+  /* Derived and measured (D4): the lightest tone clearing 4.5:1 on all three
+     light grounds. `#94A3B8` measures 2.46:1 and is banned as text. */
+  --text-subtle: #5F6D82;
+  --accent: #635BFF;
+  --accent-hover: #5248E5;
+  --success: #10B981;      /* 2.43:1 — fill / dot / border only */
+  --success-text: #047857; /* D4: derived text tone */
+  --warning: #F59E0B;      /* 2.06:1 — fill / dot / border only */
+  --warning-text: #B45309; /* D4: derived text tone */
+  --error: #DF1B41;
+  --error-text: #B01636;   /* D4: derived text tone */
+  --hairline: #E7E5DF;
+  --focus-ring: #635BFF;
+
+  /* ── Type ───────────────────────────────────────────────────────────────── */
+  /* ADR-012's eight-row ladder: each row carries a size and a weight. D2
+     freezes the eight size names; the weight/leading companions below are what
+     a row needs to be applied without literals (300/400/500/600 are the
+     ladder's own weights, the two leadings are the pair the app already
+     uses). */
+  --font-display: 40px;    /* Display 40/300 */
+  --font-page-title: 22px; /* Page title 22/600 */
+  --font-section: 17px;    /* Section 17/600 */
+  --font-body-lg: 16px;    /* Body-large 16/400 */
+  --font-body: 15px;       /* Body 15/400 */
+  --font-row: 14px;        /* Row title 14/500 */
+  --font-meta: 12px;       /* Meta 12/400 */
+  --font-label: 11px;      /* Label (caps) 11/600 — the ladder's 11px floor */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-leading-tight: 1.2;
+  --font-leading-body: 1.5;
+
+  /* ── Space — 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 ────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ── Shape ──────────────────────────────────────────────────────────────── */
+  --radius-control: 6px;
+  --radius-surface: 8px;
+  --radius-pill: 999px;
+  --border: 1px solid var(--hairline);
+  /* The only shadow in the system (ADR-012: overlays only, never cards). */
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  /* ── Motion ─────────────────────────────────────────────────────────────── */
+  --motion-fast: 120ms;
+  --motion-state: 150ms;
+  --ease: ease; /* the app's existing easing — the layer freezes it, does not change it */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* ── Font stack — local, no network request (D3) ────────────────────────── */
+  --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ── Dark set (D5) — declared, not wired; dark is unreachable at launch ──────
+   D5 does not restate `--border`, the focus ring, `--shadow-overlay` or the
+   derived `*-text` tones: `--border` follows `--hairline` automatically (both
+   resolve on this same element), and the others keep their light values until
+   the stage that ships dark mode decides them. */
+:root.dark {
+  --page: #101418;
+  --surface: #161B22;
+  --surface-2: #1C232C;
+  --hairline: #2A323C;
+  --text-heading: #F8FAFC;
+  --text-body: #E2E8F0;
+  --text-muted: #94A3B8;
+  --text-subtle: #7E8B9E;
+  --accent: #8B84FF;
+  --accent-hover: #9C96FF;
+  --success: #34D399;
+  --warning: #FBBF24;
+  --error: #FB7185;
+}
