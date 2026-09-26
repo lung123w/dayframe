@@ -48,13 +48,14 @@
 
 /* Below ~520 px the row that carries the line cannot afford the slot: the
    status, both week-label ranges and the three controls need ~456 px of content
-   and the container is the viewport minus 64 px. Forcing the reservation there
-   would push the line outside its own box (measured at 420 px: the box would end
-   at x=489 in a 420 px viewport, i.e. off-screen), so on those widths the line
-   goes back to being as wide as its own text — the pre-existing behaviour, which
-   is the lesser problem at a width the design does not target. */
+   and the container is the viewport minus 64 px (measured: the reservation fits
+   at 521 px and no longer does at 520). Forcing it there would push the line
+   outside its own box — at 420 px the box ended at x=489 in a 420 px viewport,
+   i.e. off-screen. On those widths both declarations go back to their previous
+   values, so the line is exactly what it was before this change. */
 @media (max-width: 520px) {
   .save-status {
     min-width: 0;
+    justify-content: normal;
   }
 }
