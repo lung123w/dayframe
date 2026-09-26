@@ -3,9 +3,20 @@
 .save-status {
   display: inline-flex;
   align-items: center;
+  /* The line is right-aligned inside its own box so the visible text keeps the
+     exact position it has today (flush with the container's trailing edge)
+     while the box itself stays a fixed width. */
+  justify-content: flex-end;
   gap: var(--space-1);
   min-height: var(--space-4);
-  min-width: 0;
+  /* The slot is reserved on the horizontal axis too (design.md §8 D12): the
+     widest state is the failure line "Could not save — retry", measured 122.6 px
+     at --font-meta in the app's own stack, so the neighbour in the same row
+     would otherwise slide 31–123 px every time the line appears. 2 × --space-8
+     (128 px) is the next mark on the space scale above that worst case, which
+     makes the box width independent of the state — the row can then never
+     reflow, and the neighbouring controls never move. */
+  min-width: calc(var(--space-8) * 2);
   font-size: var(--font-meta);
   color: var(--text-subtle);
   white-space: nowrap;
@@ -33,4 +44,17 @@
 .save-status-retry:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
+}
+
+/* Below ~520 px the row that carries the line cannot afford the slot: the
+   status, both week-label ranges and the three controls need ~456 px of content
+   and the container is the viewport minus 64 px. Forcing the reservation there
+   would push the line outside its own box (measured at 420 px: the box would end
+   at x=489 in a 420 px viewport, i.e. off-screen), so on those widths the line
+   goes back to being as wide as its own text — the pre-existing behaviour, which
+   is the lesser problem at a width the design does not target. */
+@media (max-width: 520px) {
+  .save-status {
+    min-width: 0;
+  }
 }
