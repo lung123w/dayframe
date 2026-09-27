@@ -2,8 +2,9 @@
 
 Spec: `openspec/changes/fix-today-inline-capture-row/specs/today-quick-capture/spec.md`
 Design: `openspec/changes/fix-today-inline-capture-row/design.md` (§2 D1-D9 are binding)
-Branch: **`fix/today-inline-capture-row`** — one branch for this change; `master` stays
-clean (POL-002). PR at the end of card 2; cards 3 and 4 do not open new branches.
+Branch: **`fix/today-inline-capture-row`** — one branch for the change; `master` stays
+clean (POL-002). The builder opens the PR at the end of card 2; card 3 adds no branch; card 4
+merges that PR and then opens **one small `docs/`-prefixed branch** for the archive commit.
 
 Card ids: the placeholders below (`t_ed6002ca` / `t_6e88d0d9` / `t_d5816ad1` /
 `t_30eb4ff5`) are resolved in the comment thread of `t_61fb3c21`.
