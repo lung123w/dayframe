@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen } from 'react-icons/fa';
+import CaptureLine from './CaptureLine';
 import DailyTimeline from './DailyTimeline';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
 import DeferPopover from './DeferPopover';
@@ -335,6 +336,12 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
         </div>
 
         <div className="today-tasks-panel" data-kbd-list="today">
+          {/* The capture row is the list's first row (ADR-015) — on Today the
+              shell chrome does not render a second one (App.jsx). It is
+              deliberately not a `data-kbd-row` / `.tv-task`, so `j` still lands
+              on the first task below it. */}
+          <CaptureLine variant="row" projects={projects} onCaptured={onDataChange} />
+
           {/* Overdue section */}
           {overdueTasks.length > 0 && (
             <div className="tv-section">
