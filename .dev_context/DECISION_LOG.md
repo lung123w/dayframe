@@ -95,7 +95,7 @@ Two addenda the deck's Concept A block does **not** carry (measured here, so the
 
 *Decision.* The header line carries **the owner and nothing else** — the bare `Owner:` line naming `df-lead`, byte-identical in `ARCHITECTURE.md`, `DATA_MODEL.md`, `ROUTE_MAP.md` and `DECISION_LOG.md`. No date, no version, no clause; a branch may not edit it (POL-007).
 
-*Where provenance goes.* Every file ends in a `## Changelog` section — append-only, newest last, one bullet per change carrying its date and evidence — and the retired versioned history is carried there **verbatim**. An append at the tail can still collide when two branches append at once, but that resolution is trivial and lossless (keep both bullets); the versioned header was neither, because a new clause always rewrote the same line.
+*Where provenance goes.* Every context file ends in a `## Changelog` section — append-only, newest last, one bullet per change carrying its date and evidence — and the retired versioned history is carried there **verbatim**. `README.md` is the directory's index, not a context file, and carries no changelog (POL-007). An append at the tail can still collide when two branches append at once, but that resolution is trivial and lossless (keep both bullets); the versioned header was neither, because a new clause always rewrote the same line.
 
 *Rejected.* Keeping the versioned header and leaning on the merge resolver treats the symptom: on every merge a script has to guess a truthful union of two prose clauses, and the resolver only exists because the header is rewritten at all.
 
@@ -137,7 +137,7 @@ Consequence: new seed/lookup/reference data must not live in tracked source — 
 **POL-007 — Branches do not edit the `.dev_context` header line.** *(2026-09-27, card `t_a2c9a7db` — ADR-014)*
 All four context files open with the same line — `Owner:` plus the owner name, and nothing else — no date, no version, no clause — which is exactly what makes it conflict-free (ADR-014). Rule B is unchanged: a task updates the affected **section** before Done and records its provenance as one bullet appended to the file's tail `## Changelog` (newest last; never edit or delete an existing bullet). A header edit, a version bump or a date stamp is a defect, not an update, and `df-tester` rejects it. Gate check (must print `1`):
 `grep -h '^Owner:' .dev_context/*.md | sort -u | wc -l`
-A branch cut before 2026-09-27 that still carries a versioned header is the one exception: keep `master`'s static line and move the branch's own clause into the changelog — the same union the stopgap `scripts/resolve_doc_header_conflict.py` (agent home) used to build by hand.
+A branch cut before 2026-09-27 that still carries a versioned header is the one exception: keep `master`'s static line and move the branch's own clause into the changelog — the same union the stopgap `scripts/resolve_doc_header_conflict.py` (agent home) used to build by hand. The directory's index, `README.md`, is not one of the four: it carries the owner in lowercase inside its title and is deliberately outside this rule — no `Owner:` line and no tail `## Changelog` — so the gate above covers the four context files, not the directory.
 
 ## D. Open items
 
@@ -177,3 +177,4 @@ History carried over verbatim from the retired versioned header (its labels are 
 - **v1.6** — the v1.5 token-sweep entry is scoped to what the sweep actually measured, by card `t_95d1cafb` (raised by the verification card `t_e518956a`): the floor is the ladder's 11px `--font-label`, not `--font-meta` 12px, and the literals outside the eight (the `tokens.css` palette, **11** literal `border-radius` declarations in **eight** un-swept stylesheets, inline hexes) are recorded as surviving
 
 - **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`
+- **2026-09-27** — the README's exemption from the header/changelog rule is made explicit: `README.md` is the directory's index, not a context file (it carries the owner in lowercase inside its title), so the two over-broad "every file" phrases now name the four context files — this file's ADR-014 and `README.md` Rule B — card `t_1eaf6086`, branch `docs/dev-context-readme-outside-gate`, raised by the `t_81d5109e` verification of PR #33
