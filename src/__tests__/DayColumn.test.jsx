@@ -168,7 +168,7 @@ describe('DayColumn', () => {
       const task = makeTask({ status: 'pending' });
       renderColumn({ tasks: [task], expanded: true });
 
-      fireEvent.click(screen.getByTitle('Cycle status'));
+      fireEvent.click(screen.getByLabelText('Cycle task status'));
       expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'completed', undefined);
     });
 
@@ -176,7 +176,7 @@ describe('DayColumn', () => {
       const task = makeTask({ status: 'completed' });
       renderColumn({ tasks: [task], expanded: true });
 
-      fireEvent.click(screen.getByTitle('Cycle status'));
+      fireEvent.click(screen.getByLabelText('Cycle task status'));
       expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'pending', undefined);
     });
 
@@ -189,7 +189,7 @@ describe('DayColumn', () => {
       });
       renderColumn({ tasks: [task], expanded: true });
 
-      fireEvent.click(screen.getByTitle('Cycle status'));
+      fireEvent.click(screen.getByLabelText('Cycle task status'));
       expect(defaultCallbacks.onStatusUpdate).toHaveBeenCalledWith(task, 'completed', 'single');
     });
   });
@@ -200,22 +200,22 @@ describe('DayColumn', () => {
     it('does not show edit/delete action buttons in mini mode', () => {
       renderColumn({ tasks: [makeTask()], expanded: false });
 
-      expect(screen.queryByTitle('Edit')).not.toBeInTheDocument();
-      expect(screen.queryByTitle('Delete')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Delete')).not.toBeInTheDocument();
     });
 
     it('shows edit and delete action buttons in expanded mode', () => {
       renderColumn({ tasks: [makeTask()], expanded: true });
 
-      expect(screen.getByTitle('Edit')).toBeInTheDocument();
-      expect(screen.getByTitle('Delete')).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit')).toBeInTheDocument();
+      expect(screen.getByLabelText('Delete')).toBeInTheDocument();
     });
 
     it('calls onTaskClick when edit button is clicked in expanded mode', () => {
       const task = makeTask();
       renderColumn({ tasks: [task], expanded: true });
 
-      fireEvent.click(screen.getByTitle('Edit'));
+      fireEvent.click(screen.getByLabelText('Edit'));
       expect(defaultCallbacks.onTaskClick).toHaveBeenCalledWith(task);
     });
 
@@ -223,7 +223,7 @@ describe('DayColumn', () => {
       const task = makeTask({ id: 42 });
       renderColumn({ tasks: [task], expanded: true });
 
-      fireEvent.click(screen.getByTitle('Delete'));
+      fireEvent.click(screen.getByLabelText('Delete'));
       expect(defaultCallbacks.onDeleteTask).toHaveBeenCalledWith(42);
     });
 
@@ -409,14 +409,14 @@ describe('DayColumn', () => {
     it('shows estimate input when clock button is clicked', () => {
       renderColumn({ tasks: [makeTask()], expanded: true });
 
-      fireEvent.click(screen.getByTitle('Set time estimate'));
+      fireEvent.click(screen.getByLabelText('Set time estimate'));
       expect(screen.getByPlaceholderText('min')).toBeInTheDocument();
     });
 
     it('calls onEstimateChange when estimate is saved', () => {
       renderColumn({ tasks: [makeTask()], expanded: true });
 
-      fireEvent.click(screen.getByTitle('Set time estimate'));
+      fireEvent.click(screen.getByLabelText('Set time estimate'));
       const input = screen.getByPlaceholderText('min');
       fireEvent.change(input, { target: { value: '45' } });
       fireEvent.click(screen.getByText('OK'));

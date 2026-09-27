@@ -1,0 +1,17 @@
+/* The one popover shell (design.md §3 D7). Radix positions the content with an
+   inline transform, so this file never sets `position`/`left`/`top` — it only
+   carries the surface. Overlays are the only place a shadow is allowed
+   (ADR-012: no card shadows). */
+.radix-popover {
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--shadow-overlay);
+  z-index: 1100;
+  animation: radix-popover-in var(--motion-fast) var(--ease);
+}
+
+@keyframes radix-popover-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

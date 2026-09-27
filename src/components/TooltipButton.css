@@ -1,0 +1,15 @@
+/* Radix tooltip surface (design.md §3 D7). The trigger itself is the caller's
+   own button/span — no extra styling. */
+.tooltip-content {
+  background: var(--text-heading);
+  color: var(--surface);
+  font-size: var(--font-meta);
+  line-height: var(--font-leading-tight);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  z-index: 1200;
+}
+
+.tooltip-trigger-wrap {
+  display: inline-flex;
+}

@@ -1,0 +1,35 @@
+.undo-banner {
+  position: fixed;
+  bottom: var(--space-5);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-heading);
+  color: var(--surface);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--font-row);
+  box-shadow: var(--shadow-overlay);
+  z-index: 2000;
+}
+
+.undo-banner-msg {
+  white-space: nowrap;
+}
+
+.undo-banner-btn {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-semibold);
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}

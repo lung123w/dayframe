@@ -1,8 +1,10 @@
-import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen, FaCalendarAlt } from 'react-icons/fa';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen } from 'react-icons/fa';
 import DailyTimeline from './DailyTimeline';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
 import DeferPopover from './DeferPopover';
+import TooltipButton from './TooltipButton';
+import UndoToast from './UndoToast';
 import { generateRecurringTasks } from '../utils/recurrence';
 import { mergeOrder } from '../utils/todayOrder';
 import { taskService } from '../api';
@@ -31,9 +33,9 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
   const today = useMemo(() => toLocalDateStr(new Date()), []);
   const dragSrcKey = useRef(null);
   const dragSrcIsOverdue = useRef(false);
-  const deferBtnRef = useRef(null);
+  const undoSeq = useRef(0);
   const [todayDropActive, setTodayDropActive] = useState(false);
-  const [deferTaskId, setDeferTaskId] = useState(null);
+  const [undo, setUndo] = useState(null);
 
   const todayDate = useMemo(() => {
     const [y, m, d] = today.split('-').map(Number);
@@ -88,18 +90,36 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
 
   const getProject = id => projects.find(p => p.id === id);
 
+  // ── Undo (design.md §7 D11 — one action, 5 seconds, one mechanism) ──
+  const offerUndo = (message, undoFn) => {
+    undoSeq.current += 1;
+    setUndo({ id: undoSeq.current, message, undo: undoFn });
+  };
+
+  const handleUndo = () => {
+    const action = undo;
+    setUndo(null);
+    if (action) action.undo();
+  };
+
   // ── Reorder helpers ──
-  const reorderAndSave = (newList) => {
+  const reorderAndSave = (newList, previousKeys) => {
     const newOrder = newList.map(getTaskKey);
     if (onTodayOrderChange) onTodayOrderChange(newOrder);
+    if (previousKeys) {
+      offerUndo('Order updated', () => {
+        if (onTodayOrderChange) onTodayOrderChange(previousKeys);
+      });
+    }
   };
 
   const moveTask = (idx, direction) => {
     const newList = [...pendingToday];
+    const previousKeys = pendingToday.map(getTaskKey);
     const target = idx + direction;
     if (target < 0 || target >= newList.length) return;
     [newList[idx], newList[target]] = [newList[target], newList[idx]];
-    reorderAndSave(newList);
+    reorderAndSave(newList, previousKeys);
   };
 
   // ── Drag handlers ──
@@ -115,7 +135,7 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
   };
 
   // Drop onto today section: reschedule overdue task to today
-  const handleDropOnToday = useCallback(async (e) => {
+  const handleDropOnToday = async (e) => {
     e.preventDefault();
     setTodayDropActive(false);
     if (!dragSrcIsOverdue.current) return;
@@ -124,41 +144,60 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
     dragSrcIsOverdue.current = false;
     const task = overdueTasks.find(t => getTaskKey(t) === key);
     if (!task) return;
+    const previousDueDate = task.dueDate;
     await taskService.update(task.id, { dueDate: today });
     if (onDataChange) onDataChange();
-  }, [overdueTasks, today, onDataChange]);
+    offerUndo('Task moved to today', () => {
+      taskService.update(task.id, { dueDate: previousDueDate }).then(() => onDataChange && onDataChange());
+    });
+  };
 
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
     if (dragSrcIsOverdue.current) return; // handled by section drop
     if (dragSrcKey.current === targetKey) return;
     const newList = [...pendingToday];
+    const previousKeys = pendingToday.map(getTaskKey);
     const srcIdx = newList.findIndex(t => getTaskKey(t) === dragSrcKey.current);
     const tgtIdx = newList.findIndex(t => getTaskKey(t) === targetKey);
     if (srcIdx === -1 || tgtIdx === -1) return;
     const [removed] = newList.splice(srcIdx, 1);
     newList.splice(tgtIdx, 0, removed);
-    reorderAndSave(newList);
     dragSrcKey.current = null;
+    reorderAndSave(newList, previousKeys);
   };
 
-  const handleDefer = useCallback(async (task, newDate) => {
+  const handleDefer = async (task, newDate) => {
+    const previousDueDate = task.dueDate ?? null;
     await taskService.update(task.id, { dueDate: newDate });
     if (onDataChange) onDataChange();
-    setDeferTaskId(null);
-  }, [onDataChange]);
+    offerUndo('Task deferred', () => {
+      taskService.update(task.id, { dueDate: previousDueDate }).then(() => onDataChange && onDataChange());
+    });
+  };
 
-  const renderTaskCard = (task, isOverdue = false, idx = -1, listLen = 0) => {
+  const handleToggleStatus = (task) => {
+    const previousStatus = task.status;
+    const nextStatus = previousStatus === 'completed' ? 'pending' : 'completed';
+    if (onStatusUpdate) onStatusUpdate(task, nextStatus);
+    offerUndo(
+      nextStatus === 'completed' ? 'Task completed' : 'Task reopened',
+      () => { if (onStatusUpdate) onStatusUpdate(task, previousStatus); }
+    );
+  };
+
+  const renderTaskRow = (task, isOverdue = false, idx = -1, listLen = 0) => {
     const project = getProject(task.projectId);
     const isCompleted = task.status === 'completed';
     const key = getTaskKey(task);
     const isDraggable = !isCompleted; // overdue tasks are now draggable to today
+    const canReorder = isDraggable && idx >= 0;
 
     return (
       <div
         key={key}
         className={`tv-task${isCompleted ? ' tv-task--done' : ''}${isOverdue ? ' tv-task--overdue tv-task--draggable' : ''}`}
-        style={{ borderLeftColor: project?.color || '#E2E8F0' }}
+        tabIndex={0}
         draggable={isDraggable}
         onDragStart={isDraggable ? (e) => handleDragStart(e, key, isOverdue) : undefined}
         onDragOver={isDraggable ? handleDragOver : undefined}
@@ -171,8 +210,9 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
           onMouseDown={e => e.preventDefault()}
           onClick={e => {
             e.stopPropagation();
-            if (onStatusUpdate) onStatusUpdate(task, isCompleted ? 'pending' : 'completed');
+            handleToggleStatus(task);
           }}
+          aria-label={isCompleted ? `Mark "${task.title}" as not done` : `Complete "${task.title}"`}
           title="Toggle status"
         >
           {isOverdue
@@ -191,87 +231,72 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
             {isOverdue && (
               <span className="tv-overdue-badge">Overdue</span>
             )}
-            {task.startTime && (
-              <span className="tv-time-badge">
-                {formatTime(task.startTime)}
-                {task.endTime && ` – ${formatTime(task.endTime)}`}
-              </span>
-            )}
           </div>
           {task.description && (
             <div className="tv-task-description" dangerouslySetInnerHTML={{ __html: task.description }} />
           )}
-          <div className="tv-task-meta">
-            {project && <span className="tv-task-project" style={{ color: project.color }}>{project.name}</span>}
-            {task.priority === 'high' && <span className="tv-priority tv-priority--high">High</span>}
-          </div>
         </div>
 
-        {/* Touch-friendly up/down reorder controls */}
-        {isDraggable && (
-          <div className="tv-reorder-btns" draggable={false} onMouseDown={e => e.preventDefault()} onClick={e => e.stopPropagation()}>
-            <button
-              className="tv-reorder-btn"
-              draggable={false}
-              disabled={idx === 0}
-              onClick={() => moveTask(idx, -1)}
-              title="Move up"
-              aria-label="Move task up"
-            >
-              <FaArrowUp />
-            </button>
-            <button
-              className="tv-reorder-btn"
-              draggable={false}
-              disabled={idx === listLen - 1}
-              onClick={() => moveTask(idx, 1)}
-              title="Move down"
-              aria-label="Move task down"
-            >
-              <FaArrowDown />
-            </button>
-          </div>
-        )}
+        <div className="tv-task-meta">
+          {task.startTime && (
+            <span className="tv-task-time">
+              {formatTime(task.startTime)}
+              {task.endTime && ` – ${formatTime(task.endTime)}`}
+            </span>
+          )}
+          {project && (
+            <span className="tv-task-project">
+              <span className="tv-task-dot" style={{ background: project.color }} />
+              {project.name}
+            </span>
+          )}
+          {task.priority === 'high' && <span className="tv-priority tv-priority--high">High</span>}
+        </div>
 
-        {/* Edit button */}
-        <button
-          className="tv-edit-btn"
-          draggable={false}
-          title="Edit task"
-          aria-label="Edit task"
-          onMouseDown={e => e.preventDefault()}
-          onClick={e => { e.stopPropagation(); if (onTaskClick) onTaskClick(task); }}
-        >
-          <FaPen />
-        </button>
-
-        {/* Defer button - only for pending tasks */}
-        {!isCompleted && (
-          <button
-            ref={deferTaskId === key ? deferBtnRef : null}
-            className="tv-defer-btn"
+        {/* Row actions: revealed on hover OR focus, always visible where the
+            viewport has no hover capability (F10 — nothing here depends on
+            `:hover` alone). */}
+        <div className="tv-row-actions" draggable={false} onMouseDown={e => e.preventDefault()} onClick={e => e.stopPropagation()}>
+          {canReorder && (
+            <>
+              <TooltipButton
+                label="Move task up"
+                className="tv-move-btn"
+                disabled={idx === 0}
+                draggable={false}
+                onClick={() => moveTask(idx, -1)}
+              >
+                <FaArrowUp />
+              </TooltipButton>
+              <TooltipButton
+                label="Move task down"
+                className="tv-move-btn"
+                disabled={idx === listLen - 1}
+                draggable={false}
+                onClick={() => moveTask(idx, 1)}
+              >
+                <FaArrowDown />
+              </TooltipButton>
+            </>
+          )}
+          {!isCompleted && (
+            <DeferPopover
+              task={task}
+              onDefer={handleDefer}
+              trigger={
+                <button className="tv-row-action" draggable={false} type="button">Defer</button>
+              }
+            />
+          )}
+          <TooltipButton
+            label="Edit task"
+            className="tv-row-action tv-row-action--icon"
             draggable={false}
-            title="Defer to another date"
-            aria-label="Defer task"
-            onMouseDown={e => e.preventDefault()}
-            onClick={e => {
-              e.stopPropagation();
-              setDeferTaskId(deferTaskId === key ? null : key);
-            }}
+            onClick={e => { e.stopPropagation(); if (onTaskClick) onTaskClick(task); }}
           >
-            <FaCalendarAlt />
-          </button>
-        )}
-
-        {/* Defer popover */}
-        {deferTaskId === key && !isCompleted && (
-          <DeferPopover
-            task={task}
-            onDefer={handleDefer}
-            onClose={() => setDeferTaskId(null)}
-            anchorRef={deferBtnRef}
-          />
-        )}
+            <FaPen />
+          </TooltipButton>
+        </div>
       </div>
     );
   };
@@ -314,7 +339,7 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
                   Pull to today
                 </button>
               </div>
-              {overdueTasks.map(t => renderTaskCard(t, true))}
+              {overdueTasks.map(t => renderTaskRow(t, true))}
             </div>
           )}
 
@@ -335,7 +360,7 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
                 {overdueTasks.length === 0 ? 'No tasks for today — add one!' : 'All done for today!'}
               </div>
             ) : (
-              pendingToday.map((t, idx) => renderTaskCard(t, false, idx, pendingToday.length))
+              pendingToday.map((t, idx) => renderTaskRow(t, false, idx, pendingToday.length))
             )}
           </div>
 
@@ -345,7 +370,7 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
               <div className="tv-section-header tv-section-header--done">
                 <span>Completed ({completedToday.length})</span>
               </div>
-              {completedToday.map(t => renderTaskCard(t))}
+              {completedToday.map(t => renderTaskRow(t))}
             </div>
           )}
         </div>
@@ -358,6 +383,15 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
           />
         </div>
       </div>
+
+      {undo && (
+        <UndoToast
+          key={undo.id}
+          message={undo.message}
+          onUndo={handleUndo}
+          onDismiss={() => setUndo(null)}
+        />
+      )}
     </div>
   );
 }

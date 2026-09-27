@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: #F8FAFC;
+  background: var(--page);
 }
 
 /* ── Header ── */
@@ -11,21 +11,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background: white;
-  border-bottom: 1px solid #E2E8F0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border-bottom: var(--border);
   flex-shrink: 0;
 }
 
 .today-header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .today-header-icon {
-  font-size: 24px;
-  color: #F97316;
+  font-size: var(--font-page-title);
+  color: var(--text-subtle);
 }
 
 .today-header-text {
@@ -36,47 +36,47 @@
 
 .today-title {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: #1E293B;
+  font-size: var(--font-page-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
 }
 
 .today-date {
   margin: 0;
-  font-size: 13px;
-  color: #64748B;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
 }
 
 .today-header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .today-stats-text {
-  font-size: 13px;
-  color: #64748B;
-  font-weight: 500;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
 }
 
 .tv-new-task-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #F97316;
-  color: white;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--accent);
+  color: var(--surface);
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: var(--radius-control);
+  font-size: var(--font-row);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.15s ease;
+  transition: background-color var(--motion-state) var(--ease);
 }
 
 .tv-new-task-btn:hover {
-  background: #EA580C;
+  background: var(--accent-hover);
 }
 
 /* ── Content layout ── */
@@ -84,8 +84,8 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  gap: 16px;
-  padding: 16px;
+  gap: var(--space-4);
+  padding: var(--space-4);
 }
 
 .today-left-column {
@@ -99,9 +99,9 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  background: white;
-  border-radius: 8px;
-  border: 1.5px solid #E2E8F0;
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
   overflow-y: auto;
   min-width: 0;
 }
@@ -113,7 +113,7 @@
 
 /* ── Sections ── */
 .tv-section {
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: var(--border);
 }
 
 .tv-section:last-child {
@@ -123,96 +123,69 @@
 .tv-section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748B;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  background: #FAFBFC;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: var(--border);
 }
 
 .tv-section-header--overdue {
-  color: #DC2626;
-  background: #FFF5F5;
+  color: var(--error-text);
 }
 
 .tv-section-header--done {
-  color: #10B981;
+  color: var(--success-text);
 }
 
 .tv-pull-to-today-btn {
   margin-left: auto;
-  padding: 2px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #DC2626;
-  background: #FEE2E2;
-  border: 1px solid #FCA5A5;
-  border-radius: 4px;
+  padding: 2px var(--space-2);
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--error-text);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-control);
   cursor: pointer;
   letter-spacing: 0.3px;
   text-transform: none;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.tv-pull-to-today-btn:hover {
-  background: #FEE2E2;
-  border-color: #DC2626;
-}
-
-.tv-add-inline-btn {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: 1px solid #E2E8F0;
-  border-radius: 4px;
-  padding: 3px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748B;
-  cursor: pointer;
   font-family: inherit;
-  transition: all 0.12s ease;
-  text-transform: none;
-  letter-spacing: 0;
+  transition: border-color var(--motion-fast) var(--ease);
 }
 
-.tv-add-inline-btn:hover {
-  background: #F1F5F9;
-  border-color: #94A3B8;
-  color: #1E293B;
+.tv-pull-to-today-btn:hover,
+.tv-pull-to-today-btn:focus-visible {
+  border-color: var(--error);
 }
 
-/* ── Task cards (planner-style) ── */
+/* ── Task rows — one line per task, hairline separated, no card ── */
 .tv-task {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 16px;
-  border-left: 4px solid #E2E8F0;
-  margin: 4px 8px;
-  border-radius: 6px;
-  background: #FAFBFC;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: var(--border);
+  background: transparent;
   cursor: pointer;
-  transition: background 0.12s ease, box-shadow 0.12s ease;
+  transition: background-color var(--motion-fast) var(--ease);
 }
 
-.tv-task:hover {
-  background: #F1F5F9;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+.tv-task:last-child {
+  border-bottom: none;
+}
+
+.tv-task:hover,
+.tv-task:focus,
+.tv-task:focus-within {
+  background: var(--surface-2);
 }
 
 .tv-task--done {
-  opacity: 0.5;
-}
-
-.tv-task--overdue {
-  background: #FFF5F5;
+  opacity: 0.6;
 }
 
 .tv-task--draggable {
@@ -223,14 +196,10 @@
   cursor: grabbing;
 }
 
-.tv-task--overdue:hover {
-  background: #FEE2E2;
-}
-
 .tv-section--today-drop.tv-section--drag-over {
-  outline: 2px dashed #F97316;
+  outline: 2px dashed var(--accent);
   outline-offset: -2px;
-  border-radius: 8px;
+  border-radius: var(--radius-surface);
 }
 
 /* Status button */
@@ -240,111 +209,192 @@
   cursor: pointer;
   padding: 2px;
   flex-shrink: 0;
-  margin-top: 1px;
+  display: flex;
+  align-items: center;
 }
 
-.tv-status-icon { font-size: 16px; }
-.tv-status-icon--todo { color: #CBD5E1; }
-.tv-status-icon--done { color: #10B981; }
-.tv-status-icon--overdue { color: #DC2626; }
+.tv-status-icon { font-size: var(--font-body-lg); }
+.tv-status-icon--todo { color: var(--text-subtle); }
+.tv-status-icon--done { color: var(--success); }
+.tv-status-icon--overdue { color: var(--error); }
 
-/* Task content */
+/* Task content — the title, at body size */
 .tv-task-content {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .tv-task-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
 .tv-task-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1E293B;
-  flex: 1;
+  font-size: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-body);
   word-break: break-word;
-  line-height: 1.4;
+  line-height: var(--font-leading-tight);
 }
 
 .tv-task-title--done {
   text-decoration: line-through;
-  color: #94A3B8;
+  color: var(--text-subtle);
 }
 
 .tv-overdue-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #DC2626;
-  background: #FEE2E2;
-  padding: 1px 7px;
-  border-radius: 10px;
-  text-transform: none;
-  letter-spacing: 0;
-  flex-shrink: 0;
-}
-
-.tv-time-badge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #F97316;
-  background: #FFF7ED;
-  padding: 1px 7px;
-  border-radius: 10px;
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--error-text);
+  border: 1px solid var(--error);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
 
 .tv-task-description {
-  font-size: 12px;
-  color: #64748B;
-  line-height: 1.4;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+  line-height: var(--font-leading-body);
 }
 
 .tv-task-description p { margin: 0; }
 
+/* Right-aligned metadata — one muted size: time, project dot, priority */
 .tv-task-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+}
+
+.tv-task-time {
+  font-variant-numeric: tabular-nums;
 }
 
 .tv-task-project {
-  font-size: 11px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tv-task-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .tv-priority {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 8px;
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .tv-priority--high {
-  background: #FEE2E2;
-  color: #DC2626;
+  color: var(--error-text);
 }
 
 .tv-empty {
-  padding: 20px 16px;
-  font-size: 13px;
-  color: #94A3B8;
+  padding: var(--space-5) var(--space-4);
+  font-size: var(--font-row);
+  color: var(--text-muted);
   text-align: center;
 }
+
+/* ── Row actions — hover OR focus, never hover-only (F10) ──
+   The same three states apply to every row action, and a viewport without
+   hover (touch) always shows them, so no action is reachable only by pointer
+   hover. The up/down arrows are the mandated touch reorder controls
+   (`today-item-ordering`), at label size. */
+.tv-row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--motion-fast) var(--ease);
+}
+
+.tv-task:hover .tv-row-actions,
+.tv-task:focus .tv-row-actions,
+.tv-task:focus-within .tv-row-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .tv-row-actions {
+    opacity: 1;
+  }
+}
+
+.tv-move-btn {
+  background: none;
+  border: var(--border);
+  border-radius: var(--radius-control);
+  padding: 2px var(--space-1);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--font-label);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--motion-fast) var(--ease), border-color var(--motion-fast) var(--ease);
+}
+
+.tv-move-btn:hover:not(:disabled),
+.tv-move-btn:focus-visible:not(:disabled) {
+  color: var(--accent-hover);
+  border-color: var(--accent);
+}
+
+.tv-move-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tv-row-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.3px;
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  transition: color var(--motion-fast) var(--ease);
+}
+
+.tv-row-action:hover,
+.tv-row-action:focus-visible {
+  color: var(--accent-hover);
+}
+
+.tv-row-action--icon {
+  font-size: var(--font-meta);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Quick capture moved to the shell's CaptureLine (stage 2 of
+   ui-modernization-calm-canvas) — the `.tv-quick-capture*` rules went with it. */
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
   .today-content {
     flex-direction: column;
-    padding: 12px;
+    padding: var(--space-3);
   }
 
   .today-left-column {
@@ -357,105 +407,10 @@
   }
 
   .today-header {
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
   }
 
   .today-title {
-    font-size: 20px;
+    font-size: var(--font-section);
   }
-}
-
-/* ── Reorder controls ── */
-.tv-reorder-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-left: 6px;
-  opacity: 0;
-  transition: opacity 0.15s;
-  flex-shrink: 0;
-}
-
-.tv-task:hover .tv-reorder-btns {
-  opacity: 1;
-}
-
-.tv-reorder-btn {
-  background: none;
-  border: 1px solid #E2E8F0;
-  border-radius: 4px;
-  padding: 2px 4px;
-  cursor: pointer;
-  color: #94A3B8;
-  font-size: 10px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.tv-reorder-btn:hover:not(:disabled) {
-  color: #6366F1;
-  border-color: #6366F1;
-}
-
-.tv-reorder-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-/* Quick capture moved to the shell's CaptureLine (stage 2 of
-   ui-modernization-calm-canvas) — the `.tv-quick-capture*` rules went with it. */
-
-/* Edit button on task cards */
-.tv-edit-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 6px;
-  color: #CBD5E1;
-  font-size: 11px;
-  opacity: 0;
-  border-radius: 4px;
-  transition: opacity 0.15s, color 0.15s, background 0.15s;
-  flex-shrink: 0;
-}
-
-.tv-task:hover .tv-edit-btn {
-  opacity: 1;
-}
-
-.tv-edit-btn:hover {
-  color: #6366F1;
-  background: #EEF2FF;
-}
-
-/* Defer button */
-.tv-defer-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 6px;
-  color: #CBD5E1;
-  font-size: 11px;
-  opacity: 0;
-  border-radius: 4px;
-  transition: opacity 0.15s, color 0.15s, background 0.15s;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.tv-task:hover .tv-defer-btn {
-  opacity: 1;
-}
-
-.tv-defer-btn:hover {
-  color: #F97316;
-  background: #FFF7ED;
-}
-
-/* Defer popover positioning */
-.tv-task {
-  position: relative;
 }
