@@ -311,6 +311,8 @@ At 2026-09-26 18:12 HKT the lead measured the Box and found **six already-filed 
 
 Today's Box (`ls`) is the same 6 non-statement files the 2026-09-26 Box held, minus nothing and plus `upnote-migration-checklist.html` (created 2026-09-27) — that is how the 12-file inventory in F4.1 is reconstructed.
 
+**That watcher no longer exists, and nothing may bring it back.** Re-checked 2026-09-27 18:34: job `d2ee48ebe808` is gone from `cron/jobs.json`, its output directory is removed, `executions.db` holds no further runs, and no job in `jobs.json` references `box_dedupe` or `Statement box`. The prior-art script file `%LOCALAPPDATA%\hermes\scripts\box_dedupe_statements.py` still sits on disk as a reference for the *job body* only. Per the owner's 2026-09-27 manual-trigger-only ruling (R2 below, recorded as **ADR-015** in `.dev_context/DECISION_LOG.md`), the scheduled job was removed and neither that script nor any equivalent may ever be registered on a schedule again: the only trigger is the user pressing the button in the Finance Review step, and a locked removal is resolved by pressing it again — nothing returns on its own.
+
 Consequence for the card chain: the tester's sandbox must **rebuild** the 2026-09-26 Box from F4 (real bytes copied from the filed copies), not from the live Box.
 
 #### F0.3 — four readings D1–D16 left open. They are frozen here (evidence-backed), not re-decided elsewhere
