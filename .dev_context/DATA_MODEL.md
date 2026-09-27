@@ -1,6 +1,6 @@
 # DayFrame — Data Model
 
-Owner: `df-lead` · Last updated: 2026-09-20 (v1.1 — every column re-checked against `server/db.js` CREATE blocks **and** ALTER migrations, plus the live DB; v1.2 — habit `trackType` / entry `count` columns added, `t_74db36be`; v1.3 — `habits.frequency` normalization contract (§1) + the double-encoded live row (§5), `fix-habit-frequency-normalization`)
+Owner: `df-lead`
 
 SQLite, one file: `data/app.db` (gitignored). Schema is created in `server/db.js`; later columns arrive through **idempotent add-only migrations** (`try { db.exec('ALTER TABLE … ADD COLUMN …') } catch {}`). No ORM — `better-sqlite3` prepared statements inside `server/routes/*.js`.
 
@@ -144,4 +144,16 @@ Verification: a legacy-shaped **copy** of the live DB (the pre-migration backup)
 
 ## 7. How to update this document
 
-Rule B: update this file in the same branch as any change that adds or alters a table, column, constraint or JSON blob shape. Cite the migration line in `server/db.js`. If you changed the live DB by hand or by an out-of-repo script, say so in §5.
+Rule B: update this file in the same branch as any change that adds or alters a table, column, constraint or JSON blob shape. Cite the migration line in `server/db.js`. If you changed the live DB by hand or by an out-of-repo script, say so in §5. **Never rewrite the header line** — it is static and identical in all four `.dev_context` files (POL-007); your change's provenance is one bullet appended to the tail `## Changelog`. Gate check (must print `1`): `grep -h '^Owner:' .dev_context/*.md | sort -u | wc -l`.
+
+## Changelog
+
+Append-only, newest last. One bullet per change: `- YYYY-MM-DD — what changed — evidence (card / commit / PR)`. Never edit or delete an existing bullet, and never edit the header line: it is static and identical in all four files, so two branches cannot disagree on it (POL-007, ADR-014).
+
+History carried over verbatim from the retired versioned header (its labels are kept as written):
+
+- **v1.1** — every column re-checked against `server/db.js` CREATE blocks **and** ALTER migrations, plus the live DB
+- **v1.2** — habit `trackType` / entry `count` columns added, `t_74db36be`
+- **v1.3** — `habits.frequency` normalization contract (§1) + the double-encoded live row (§5), `fix-habit-frequency-normalization`
+
+- **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`

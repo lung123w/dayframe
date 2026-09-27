@@ -1,6 +1,6 @@
 # DayFrame — Route Map
 
-Owner: `df-lead` · Last updated: 2026-09-27 (v1.6 — close-out by card `t_55c01442`: the UI-direction ADR is now cited as **ADR-013** (renumbered on `master` 2026-09-26 when the habits ADR claimed ADR-012 - the change's own artifacts and cards still say ADR-012), and the `/api/habits` row carries `master`'s normalization contract; this document is re-based onto `master`'s v1.3 (the stage branches predate it); v1.5 — §1 revised by card `t_4925715f`, stage 5 of `ui-modernization-calm-canvas`: the keyboard layer as a surface-less overlay over the six views, the droppable `CommandPalette` with the key map in its footer, and `UndoToast` as the owner of the `u` key; §3 adds the keyboard-layer convention; v1.5 — §1 revised by card `t_63c2607b`, stage 4 of `ui-modernization-calm-canvas`: the Radix dialog owners (`AppDialog` / `ConfirmDialog` / `PromptDialog`), the one save-status line per persisting surface, both review week labels and the wired day-select controls; §3 adds the dialog and debounce conventions; v1.4 — §1 revised by card `t_7fd24929` (stage 3: rows on Today / the Week day columns / the backlog, focus-reachable row actions, one-click habit logging, Radix popover + tooltip owners); v1.3 — stage-0 deletions (card `t_aa4715eb`: four dead components + their stylesheets) and the `/api/habits` `frequency` contract (`fix-habit-frequency-normalization`); §1 verbs, mounts and period parameters re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`)
+Owner: `df-lead`
 
 ## 1. UI surfaces
 
@@ -86,4 +86,18 @@ Non-API routes: in production `express.static(dist)` + `GET *` → `dist/index.h
 
 ## 4. How to update this document
 
-Rule B: any new/changed endpoint, view or modal must be reflected here in the same branch — mount path, verbs, and the period parameter it takes. Note which component *renders* a modal, not just that it exists.
+Rule B: any new/changed endpoint, view or modal must be reflected here in the same branch — mount path, verbs, and the period parameter it takes. Note which component *renders* a modal, not just that it exists. **Never rewrite the header line** — it is static and identical in all four `.dev_context` files (POL-007); your change's provenance is one bullet appended to the tail `## Changelog`. Gate check (must print `1`): `grep -h '^Owner:' .dev_context/*.md | sort -u | wc -l`.
+
+## Changelog
+
+Append-only, newest last. One bullet per change: `- YYYY-MM-DD — what changed — evidence (card / commit / PR)`. Never edit or delete an existing bullet, and never edit the header line: it is static and identical in all four files, so two branches cannot disagree on it (POL-007, ADR-014).
+
+History carried over verbatim from the retired versioned header (its labels are kept as written, including the duplicate `v1.5` label that a 2026-09 merge resolution produced):
+
+- **v1.3** — stage-0 deletions (card `t_aa4715eb`: four dead components + their stylesheets) and the `/api/habits` `frequency` contract (`fix-habit-frequency-normalization`); §1 verbs, mounts and period parameters re-checked against `src/App.jsx`, `src/components/Sidebar.jsx`, `server/index.js`, `server/routes/*.js` @ `master` `526f3b3`
+- **v1.4** — §1 revised by card `t_7fd24929` (stage 3: rows on Today / the Week day columns / the backlog, focus-reachable row actions, one-click habit logging, Radix popover + tooltip owners)
+- **v1.5** — §1 revised by card `t_63c2607b`, stage 4 of `ui-modernization-calm-canvas`: the Radix dialog owners (`AppDialog` / `ConfirmDialog` / `PromptDialog`), the one save-status line per persisting surface, both review week labels and the wired day-select controls; §3 adds the dialog and debounce conventions
+- **v1.5** — §1 revised by card `t_4925715f`, stage 5 of `ui-modernization-calm-canvas`: the keyboard layer as a surface-less overlay over the six views, the droppable `CommandPalette` with the key map in its footer, and `UndoToast` as the owner of the `u` key; §3 adds the keyboard-layer convention
+- **v1.6** — close-out by card `t_55c01442`: the UI-direction ADR is now cited as **ADR-013** (renumbered on `master` 2026-09-26 when the habits ADR claimed ADR-012 - the change's own artifacts and cards still say ADR-012), and the `/api/habits` row carries `master`'s normalization contract; this document is re-based onto `master`'s v1.3 (the stage branches predate it)
+
+- **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`
