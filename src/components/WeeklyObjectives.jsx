@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FaBullseye, FaPlus, FaTimes, FaChevronDown, FaChevronRight, FaEdit, FaTrash, FaCheck, FaCalendarAlt } from 'react-icons/fa';
 import { startOfWeek, format, addDays, parseISO, isEqual, startOfDay } from 'date-fns';
 import { weeklyObjectiveService } from '../api';
+import SaveStatus from './SaveStatus';
+import { useDebouncedSave } from './useDebouncedSave';
 import './WeeklyObjectives.css';
 
 const CATEGORIES = ['', 'Meeting', 'Deadline', 'Event', 'Milestone', 'Personal', 'Other'];
@@ -233,13 +235,21 @@ export default function WeeklyObjectives({ selectedDate, keyEvents = [], onAddKe
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadObjectives(); }, [loadObjectives]);
 
-  const save = async (updated) => {
+  const writeObjectives = useCallback(async (payload) => {
+    await weeklyObjectiveService.upsert(payload.weekStart, payload.objectives);
+  }, []);
+
+  const {
+    status: saveStatus,
+    schedule: scheduleSave,
+    retry: retrySave,
+  } = useDebouncedSave(writeObjectives);
+
+  const save = (updated) => {
     setObjectives(updated);
-    try {
-      await weeklyObjectiveService.upsert(weekStart, updated);
-    } catch (e) {
-      console.error('Failed to save weekly objectives:', e);
-    }
+    // Debounced (design.md §8 D12): toggling a goal or removing it no longer
+    // fires a write per click, and the result lands in the one status line.
+    scheduleSave({ weekStart, objectives: updated });
   };
 
   const addGoal = () => {
@@ -283,8 +293,11 @@ export default function WeeklyObjectives({ selectedDate, keyEvents = [], onAddKe
           ) : (
             <>
               {/* ── Weekly Goals sub-section ── */}
-              <div className="wo-section-label">
-                <FaBullseye className="wo-section-icon" /> Weekly Goals
+              <div className="wo-section-row">
+                <div className="wo-section-label">
+                  <FaBullseye className="wo-section-icon" /> Weekly Goals
+                </div>
+                <SaveStatus status={saveStatus} onRetry={retrySave} className="wo-save-status" />
               </div>
               {objectives.length === 0 && (
                 <div className="wo-empty">No goals set for this week</div>

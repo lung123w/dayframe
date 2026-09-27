@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { FaPlus } from 'react-icons/fa';
 import BacklogSidebar from './BacklogSidebar';
@@ -35,20 +35,39 @@ export default function DailyPlanner({
 }) {
   const currentWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
   const [weekStartDate, setWeekStartDate] = useState(currentWeekStart);
+  // F20: the week bar's day buttons and each day column's header used to be
+  // dead controls (`onSelectDate={() => {}}`). They now set a view-local
+  // focused day — emphasis plus a horizontal scroll to that column. No
+  // app-level state and no route (ADR-012).
+  const [focusedDay, setFocusedDay] = useState(null);
+  const scrollContainerRef = useRef(null);
 
   // Calculate 7-day week view
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => format(addDays(weekStartDate, i), 'yyyy-MM-dd'));
   }, [weekStartDate]);
 
+  const handleSelectDay = useCallback((dateStr) => {
+    if (!dateStr) return;
+    setFocusedDay(dateStr);
+    const container = scrollContainerRef.current;
+    const column = container ? container.querySelector(`[data-date="${dateStr}"]`) : null;
+    if (column && typeof column.scrollIntoView === 'function') {
+      column.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    }
+  }, []);
+
   // Week navigation
   const handlePrevWeek = () => {
+    setFocusedDay(null);
     setWeekStartDate(prev => addDays(prev, -7));
   };
   const handleNextWeek = () => {
+    setFocusedDay(null);
     setWeekStartDate(prev => addDays(prev, 7));
   };
   const handleGoToToday = () => {
+    setFocusedDay(null);
     setWeekStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
   };
 
@@ -136,8 +155,8 @@ export default function DailyPlanner({
 
       {/* Week Navigation */}
       <MiniWeekBar
-        selectedDate={weekDays[0]}
-        onSelectDate={() => {}}
+        selectedDate={focusedDay || weekDays[0]}
+        onSelectDate={handleSelectDay}
         onPrevWeek={handlePrevWeek}
         onNextWeek={handleNextWeek}
         onGoToToday={handleGoToToday}
@@ -155,7 +174,7 @@ export default function DailyPlanner({
       />
 
       {/* Day Columns: All 7 days shown equally - FULL WIDTH */}
-      <div className="daily-planner-scroll-container">
+      <div className="daily-planner-scroll-container" ref={scrollContainerRef}>
         {weekDays.map(dayStr => (
           <DayColumn
             key={dayStr}
@@ -164,6 +183,7 @@ export default function DailyPlanner({
             projects={projects}
             subtasks={subtasks}
             expanded={true}
+            isFocused={focusedDay === dayStr}
             onTaskClick={onTaskClick}
             onStatusUpdate={onStatusUpdate}
             onNewTask={onNewTask}
@@ -172,7 +192,7 @@ export default function DailyPlanner({
             onEstimateChange={handleEstimateChange}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            onDayClick={() => {}}
+            onDayClick={handleSelectDay}
           />
         ))}
       </div>

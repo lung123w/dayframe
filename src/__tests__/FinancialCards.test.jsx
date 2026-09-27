@@ -51,7 +51,6 @@ function buildCard(overrides = {}) {
 describe('FinancialCards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    window.confirm = vi.fn(() => true);
     mockGetAll.mockResolvedValue([]);
     mockGetById.mockResolvedValue(buildCard());
     mockCreate.mockImplementation(async (draft) => buildCard({ id: 99, ...draft }));

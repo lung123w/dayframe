@@ -79,6 +79,7 @@ export default function DayColumn({
   onDragOver,
   onDrop,
   onDayClick,
+  isFocused = false,
 }) {
   const dayTasks = useMemo(() => {
     if (!dateStr) return [];
@@ -318,21 +319,23 @@ export default function DayColumn({
 
   return (
     <div
-      className={`dc-column${expanded ? ' dc-column--expanded' : ''}${isTodayDate ? ' dc-column--today' : ''}${dragOverIndex >= 0 ? ' dc-column--drag-over' : ''}`}
+      className={`dc-column${expanded ? ' dc-column--expanded' : ''}${isTodayDate ? ' dc-column--today' : ''}${isFocused ? ' dc-column--focused' : ''}${dragOverIndex >= 0 ? ' dc-column--drag-over' : ''}`}
       onDragOver={onDragOver}
       onDrop={(e) => { setDragOverIndex(-1); if (onDrop) onDrop(e, dragOverIndex); }}
       onDragLeave={handleColumnDragLeave}
       data-date={dateStr}
     >
       <div className="dc-header">
-        <div 
-          className="dc-header-label" 
-          onClick={() => onDayClick && onDayClick(dateStr)} 
-          style={{ cursor: onDayClick ? 'pointer' : 'default' }}
+        <button
+          type="button"
+          className="dc-header-label"
+          onClick={() => onDayClick && onDayClick(dateStr)}
+          title="Focus this day"
+          aria-pressed={isFocused}
         >
           <span className={`dc-day-name${isTodayDate ? ' dc-day-name--today' : ''}`}>{formatDayLabel(dateStr)}</span>
           <span className="dc-day-date">{formatDayDate(dateStr)}</span>
-        </div>
+        </button>
         <div className="dc-header-stats">
           {totalEstimated > 0 && (
             <span className="dc-time-total" title="Total estimated time">

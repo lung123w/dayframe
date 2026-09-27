@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import RichTextEditor from '../components/RichTextEditor';
 
@@ -40,5 +40,23 @@ describe('RichTextEditor', () => {
     const { container } = render(<RichTextEditor content="" onChange={vi.fn()} />);
     const editorContent = container.querySelector('.rich-editor-content');
     expect(editorContent).toBeInTheDocument();
+  });
+
+  it('asks for the link URL in an in-app dialog instead of the native prompt', async () => {
+    // `globalThis.prompt` is the page's native prompt; spying on it proves the
+    // component no longer reaches for it.
+    const promptSpy = vi.spyOn(globalThis, 'prompt').mockImplementation(() => null);
+    render(<RichTextEditor content="<p>Hello</p>" onChange={vi.fn()} />);
+
+    fireEvent.click(screen.getByTitle('Add Link'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('Add a link');
+    expect(promptSpy).not.toHaveBeenCalled();
+
+    // Escape closes the prompt dialog and applies nothing.
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    promptSpy.mockRestore();
   });
 });

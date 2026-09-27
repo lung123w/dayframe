@@ -3,9 +3,10 @@ import { FaTimes, FaTrash, FaSearchPlus, FaPlus } from 'react-icons/fa';
 import { getRecurrenceDescription } from '../utils/recurrence';
 import { subtaskService } from '../api';
 import RichTextEditor from './RichTextEditor';
+import { AppDialog } from './AppDialog';
 import './TaskModal.css';
 
-export default function TaskModal({ task, projects, onSave, onClose, onDelete, onSubtaskChange, selectedDate }) {
+export default function TaskModal({ task, projects, onSave, onClose, onDelete, onSubtaskChange, selectedDate, open = true }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -273,8 +274,13 @@ export default function TaskModal({ task, projects, onSave, onClose, onDelete, o
 
   return (
     <>
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <AppDialog
+      open={open}
+      onClose={onClose}
+      ariaLabel={task ? 'Edit Task' : 'New Task'}
+      className="modal-content"
+      overlayClassName="modal-overlay"
+    >
         <div className="modal-header">
           <h2>{task ? 'Edit Task' : 'New Task'}</h2>
           <button className="close-btn" onClick={onClose}>
@@ -643,8 +649,7 @@ export default function TaskModal({ task, projects, onSave, onClose, onDelete, o
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </AppDialog>
 
       {/* ── Lightbox ── */}
       {lightboxSrc && (

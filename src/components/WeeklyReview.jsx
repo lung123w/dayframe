@@ -27,6 +27,9 @@ import {
 } from 'date-fns';
 import { weeklyReviewService, weeklyObjectiveService, habitService, habitEntryService } from '../api';
 import { formatTimeSpent, formatCount, getTrackType, getEntryValue } from '../utils/habits';
+import { ConfirmDialog } from './AppDialog';
+import SaveStatus from './SaveStatus';
+import { useDebouncedSave } from './useDebouncedSave';
 import './WeeklyReview.css';
 
 // ── Default cleanup template ───────────────────────────────────────────────
@@ -300,6 +303,10 @@ export default function WeeklyReview({
   const [newGoalText, setNewGoalText] = useState('');
   const [newGoalStep, setNewGoalStep] = useState('');
   const [newCleanupText, setNewCleanupText] = useState('');
+  // One in-app dialog state for the sync warnings that used to be native
+  // alert / confirm calls (design.md §3 D7): kind 'alert' shows a single OK
+  // action, kind 'confirm' asks before writing.
+  const [syncDialog, setSyncDialog] = useState(null);
   const reviewRef = useRef(review);
   reviewRef.current = review;
 
@@ -363,150 +370,192 @@ export default function WeeklyReview({
   }, [loadWeek]);
 
   // ── Persist helper ──
-  const save = useCallback(
-    async (updated) => {
-      setReview(updated);
-      try {
-        await weeklyReviewService.upsert(updated.weekStart, {
-          cleanupTasks: updated.cleanupTasks,
-          gratitudeEntries: updated.gratitudeEntries,
-          reflectionAnswers: updated.reflectionAnswers,
-          weeklyGoals: updated.weeklyGoals,
-          syncFlags: updated.syncFlags,
-        });
-      } catch (err) {
-        console.error('Failed to save weekly review:', err);
-      }
-    },
-    []
-  );
+  // One debounced writer for the whole document (design.md §8 D12): typing in a
+  // cleanup item, a gratitude line, a reflection answer or a goal is written
+  // once, 500 ms after the last keystroke, and the result is reported in the
+  // reserved status line. Discrete actions (toggle / add / remove) still write
+  // immediately — they are not keystrokes.
+  const writeReview = useCallback(async (doc) => {
+    await weeklyReviewService.upsert(doc.weekStart, {
+      cleanupTasks: doc.cleanupTasks,
+      gratitudeEntries: doc.gratitudeEntries,
+      reflectionAnswers: doc.reflectionAnswers,
+      weeklyGoals: doc.weeklyGoals,
+      syncFlags: doc.syncFlags,
+    });
+  }, []);
+
+  const {
+    status: saveStatus,
+    schedule: scheduleReview,
+    flush: flushReview,
+    saveNow: saveReviewNow,
+    retry: retryReview,
+  } = useDebouncedSave(writeReview);
+
+  /** A keystroke edit: show it now, write it once the typing pauses. */
+  const editReview = (updated) => {
+    setReview(updated);
+    scheduleReview(updated);
+  };
+
+  /** A discrete action: show it now and write it now. */
+  const commitReview = (updated) => {
+    setReview(updated);
+    return saveReviewNow(updated);
+  };
 
   // ── Week navigation ──
-  const goPrev = () => setWeekStartDate((d) => subWeeks(d, 1));
-  const goNext = () => setWeekStartDate((d) => addWeeks(d, 1));
-  const goThisWeek = () => setWeekStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  // Flush before moving the window, so a pending edit is written against the
+  // week it was typed in rather than the week the user moved to.
+  const goPrev = async () => {
+    await flushReview();
+    setWeekStartDate((d) => subWeeks(d, 1));
+  };
+  const goNext = async () => {
+    await flushReview();
+    setWeekStartDate((d) => addWeeks(d, 1));
+  };
+  const goThisWeek = async () => {
+    await flushReview();
+    setWeekStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  };
 
   // ── Cleanup handlers ──
   const toggleCleanup = (id) => {
-    const updated = {
+    commitReview({
       ...review,
       cleanupTasks: review.cleanupTasks.map((t) =>
         t.id === id ? { ...t, completed: !t.completed } : t
       ),
-    };
-    save(updated);
+    });
   };
 
   const editCleanupText = (id, text) => {
-    const updated = {
+    editReview({
       ...review,
       cleanupTasks: review.cleanupTasks.map((t) => (t.id === id ? { ...t, text } : t)),
-    };
-    save(updated);
+    });
   };
 
   const addCleanup = () => {
     const text = newCleanupText.trim();
     if (!text) return;
-    const updated = {
+    commitReview({
       ...review,
       cleanupTasks: [...review.cleanupTasks, { id: genId(), text, completed: false }],
-    };
-    save(updated);
+    });
     setNewCleanupText('');
   };
 
   const removeCleanup = (id) => {
-    const updated = {
+    commitReview({
       ...review,
       cleanupTasks: review.cleanupTasks.filter((t) => t.id !== id),
-    };
-    save(updated);
+    });
   };
 
   // ── Gratitude handlers ──
   const addGratitude = () => {
     const text = newGratitude.trim();
     if (!text) return;
-    const updated = {
+    commitReview({
       ...review,
       gratitudeEntries: [...review.gratitudeEntries, { id: genId(), text }],
-    };
-    save(updated);
+    });
     setNewGratitude('');
   };
 
   const editGratitude = (id, text) => {
-    const updated = {
+    editReview({
       ...review,
       gratitudeEntries: review.gratitudeEntries.map((g) => (g.id === id ? { ...g, text } : g)),
-    };
-    save(updated);
+    });
   };
 
   const removeGratitude = (id) => {
-    const updated = {
+    commitReview({
       ...review,
       gratitudeEntries: review.gratitudeEntries.filter((g) => g.id !== id),
-    };
-    save(updated);
+    });
   };
 
   // ── Reflection handlers ──
   const setReflection = (questionId, answer) => {
-    const updated = {
+    editReview({
       ...review,
       reflectionAnswers: { ...review.reflectionAnswers, [questionId]: answer },
-    };
-    save(updated);
+    });
   };
 
   // ── Goal handlers ──
   const addGoal = () => {
     const text = newGoalText.trim();
     if (!text) return;
-    const updated = {
+    commitReview({
       ...review,
       weeklyGoals: [
         ...review.weeklyGoals,
         { id: genId(), text, minimumStep: newGoalStep.trim(), completed: false },
       ],
-    };
-    save(updated);
+    });
     setNewGoalText('');
     setNewGoalStep('');
   };
 
   const editGoal = (id, field, value) => {
-    const updated = {
+    editReview({
       ...review,
       weeklyGoals: review.weeklyGoals.map((g) => (g.id === id ? { ...g, [field]: value } : g)),
-    };
-    save(updated);
+    });
   };
 
   const toggleGoal = (id) => {
-    const updated = {
+    commitReview({
       ...review,
       weeklyGoals: review.weeklyGoals.map((g) =>
         g.id === id ? { ...g, completed: !g.completed } : g
       ),
-    };
-    save(updated);
+    });
   };
 
   const removeGoal = (id) => {
-    const updated = {
+    commitReview({
       ...review,
       weeklyGoals: review.weeklyGoals.filter((g) => g.id !== id),
-    };
-    save(updated);
+    });
   };
 
   // ── Sync goals to DayFrame (bridging action) ──
+  const writeGoalsToObjectives = async () => {
+    try {
+      const objectives = review.weeklyGoals.map((g) => ({ text: g.text, completed: !!g.completed }));
+      await weeklyObjectiveService.upsert(weekStart, objectives);
+      const updated = {
+        ...review,
+        syncFlags: { ...review.syncFlags, goalsSynced: true, goalsSyncedAt: new Date().toISOString() },
+      };
+      await commitReview(updated);
+      if (onDataChange) await onDataChange();
+    } catch (err) {
+      console.error('Failed to sync goals:', err);
+      setSyncDialog({
+        kind: 'alert',
+        title: 'Sync failed',
+        message: 'Failed to write the weekly goals to DayFrame. Nothing was replaced.',
+        confirmLabel: 'OK',
+      });
+    }
+  };
+
   const syncGoals = async () => {
     if (review.weeklyGoals.length === 0) {
-      window.alert('No weekly goals to sync. Add at least one goal first.');
+      setSyncDialog({
+        kind: 'alert',
+        title: 'Nothing to write yet',
+        message: 'No weekly goals to sync. Add at least one goal first.',
+        confirmLabel: 'OK',
+      });
       return;
     }
     // Check for existing objectives to warn about replacement
@@ -518,33 +567,23 @@ export default function WeeklyReview({
       console.error('Failed to check existing objectives:', err);
     }
     if (existing.length > 0) {
-      const ok = window.confirm(
-        `This will replace ${existing.length} existing weekly objective(s) for this week with your ${review.weeklyGoals.length} review goal(s). Continue?`
-      );
-      if (!ok) return;
+      setSyncDialog({
+        kind: 'confirm',
+        title: "Replace this week's objectives?",
+        message: `This will replace ${existing.length} existing weekly objective(s) for this week with your ${review.weeklyGoals.length} review goal(s).`,
+        confirmLabel: 'Replace',
+      });
+      return;
     }
-    try {
-      const objectives = review.weeklyGoals.map((g) => ({ text: g.text, completed: !!g.completed }));
-      await weeklyObjectiveService.upsert(weekStart, objectives);
-      const updated = {
-        ...review,
-        syncFlags: { ...review.syncFlags, goalsSynced: true, goalsSyncedAt: new Date().toISOString() },
-      };
-      save(updated);
-      if (onDataChange) await onDataChange();
-    } catch (err) {
-      console.error('Failed to sync goals:', err);
-      window.alert('Failed to sync goals. See console for details.');
-    }
+    await writeGoalsToObjectives();
   };
 
   // ── Key events listed checkbox (bridging action) ──
   const toggleKeyEventsListed = () => {
-    const updated = {
+    commitReview({
       ...review,
       syncFlags: { ...review.syncFlags, keyEventsListed: !review.syncFlags.keyEventsListed },
-    };
-    save(updated);
+    });
   };
 
   const handleAddKeyEvent = async (eventData) => {
@@ -573,14 +612,26 @@ export default function WeeklyReview({
 
   return (
     <div className="wr-container">
-      {/* ── Week navigation ── */}
+      {/* ── Week navigation ──
+          Two windows, two explicit labels (F35, ADR-005): the selected week is
+          the *planning* week (document, goals, key events) and `weekStart − 1`
+          is the *reviewed* week (the habit summary). Neither is identifiable
+          only by a parenthetical any more. */}
       <div className="wr-week-nav">
         <button className="wr-nav-btn" onClick={goPrev} title="Previous week">
           ‹ Prev
         </button>
-        <div className="wr-week-label">
-          <FaCalendarAlt className="wr-week-icon" />
-          <span>{weekRangeLabel}</span>
+        <div className="wr-week-labels">
+          <span className="wr-week-label wr-week-label--plan">
+            <FaCalendarAlt className="wr-week-icon" />
+            <span className="wr-week-label-role">Planning week</span>
+            <span className="wr-week-label-range">{weekRangeLabel}</span>
+          </span>
+          <span className="wr-week-label wr-week-label--reviewed">
+            <FaCalendarCheck className="wr-week-icon" />
+            <span className="wr-week-label-role">Reviewed week</span>
+            <span className="wr-week-label-range">{reviewWeekRangeLabel}</span>
+          </span>
         </div>
         <button className="wr-nav-btn" onClick={goNext} title="Next week">
           Next ›
@@ -588,6 +639,7 @@ export default function WeeklyReview({
         <button className="wr-nav-btn wr-nav-btn--this" onClick={goThisWeek} title="Jump to current week">
           This Week
         </button>
+        <SaveStatus status={saveStatus} onRetry={retryReview} className="wr-save-status" />
       </div>
 
       {loading ? (
@@ -713,7 +765,9 @@ export default function WeeklyReview({
                 <label className="wr-reflection-label">{q.label}</label>
                 {q.id === 'habits' && habitSummary.length > 0 && (
                   <div className="wr-habit-summary">
-                    <span className="wr-habit-summary-title">上週習慣 (Review week: {reviewWeekRangeLabel}):</span>
+                    <span className="wr-habit-summary-title">
+                      Habits — reviewed week {reviewWeekRangeLabel}
+                    </span>
                     {habitSummary.map((h) => (
                       <span
                         key={h.id}
@@ -826,7 +880,10 @@ export default function WeeklyReview({
               <span className="wr-bridge-text">List this week's key events</span>
             </label>
 
-            {/* Key events grid */}
+            {/* Key events grid — the plan week, labelled as such (F35) */}
+            <div className="wr-subsection-label">
+              Key events — planning week {weekRangeLabel}
+            </div>
             <div className="wr-ke-grid">
               {weekDays.map(({ dateStr, dayLabel, isToday }) => (
                 <KeyEventDayColumn
@@ -844,6 +901,22 @@ export default function WeeklyReview({
           </Section>
         </>
       )}
+
+      {/* The in-app replacement for the sync alert / confirm (design.md §3 D7).
+          Escape or the overlay closes it without writing anything. */}
+      <ConfirmDialog
+        open={!!syncDialog}
+        title={syncDialog ? syncDialog.title : 'Weekly review'}
+        description={syncDialog ? syncDialog.message : ''}
+        confirmLabel={syncDialog && syncDialog.confirmLabel ? syncDialog.confirmLabel : 'OK'}
+        cancelLabel={syncDialog && syncDialog.kind === 'confirm' ? 'Cancel' : null}
+        onConfirm={async () => {
+          const dialog = syncDialog;
+          setSyncDialog(null);
+          if (dialog && dialog.kind === 'confirm') await writeGoalsToObjectives();
+        }}
+        onCancel={() => setSyncDialog(null)}
+      />
     </div>
   );
 }

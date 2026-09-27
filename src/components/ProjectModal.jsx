@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaTrash, FaFolder } from 'react-icons/fa';
+import { AppDialog, ConfirmDialog } from './AppDialog';
 import './ProjectModal.css';
 
 const PRESET_COLORS = [
@@ -9,11 +10,13 @@ const PRESET_COLORS = [
   '#059669', '#0F766E', '#0284C7', '#4F46E5', '#9333EA',
 ];
 
-export default function ProjectModal({ project, onSave, onClose, onDelete }) {
+export default function ProjectModal({ project, onSave, onClose, onDelete, open = true }) {
   const [formData, setFormData] = useState({
     name: '',
     color: '#6366F1',
   });
+  // In-app delete confirmation (design.md §3 D7) instead of the native one.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -31,8 +34,14 @@ export default function ProjectModal({ project, onSave, onClose, onDelete }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content project-modal-content" onClick={(e) => e.stopPropagation()}>
+    <>
+    <AppDialog
+      open={open}
+      onClose={onClose}
+      ariaLabel={project ? 'Edit Project' : 'New Project'}
+      className="modal-content project-modal-content"
+      overlayClassName="modal-overlay"
+    >
         <div className="modal-header">
           <div className="modal-header-title">
             <span className="modal-icon" style={{ background: formData.color + '20', color: formData.color }}>
@@ -92,11 +101,7 @@ export default function ProjectModal({ project, onSave, onClose, onDelete }) {
               <button
                 type="button"
                 className="btn btn-danger"
-                onClick={() => {
-                  if (window.confirm('Delete this project? Tasks will remain but become unassigned.')) {
-                    onDelete(project.id);
-                  }
-                }}
+                onClick={() => setConfirmingDelete(true)}
               >
                 <FaTrash /> Delete Project
               </button>
@@ -111,7 +116,20 @@ export default function ProjectModal({ project, onSave, onClose, onDelete }) {
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </AppDialog>
+
+    <ConfirmDialog
+      open={confirmingDelete}
+      title={project ? `Delete "${project.name}"?` : 'Delete this project?'}
+      description="Tasks in this project will not be deleted — they remain and become unassigned."
+      confirmLabel="Delete project"
+      tone="danger"
+      onConfirm={() => {
+        setConfirmingDelete(false);
+        if (project) onDelete(project.id);
+      }}
+      onCancel={() => setConfirmingDelete(false)}
+    />
+    </>
   );
 }

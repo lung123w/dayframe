@@ -1,47 +1,47 @@
 /* -- Mini Week Bar -- */
-.mini-week { margin-bottom: 16px; }
+.mini-week { margin-bottom: var(--space-4); }
 .mini-week-nav {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 .mini-week-arrow {
-  background: none; border: 1.5px solid #E2E8F0; border-radius: 6px;
-  padding: 4px 8px; cursor: pointer; color: #64748B; font-size: 12px;
-  transition: background 0.12s, border-color 0.12s;
+  background: none; border: var(--border); border-radius: var(--radius-control);
+  padding: var(--space-1) var(--space-2); cursor: pointer; color: var(--text-subtle); font-size: var(--font-meta);
+  transition: background var(--motion-fast), border-color var(--motion-fast);
 }
-.mini-week-arrow:hover { background: #F1F5F9; border-color: #94A3B8; }
-.mini-week-label { font-size: 13px; font-weight: 600; color: #1E293B; }
+.mini-week-arrow:hover { background: var(--surface-2); border-color: var(--text-subtle); }
+.mini-week-label { font-size: var(--font-row); font-weight: var(--font-weight-semibold); color: var(--text-body); }
 .mini-week-today-btn {
-  padding: 3px 10px; font-size: 11px; font-weight: 600;
-  color: #F97316; background: #FFF7ED; border: 1.5px solid #FED7AA;
-  border-radius: 12px; cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  padding: 3px 10px; font-size: var(--font-label); font-weight: var(--font-weight-semibold);
+  color: var(--accent); background: var(--surface-2); border: var(--border);
+  border-radius: var(--radius-surface); cursor: pointer;
+  transition: background var(--motion-fast), border-color var(--motion-fast);
 }
-.mini-week-today-btn:hover { background: #FFEDD5; border-color: #F97316; }
+.mini-week-today-btn:hover { background: var(--surface-2); border-color: var(--accent); }
 
 .mini-week-days {
-  display: flex; gap: 4px;
+  display: flex; gap: var(--space-1);
 }
 .mini-week-day {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  padding: 8px 4px; border-radius: 8px; border: 1.5px solid transparent;
-  cursor: pointer; background: white; transition: all 0.12s;
+  padding: var(--space-2) var(--space-1); border-radius: var(--radius-surface); border: 1px solid transparent;
+  cursor: pointer; background: var(--surface); transition: all var(--motion-fast);
   font-family: inherit;
 }
-.mini-week-day:hover { background: #F8FAFC; border-color: #E2E8F0; }
+.mini-week-day:hover { background: var(--surface-2); border-color: var(--hairline); }
 
 .mini-week-day--selected {
-  background: #FFF7ED; border-color: #F97316;
+  background: var(--surface-2); border-color: var(--accent);
 }
 .mini-week-day--today .mini-week-day-num {
-  background: #F97316; color: white; border-radius: 50%;
+  background: var(--accent); color: var(--surface); border-radius: 50%;
   width: 24px; height: 24px; display: flex; align-items: center;
   justify-content: center;
 }
 
-.mini-week-day-name { font-size: 10px; color: #94A3B8; font-weight: 700; text-transform: uppercase; }
-.mini-week-day-num { font-size: 14px; font-weight: 700; color: #1E293B; margin: 2px 0; }
+.mini-week-day-name { font-size: var(--font-label); color: var(--text-subtle); font-weight: var(--font-weight-semibold); text-transform: uppercase; }
+.mini-week-day-num { font-size: var(--font-row); font-weight: var(--font-weight-semibold); color: var(--text-body); margin: 2px 0; }
 .mini-week-day-dots {
-  font-size: 9px; background: #E2E8F0; color: #64748B;
-  border-radius: 8px; padding: 0 5px; font-weight: 700;
+  font-size: var(--font-label); background: var(--hairline); color: var(--text-subtle);
+  border-radius: var(--radius-surface); padding: 0 5px; font-weight: var(--font-weight-semibold);
 }
