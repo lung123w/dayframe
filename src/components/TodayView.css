@@ -102,6 +102,10 @@
   background: var(--surface);
   border: var(--border);
   border-radius: var(--radius-surface);
+  /* The capture row's narrow-width rule (`CaptureLine.css`, D5) is a container
+     query against this panel's content box, so it keys off the width the row
+     actually has rather than a viewport breakpoint. */
+  container-type: inline-size;
   overflow-y: auto;
   min-width: 0;
 }

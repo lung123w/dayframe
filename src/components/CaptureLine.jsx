@@ -15,7 +15,10 @@ import './CaptureLine.css';
  * the same code path, rendered as the first row of the Today task list. It stays
  * a quiet single line until focus enters it, then *renders* the project/priority
  * controls: while collapsed they are absent from the DOM rather than hidden, so
- * there is no hidden tab stop (design.md D3). It carries no `data-kbd-row` and
+ * there is no hidden tab stop (design.md D3). Where the row is too narrow to hold
+ * those controls and the input on one line they leave the flow instead of wrapping
+ * — the row stays one line tall and the first task row below never moves (D5;
+ * `CaptureLine.css`). It carries no `data-kbd-row` and
  * no `.tv-task` class, so `j`/`k` still start on the first task row (D4).
  *
  * Contract (unchanged): Enter creates a task with `dueDate` = today's Hong Kong
@@ -123,10 +126,15 @@ export default function CaptureLine({ projects = [], onCaptured, variant = 'shel
         aria-label="Quick capture task"
       />
       {/* Rendered only while the row variant is expanded; the shell variant
-          always shows them. Siblings of the input either way, so the input is
-          never remounted by the toggle. */}
+          always shows them. The revealed wrapper is added and removed next to
+          the input, so the input itself is never remounted by the toggle.
+
+          The pair is wrapped so the row variant can take it out of the flow when
+          the row is too narrow to hold it and the input on one line; the wrapper
+          is `display: contents` everywhere else, so the flat flex row (and the
+          shell strip, whose own fields it also wraps) lays out unchanged. */}
       {(!isRow || expanded) && (
-        <>
+        <div className="capture-line-cluster">
           <label className="capture-line-field">
             <span className="capture-line-label">Project</span>
             <select
@@ -154,7 +162,7 @@ export default function CaptureLine({ projects = [], onCaptured, variant = 'shel
               ))}
             </select>
           </label>
-        </>
+        </div>
       )}
     </div>
   );
