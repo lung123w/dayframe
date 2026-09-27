@@ -1,10 +1,13 @@
-## MODIFIED Requirements
+# today-item-ordering Specification
 
+## Purpose
+The order in which Today's tasks are presented, and how the user changes it: drag-and-drop and the arrow controls, persisted in the `todayOrder` settings key and in each task's `sortOrder` so the Today view and the planner's today column agree.
+## Requirements
 ### Requirement: Today tasks can be manually reordered
-The system SHALL allow users to reorder tasks displayed in the Today view via drag-and-drop and arrow buttons. The order SHALL be persisted in both the `todayOrder` settings key and the `sortOrder` field on each task, keeping the Today view and Daily Planner today column in sync.
+The system SHALL allow users to reorder tasks displayed in the Today view via drag-and-drop and arrow buttons. The order SHALL be persisted in both the `todayOrder` settings key and the `sortOrder` field on each task, keeping the Today view and Daily Planner today column in sync. The reorder controls SHALL be reachable by keyboard focus and by touch, and SHALL NOT depend on a pointer hover.
 
 #### Scenario: User drags a task to a new position
-- **WHEN** the user drags a task card in the Today view and drops it above or below another task
+- **WHEN** the user drags a task row in the Today view and drops it above or below another task
 - **THEN** the task list SHALL reorder immediately to reflect the new position
 
 #### Scenario: Order persists across page reloads
@@ -23,8 +26,12 @@ The system SHALL allow users to reorder tasks displayed in the Today view via dr
 - **WHEN** a task referenced in the stored order no longer exists
 - **THEN** the Today view SHALL render without that task and without errors
 
+#### Scenario: Reorder controls are reachable without hover
+- **WHEN** a Today row receives keyboard focus, or the viewport has no hover capability
+- **THEN** the move and defer actions SHALL be visible and operable, and no reorder action SHALL depend on `:hover`
+
 ### Requirement: Touch users can reorder via arrow controls
-The system SHALL provide up/down arrow buttons on each Today task card as a fallback reorder mechanism for touch devices.
+The system SHALL provide up/down arrow buttons on each Today task row, at label size and visible when the row has focus, as a fallback reorder mechanism for touch devices.
 
 #### Scenario: User taps up arrow on a task
 - **WHEN** the user taps the up arrow button on a task that is not already first
@@ -33,3 +40,4 @@ The system SHALL provide up/down arrow buttons on each Today task card as a fall
 #### Scenario: Up arrow disabled on first item
 - **WHEN** a task is at the top of the Today list
 - **THEN** the up arrow button SHALL be visually disabled and non-interactive
+

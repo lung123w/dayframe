@@ -1,9 +1,10 @@
-# ui-presentation-system Specification (Delta)
+# ui-presentation-system Specification
 
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change ui-modernization-calm-canvas. Update Purpose after archive.
+## Requirements
 ### Requirement: A single token layer supplies every presentation value
-DayFrame SHALL define its colour, type, space, radius and motion values once, as CSS custom properties in `src/styles/tokens.css`, and every stylesheet SHALL consume those properties instead of literal values.
+DayFrame SHALL define its colour, type, space, radius and motion values once, as CSS custom properties in `src/styles/tokens.css`, and every stylesheet this change repaints SHALL consume those properties instead of literal values; the eight stylesheets the change did not repaint (enumerated in `design.md` §12) SHALL introduce no new literal value, and finishing them is a tracked follow-up card rather than a claim satisfied by this requirement.
 
 #### Scenario: A value exists in exactly one place
 - **WHEN** a stylesheet needs a palette colour, a page/surface shade, a hairline, the accent or a state colour
@@ -156,3 +157,4 @@ A change that restyles a surface SHALL NOT alter task ordering, period windows, 
 #### Scenario: No behaviour layer moves with the pixels
 - **WHEN** a stage's diff is reviewed
 - **THEN** it SHALL contain no change under `server/`, to the database, to `src/api.js` or to `src/utils/*`, and a stage that appears to need one SHALL be raised as a separate change with its own spec
+

@@ -1,18 +1,21 @@
-## ADDED Requirements
+# weekly-review-planning Specification
 
+## Purpose
+The weekly review and planning view: how it is reached, which week it reads, its cleanup / gratitude / goals / key-events sections, the reviewed-week habit panel and per-week persistence.
+## Requirements
 ### Requirement: Review tab entry in sidebar
-The sidebar SHALL include a "Review" navigation item in the VIEWS section that switches the app to the `review` view, distinct from Today, Planner, Habits, and Projects.
+The shared shell SHALL expose a "Review" destination alongside Today, Week and Habits (with Finance and Projects in the shell's "More" overflow) that switches the app to the `review` view, distinct from Today, Week, Habits, Finance and Projects.
 
-#### Scenario: Sidebar shows Review entry
-- **WHEN** the app renders the sidebar
-- **THEN** a "Review" item appears in the VIEWS section with its own icon and is clickable
+#### Scenario: The shell shows the Review destination
+- **WHEN** the app renders the shell
+- **THEN** a "Review" destination appears as a text destination in the shell and is clickable
 
 #### Scenario: Navigate to Review tab
-- **WHEN** the user clicks the "Review" sidebar item
-- **THEN** the main area renders the WeeklyReview component and the Review item is highlighted as active
+- **WHEN** the user activates the "Review" destination
+- **THEN** the main area renders the WeeklyReview component and Review is marked active in the shell
 
 ### Requirement: Week selection for review
-The WeeklyReview view SHALL let the user select which week to review, defaulting to the current week (Monday–Sunday, week starts on Monday), with Previous, Next, and "This Week" controls and a visible label of the selected week's date range.
+The WeeklyReview view SHALL let the user select which week to review, defaulting to the current week (Monday–Sunday, week starts on Monday), with Previous, Next, and "This Week" controls and a visible label of the selected week's date range. The view SHALL also name the second week it displays: the selected week is the planning week and `weekStart − 1` is the reviewed week, each with its own explicit label, so neither window is identifiable only by a parenthetical annotation.
 
 #### Scenario: Defaults to current week on first open
 - **WHEN** the user opens the Review tab for the first time in a session
@@ -29,6 +32,14 @@ The WeeklyReview view SHALL let the user select which week to review, defaulting
 #### Scenario: Jump back to current week
 - **WHEN** the user clicks "This Week"
 - **THEN** the selected week resets to the current Monday–Sunday
+
+#### Scenario: Both weeks are named without ambiguity
+- **WHEN** the review view renders for a selected week
+- **THEN** the planning week (document, goals, key events) and the reviewed week (habit summary) SHALL each carry an explicit visible label naming their dates, and SHALL NOT be distinguishable only by a parenthetical
+
+#### Scenario: The reviewed week keeps its window
+- **WHEN** the user changes the selected week
+- **THEN** the habit summary SHALL still read `weekStart − 1` (Monday–Sunday of that prior week) and the document, goals and key-events grid SHALL still read the selected week
 
 ### Requirement: Weekly miscellaneous cleanup checklist
 The cleanup section SHALL render a per-week checklist that is pre-populated from a default template on first access of a new week. Each item SHALL be checkable, editable, addable, and removable, and the full checklist state SHALL persist per week.
@@ -154,3 +165,4 @@ The full review document (cleanup tasks, gratitude entries, reflection answers, 
 #### Scenario: Upsert review on edit
 - **WHEN** any review field is mutated
 - **THEN** the full document is upserted to the backend by week start and the updated state is reflected on next load
+

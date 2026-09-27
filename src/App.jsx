@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
 import ProjectsView from './components/ProjectsView';
@@ -10,6 +10,8 @@ import TopStrip from './components/TopStrip';
 import CaptureLine from './components/CaptureLine';
 import { readCaptureDefaults, writeCaptureDefaults } from './components/captureDefaults';
 import MonthlyReview from './components/MonthlyReview';
+import CommandPalette from './components/CommandPalette';
+import useKeyboardLayer from './components/useKeyboardLayer';
 import { ConfirmDialog } from './components/AppDialog';
 import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService, financialCardService, monthlyReviewService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
@@ -42,6 +44,13 @@ function App() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('today');
+
+  // The keyboard layer (stage 5, design.md §6 D10). The only app-level state it
+  // needs is the palette's open/closed boolean — the layer adds no view key and
+  // no route.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const togglePalette = useCallback(() => setPaletteOpen((open) => !open), []);
+  useKeyboardLayer({ onNavigate: setActiveView, onTogglePalette: togglePalette });
 
   // In-app dialogs (design.md §3 D7) replacing the native confirm / alert.
   const [pendingTaskDelete, setPendingTaskDelete] = useState(null);
@@ -505,6 +514,15 @@ function App() {
         cancelLabel={null}
         onConfirm={() => setNoticeDialog(null)}
         onCancel={() => setNoticeDialog(null)}
+      />
+
+      {/* The droppable slice of stage 5: this component, this mount and the
+          `Ctrl/⌘ + K` entry in `useKeyboardLayer` are the whole palette. */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        activeView={activeView}
+        onNavigate={setActiveView}
       />
     </div>
   );
