@@ -5,10 +5,10 @@ Design: `openspec/changes/fix-today-inline-capture-row/design.md` (§2 D1-D9 are
 Branch: **`fix/today-inline-capture-row`** — one branch for this change; `master` stays
 clean (POL-002). PR at the end of card 2; cards 3 and 4 do not open new branches.
 
-Card ids: the placeholders below (`t_<analyst>` / `t_<build>` / `t_<verify>` /
-`t_<closeout>`) are resolved in the comment thread of `t_61fb3c21`.
+Card ids: the placeholders below (`t_ed6002ca` / `t_6e88d0d9` / `t_d5816ad1` /
+`t_30eb4ff5`) are resolved in the comment thread of `t_61fb3c21`.
 
-## 1. Spec & edge cases — `df-analyst`, card `t_<analyst>`, parent `t_61fb3c21`
+## 1. Spec & edge cases — `df-analyst`, card `t_ed6002ca`, parent `t_61fb3c21`
 
 - [ ] 1.1 **Read-only.** Read `openspec/changes/fix-today-inline-capture-row/{proposal,design}.md`,
   the delta spec, `src/components/CaptureLine.{jsx,css}`, `src/components/TodayView.jsx:330-380`,
@@ -30,7 +30,7 @@ Card ids: the placeholders below (`t_<analyst>` / `t_<build>` / `t_<verify>` /
   own card (matrix + stale-claims list) and one on the build card. Complete with
   `summary` + `metadata`.
 
-## 2. Build — `df-fullstack`, card `t_<build>`, parent `t_<analyst>`
+## 2. Build — `df-fullstack`, card `t_6e88d0d9`, parent `t_ed6002ca`
 
 - [ ] 2.1 Start from the branch head of `fix/today-inline-capture-row` (it already carries
   this change's OpenSpec artifacts and the ADR-015 dev-context updates). Create your
@@ -85,7 +85,7 @@ Card ids: the placeholders below (`t_<analyst>` / `t_<build>` / `t_<verify>` /
   if the implementation differs materially from design.md D1-D5, comment on your card and
   append one changelog bullet; do not restructure the docs.
 
-## 3. Verification (acceptance gate) — `df-tester`, card `t_<verify>`, parent `t_<build>`
+## 3. Verification (acceptance gate) — `df-tester`, card `t_d5816ad1`, parent `t_6e88d0d9`
 
 - [ ] 3.1 Check out the PR head and re-run every gate yourself — the builder's output is a
   claim, not evidence.
@@ -114,7 +114,7 @@ Card ids: the placeholders below (`t_<analyst>` / `t_<build>` / `t_<verify>` /
   (the clipped focus ring inside `.today-tasks-panel`, the 420 px wrap) as new defects —
   they are recorded in design.md §5.
 
-## 4. Close-out — `df-lead`, card `t_<closeout>`, parent `t_<verify>`
+## 4. Close-out — `df-lead`, card `t_30eb4ff5`, parent `t_d5816ad1`
 
 - [ ] 4.1 Only after the tester's pass: merge the PR to `master` (no history rewrite, no
   force push), then `openspec archive fix-today-inline-capture-row` and confirm the delta
