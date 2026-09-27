@@ -28,8 +28,9 @@
   flex-direction: column;
 }
 
-/* The shell chrome — the 52px top strip plus the capture line — pinned to the
-   top so navigation and capture stay reachable on every view. Below the modal
+/* The shell chrome — the 52px top strip plus the capture line the non-Today
+   views use (on Today the capture row lives in the task list, ADR-015) — pinned
+   to the top so navigation and capture stay reachable. Below the modal
    overlay's z-index (1000) so a dialog always wins. */
 .app-chrome {
   position: sticky;

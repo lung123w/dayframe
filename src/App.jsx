@@ -361,8 +361,10 @@ function App() {
           onBackup={handleBackup}
         />
 
-        {/* One capture line for the whole app — present on every view. */}
-        <CaptureLine projects={projects} onCaptured={loadData} />
+        {/* One capture affordance per view: on Today the capture row is the
+            first row of the task list (ADR-015), so the shell line serves the
+            other five views only. */}
+        {activeView !== 'today' && <CaptureLine projects={projects} onCaptured={loadData} />}
       </div>
 
       <main className="app-main">

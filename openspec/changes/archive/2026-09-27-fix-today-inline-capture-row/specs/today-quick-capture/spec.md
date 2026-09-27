@@ -1,8 +1,5 @@
-# today-quick-capture Specification
+## MODIFIED Requirements
 
-## Purpose
-Capturing a task straight from the Today view: type a title, press Enter, and the task exists with today's due date and no other fields populated, then can be edited in place.
-## Requirements
 ### Requirement: User can capture a task by typing a title and pressing Enter
 The capture line SHALL be always visible on every view; on the Today view it SHALL render as the first row inside the Today task list, above the `OVERDUE` section header, collapsed to a quiet single line styled like the task rows around it until focus enters it. When the user types a title and presses Enter, the system SHALL immediately create a new task with that title, today's date as the due date, status `pending`, and no other fields populated.
 
@@ -53,15 +50,3 @@ The capture line SHALL be always visible on every view; on the Today view it SHA
 #### Scenario: Capture inherits the last used project and priority
 - **WHEN** a task is captured after a previous capture or edit chose a project or a priority
 - **THEN** the new task SHALL inherit those last-used values, and with no stored preference SHALL be created with the documented defaults
-
-### Requirement: User can edit a quick-captured task's details
-Each task in the Today view SHALL show an edit affordance. When activated, the system SHALL open the TaskModal pre-populated with the task's current data so the user can add project, priority, due time, or description.
-
-#### Scenario: Edit icon opens TaskModal
-- **WHEN** the user clicks the edit icon on a Today task row
-- **THEN** the TaskModal SHALL open with that task's fields pre-filled
-
-#### Scenario: Saved changes reflected in Today view
-- **WHEN** the user saves changes in the TaskModal
-- **THEN** the updated task SHALL be reflected in the Today view immediately
-

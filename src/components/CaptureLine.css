@@ -1,9 +1,11 @@
 /* =============================================================================
-   CaptureLine — the shell's one capture line (ADR-012 stage 2, D9).
+   CaptureLine — the one capture line, in two variants (ADR-012 stage 2, D9;
+   ADR-015 for the Today row).
 
-   Moved out of `TodayView.css` (`.tv-quick-capture*`) and repainted onto the
-   token layer: the dashed slate box is gone, the values come from
-   `src/styles/tokens.css`.
+   `.capture-line` is the shell chrome strip the five views other than Today
+   render; `.capture-line--row` is Today's instance, the first row of the task
+   list. Both are painted from `src/styles/tokens.css` — the values here are
+   names only (no literal colour, size or radius), as the token sweep left them.
    ========================================================================== */
 
 .capture-line {
@@ -73,5 +75,95 @@
   .capture-line {
     padding: var(--space-3);
     gap: var(--space-2);
+  }
+}
+
+/* ── The row variant — Today's capture row (ADR-015) ─────────────────────────
+   Today renders the same component as the first row of `.today-tasks-panel`, so
+   it repeats the *task row's* metrics (`.tv-task`, TodayView.css) rather than
+   the chrome strip's: the list's 8px/16px gutter, a hairline bottom border and a
+   transparent ground. Nothing else changes — the input keeps its own box.
+
+   Declared after the shell strip's `@media (max-width: 768px)` block on purpose:
+   the row keeps the list's 16px gutter at every width, exactly as `.tv-task`
+   does, and equal specificity means the later rule wins.
+
+   The row's height is the same collapsed and expanded at ≥768px (design.md D5),
+   with no magic constant: the collapsed row is as tall as the input's own box
+   (8px padding + 14px type at the inherited 1.5 leading + 1px border ≈ 39px) and
+   the revealed cluster — an 11px caps label beside a 12px select with 4px/8px
+   padding ≈ 28px — is shorter, so `align-items: center` pins the row's height.
+
+   That holds only while the row stays on one line, so the two rules below are
+   what actually enforce the property rather than assume it: the row never wraps
+   above the single-column breakpoint, and where the row is too narrow to hold
+   the revealed pair and the input on one line the pair leaves the flow entirely.
+   Merely letting the input shrink (`.capture-line`'s inherited `flex-wrap: wrap`
+   removed) is not enough: measured 2026-09-27, the input bottoms out at 26px and
+   the pair overflows the panel by 32px at 1024 and 287px at 769. */
+.capture-line--row {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border-bottom: var(--border);
+}
+
+/* The revealed pair. `display: contents` keeps this wrapper invisible to layout
+   wherever the pair fits on the input's line — the shell strip, whose fields it
+   wraps too, and the row on any width that has room — so the flat single-line
+   flex row is exactly what it was. */
+.capture-line-cluster {
+  display: contents;
+}
+
+@media (min-width: 769px) {
+  .capture-line--row {
+    flex-wrap: nowrap;
+  }
+
+  /* Narrower than the input's 240px flex basis plus the revealed pair — measured
+     at 1440: the two caps labels and their selects are 154.88 + 137.47 with a
+     12px gap between them, and the row adds a 12px icon and two 12px gaps, so one
+     line needs about 580px of row (612px of panel, the row's own 16px gutters
+     included). Below that the pair leaves the flow: the row stays one line tall
+     (no geometry change below it), the input keeps its whole width, and the
+     controls stay in the DOM, operable and Tab-reachable in a pill under the row.
+     `max-width` plus shrinkable fields keep the pill inside the row on the
+     narrowest panels; below 769px the pair stays inline and the row keeps
+     `.capture-line`'s wrap, which is the 420px case D5 waives. */
+  @container (max-width: 611px) {
+    /* The pair's containing block, and what lifts the row above the panel's
+       in-flow content so the pair is not painted under the header it overlaps
+       (nothing else in `TodayView.css` is positioned, so a positioned row is
+       enough — no `z-index`). Scoped to this block on purpose: `position:
+       relative` on the row makes Chrome antialias the whole panel's text
+       differently, which is a 3.44 % panel-wide pixel delta at 1440px where the
+       pair never leaves the flow (measured 2026-09-27; geometry unchanged). */
+    .capture-line--row {
+      position: relative;
+    }
+
+    .capture-line--row .capture-line-cluster {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      position: absolute;
+      top: 100%;
+      right: 0;
+      max-width: 100%;
+      padding: var(--space-1) var(--space-2);
+      background: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius-control);
+      box-shadow: var(--shadow-overlay);
+    }
+
+    .capture-line--row .capture-line-field {
+      flex-shrink: 1;
+      min-width: 0;
+    }
+
+    .capture-line--row .capture-line-select {
+      min-width: 0;
+    }
   }
 }
