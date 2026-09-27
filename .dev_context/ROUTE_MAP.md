@@ -106,4 +106,4 @@ History carried over verbatim from the retired versioned header (its labels are 
 
 - **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`
 
-- **2026-09-27** — statement filing archived: `openspec/specs/statement-filing/` created (12 requirements) and `monthly-financial-review` gained one requirement; this file's ADR-015 citations retargeted from the branch's ADR-014 label and the header line dropped per POL-007; §1/§2 verified against the shipped code — cards `t_d2e44c21` / `t_9675ab38`, tester PASS `t_94940816`, close-out card `t_8d16d0fc`, PR #<pr>
+- **2026-09-27** — statement filing archived: `openspec/specs/statement-filing/` created (12 requirements) and `monthly-financial-review` gained one requirement; this file's ADR-015 citations retargeted from the branch's ADR-014 label and the header line dropped per POL-007; §1/§2 verified against the shipped code — cards `t_d2e44c21` / `t_9675ab38`, tester PASS `t_94940816`, close-out card `t_8d16d0fc`, PR #39
