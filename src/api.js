@@ -170,3 +170,11 @@ export const monthlyReviewService = {
   complete: (id) => request(`/api/monthly-reviews/${id}/complete`, { method: 'POST' }),
   reopen: (id) => request(`/api/monthly-reviews/${id}/reopen`, { method: 'POST' }),
 };
+// The Finance Review's "File statements" step. The two endpoints take no input at
+// all (ADR-014), so `run` posts an empty object; the run record is journalled by
+// the server into `settings['statementFiling.lastRun']` and read back here.
+export const statementFilingService = {
+  preview: () => request('/api/statement-filing/preview'),
+  run: () => request('/api/statement-filing/run', { method: 'POST', body: JSON.stringify({}) }),
+  lastRun: () => settingsService.get('statementFiling.lastRun'),
+};

@@ -17,6 +17,7 @@ import keyEventsRouter from './routes/keyEvents.js';
 import weeklyReviewsRouter from './routes/weeklyReviews.js';
 import financialCardsRouter from './routes/financialCards.js';
 import monthlyReviewsRouter from './routes/monthlyReviews.js';
+import statementFilingRouter from './routes/statementFiling.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/key-events', keyEventsRouter);
 app.use('/api/weekly-reviews', weeklyReviewsRouter);
 app.use('/api/financial-cards', financialCardsRouter);
 app.use('/api/monthly-reviews', monthlyReviewsRouter);
+app.use('/api/statement-filing', statementFilingRouter);
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {

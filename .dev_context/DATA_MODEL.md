@@ -83,7 +83,7 @@ Migrated in: `images` (`server/db.js:249-253`) · `notes` (`:283-287`)
 
 ### settings
 `key` PK · `value` (TEXT, JSON-encoded) · `updatedAt`
-> Generic key/value store for app-level state. Only one key is in use today: `todayOrder` — the per-day task ordering array (`App.jsx:53, 205`; value seen live: `["400","378","374"]`). New app-level state should prefer this table over new tables when it is not relational.
+> Generic key/value store for app-level state. **Two** keys are in use: `todayOrder` — the per-day task ordering array (`App.jsx:53, 205`; value seen live: `["400","378","374"]`) — and **`statementFiling.lastRun`**, the last statement-filing run's record. `server/routes/statementFiling.js:59-64` upserts it on every `POST /api/statement-filing/run` (one row, overwritten each run) and the Finance review's `File statements` step reads it back through `GET /api/settings/statementFiling.lastRun`: `{ranAt, durationMs, filed[], cleaned[], pendingRemoval[], skipped[], counts:{filed, cleaned, pendingRemoval, skipped}, note}` — the object `server/statementFiling.js:462-471` returns, stored as one JSON string. **No table, no column and no migration**: `value` is TEXT and the whole record is that one cell, and a missing or unparseable value renders as "no last run" rather than an error. New app-level state should prefer this table over new tables when it is not relational.
 
 ## 2. Data migrations (not just column adds)
 
@@ -157,3 +157,5 @@ History carried over verbatim from the retired versioned header (its labels are 
 - **v1.3** — `habits.frequency` normalization contract (§1) + the double-encoded live row (§5), `fix-habit-frequency-normalization`
 
 - **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`
+
+- **2026-09-27** — §1 `settings` now names its second key, `statementFiling.lastRun`, and its shape: the whole D8 run record in one JSON cell, upserted per run, **no new table and no migration** — change `finance-review-statement-filing`, card `t_d2e44c21` (engine), closed out by card `t_8d16d0fc`

@@ -19,6 +19,7 @@ import { currentMonthKey } from '../utils/lastSaturday.js';
 import { ABBREVIATION_GROUPS } from '../utils/abbreviations.js';
 import FinancialCards from './FinancialCards';
 import SaveStatus from './SaveStatus';
+import StatementFiling from './StatementFiling';
 import { useDebouncedSave } from './useDebouncedSave';
 import './MonthlyReview.css';
 
@@ -818,6 +819,8 @@ export default function MonthlyReview({ reviews, financialCards, onDataChange })
                   </>
                 )}
               </section>
+
+              {!isReadOnly && <StatementFiling />}
 
               <section className="mfr-reference">
                 <h3>Reference</h3>

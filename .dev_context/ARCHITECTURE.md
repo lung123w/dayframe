@@ -65,6 +65,7 @@ graph TD
     PHPanel --> Workflow["DailyWorkflow.jsx"]
 
     Finance --> Cards["FinancialCards.jsx"]
+    Finance --> Filing["StatementFiling.jsx — the review's last step: the Box preview, the month coverage, and the one-click filing run"]
     Yearly --> Rich["RichTextEditor.jsx"]
     Modals --> Rich
 
@@ -79,10 +80,11 @@ graph TD
     HModal --> Dlg
     Rich --> Dlg
 
-    Habits --> API["src/api.js — 16 service objects, one per resource"]
+    Habits --> API["src/api.js — 17 service objects, one per resource"]
     WObj --> API
+    Filing --> API
     API -.-> Server["Express server/index.js"]
-    Server --> Routers["server/routes/*.js — 16 routers"]
+    Server --> Routers["server/routes/*.js — 17 routers"]
     Routers --> DB[("SQLite data/app.db")]
 ```
 
@@ -103,6 +105,8 @@ Notes verified against the import graph:
   1. **One key map, two owners.** `src/components/keyboard.js` (plain `.js` — a component file may not export helpers, `react-refresh/only-export-components`) holds the frozen map, the "am I allowed to fire" test (`isTypingContext`, `isOverlayOpen`) and the two DOM operations the layer needs (`moveRowFocus`, `handleRowKeyDown`). `src/components/useKeyboardLayer.js` registers the app-level half **once**, from `App.jsx`. See §4.6 for the division of ownership.
   2. **Visible focus everywhere.** `src/index.css` keeps the single global `:focus-visible` recipe on the three focus tokens; stage 5 removed the last three sites that suppressed the outline without a replacement (`DailyWorkflow.css`'s add-step field and `YearlyGoals.css`'s textarea + add field), so **0 `outline: none` declarations remain under `src/**/*.css`**. Every list row is its own focus target (`tabIndex={0}` + `data-kbd-row`) and each list container carries `data-kbd-list`, which is what scopes `j`/`k`; the app's single pre-existing `tabIndex` (`MonthlyReview.jsx`'s photo paste zone) is untouched.
   3. **The command palette is the droppable last slice.** `src/components/CommandPalette.jsx`/`.css` + its one mount in `App.jsx` + the `Ctrl/⌘ + K` entry in `useKeyboardLayer.js`. Deleting those three leaves everything else working (proved by removal — see the card comment). Its footer renders the key map, which is the in-app discoverability affordance `design.md` §6 asks for. It adds no router, no `activeView` value and no app state beyond the boolean that opens it.
+
+- **The Finance review's last step — "File statements"** (ADR-015; card `t_9675ab38`, branch `feat/finance-statement-filing-step`): `StatementFiling.jsx`/`.css`, rendered by `MonthlyReview.jsx` through exactly one import plus one `<StatementFiling />` element, placed between the Photos section and the static Reference appendix and only when the month is the current one (`!isReadOnly`) — a run is an action, not history. It owns three `statementFilingService` calls and nothing else: `preview` → `GET /api/statement-filing/preview` (the server's pure read), `run` → `POST /api/statement-filing/run` with `{}`, and `lastRun` → `settingsService.get('statementFiling.lastRun')` (absent or unparseable ⇒ nothing is rendered, never an error). It is **manual-trigger only** (ADR-015): no `setInterval`, cron, watcher or background loop is registered anywhere in the step, and the run button stays disabled until a preview has been fetched. The two destination roots (and the Box) are shown as text from a display copy of the server's constants, replaced by the server's resolved values as soon as a preview arrives. The wording never calls a verified copy a failure: a still-locked Box copy reads *filed — Box copy still locked by OneDrive; press File them now again in a minute* (D11's finisher re-pointed at the owner's manual-trigger ruling — there is no cleaner to schedule it).
 
 ## 3. State ownership
 
@@ -313,3 +317,5 @@ History carried over verbatim from the retired versioned header (its labels are 
 - **v1.9** — §1's token-layer line is scoped to what the sweep actually finished, by card `t_95d1cafb` (raised by the verification card `t_e518956a`): the eight swept stylesheets carry 0 literal hex / `font-size` / `border-radius` values and no literal `font-size` survives anywhere under `src/`, while `src/styles/tokens.css` keeps the palette's 33 hex literals by design and the un-swept stylesheets, five component `.jsx` files, the tests and `src/assets/react.svg` keep theirs
 
 - **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`
+
+- **2026-09-27** — §2 gains the Finance review's last step: the `Finance --> Filing` / `Filing --> API` mermaid nodes, the `StatementFiling.jsx` note (the statement-filing job, cited as **ADR-015** — the label this file used before close-out was ADR-014, see `DECISION_LOG.md`), and the router / service counts 16 → 17 — change `finance-review-statement-filing`, cards `t_d2e44c21` (engine) and `t_9675ab38` (step), archived and closed out by card `t_8d16d0fc`

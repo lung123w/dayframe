@@ -1,0 +1,199 @@
+/* The Finance Review's last step — "File statements" (design.md D11, ADR-014).
+   Same surface language as the rest of MonthlyReview.css: hairlines, no card
+   fills, no shadow, tokens only (no literal colour, size or radius). */
+
+.mfr-filing {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-surface);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  margin-top: var(--space-4);
+}
+
+.mfr-filing-title {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--font-section);
+  color: var(--text-heading);
+}
+
+.mfr-filing-intro {
+  margin: 0;
+  font-size: var(--font-row);
+  color: var(--text-muted);
+  max-width: 68ch;
+}
+
+.mfr-filing-roots {
+  list-style: none;
+  margin: var(--space-3) 0 var(--space-4) 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mfr-filing-root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-meta);
+}
+
+.mfr-filing-root-label {
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mfr-filing-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.mfr-filing-lastrun {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-meta);
+  color: var(--text-subtle);
+}
+
+.mfr-filing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.mfr-filing-error {
+  margin-top: var(--space-2);
+  font-size: var(--font-row);
+  color: var(--error-text);
+}
+
+.mfr-filing-result {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-control);
+}
+
+.mfr-filing-summary {
+  margin: 0;
+  font-size: var(--font-row);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-body);
+}
+
+.mfr-filing-note {
+  margin: var(--space-2) 0 0 0;
+  font-size: var(--font-meta);
+  color: var(--text-subtle);
+}
+
+.mfr-filing-plan {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.mfr-filing-group-title {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mfr-filing-count {
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.mfr-filing-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mfr-filing-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mfr-filing-row:last-child {
+  border-bottom: none;
+}
+
+.mfr-filing-row-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-row);
+  color: var(--text-body);
+}
+
+.mfr-filing-target {
+  color: var(--text-body);
+}
+
+.mfr-filing-arrow {
+  color: var(--text-subtle);
+}
+
+.mfr-filing-row-meta,
+.mfr-filing-reason {
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+}
+
+.mfr-filing-outcome {
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-medium);
+}
+
+.mfr-filing-outcome-ok { color: var(--success-text); }
+.mfr-filing-outcome-warn { color: var(--warning-text); }
+.mfr-filing-outcome-muted { color: var(--text-muted); }
+
+.mfr-filing-empty {
+  margin: 0;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
+}
+
+.mfr-filing-strip {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.mfr-filing-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-5);
+  height: var(--space-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  font-size: var(--font-label);
+  color: var(--text-subtle);
+}
+
+.mfr-filing-cell-present {
+  border-color: var(--success);
+  background: var(--surface-2);
+  color: var(--success-text);
+}
