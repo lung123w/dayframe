@@ -63,6 +63,7 @@ graph TD
     PHPanel --> Workflow["DailyWorkflow.jsx"]
 
     Finance --> Cards["FinancialCards.jsx"]
+    Finance --> Filing["StatementFiling.jsx — the review's last step: the Box preview, the month coverage, and the one-click filing run"]
     Yearly --> Rich["RichTextEditor.jsx"]
     Modals --> Rich
 
@@ -77,10 +78,11 @@ graph TD
     HModal --> Dlg
     Rich --> Dlg
 
-    Habits --> API["src/api.js — 16 service objects, one per resource"]
+    Habits --> API["src/api.js — 17 service objects, one per resource"]
     WObj --> API
+    Filing --> API
     API -.-> Server["Express server/index.js"]
-    Server --> Routers["server/routes/*.js — 16 routers"]
+    Server --> Routers["server/routes/*.js — 17 routers"]
     Routers --> DB[("SQLite data/app.db")]
 ```
 
@@ -97,6 +99,7 @@ Notes verified against the import graph:
   1. **The dialogs are Radix-owned.** `src/components/AppDialog.jsx` is the one dialog shell (`@radix-ui/react-dialog`) and exports `AppDialog` (the shell), `ConfirmDialog` (the `window.confirm`/`window.alert` replacement — `cancelLabel={null}` renders the single-action alert form) and `PromptDialog` (the `window.prompt` replacement). It owns the focus trap, Escape dismissal and focus return; focus returns through `onCloseAutoFocus` rather than a `Dialog.Trigger`, because several call sites are re-rendered or unmounted by the very mutation they guard. `Dialog.Content` is rendered **inside** `Dialog.Overlay` so the app's existing `.modal-overlay`/`.modal-content` centring (`.modal-overlay { display:flex }`) keeps working. Call sites: `App.jsx` (task delete + the backup-failure notice), `ProjectsView.jsx` (project delete), `ProjectModal.jsx` (project delete), `WeeklyReview.jsx` (the objectives-replacement confirm and the "nothing to sync" alert) and `RichTextEditor.jsx` (the link-URL prompt). `TaskModal`, `HabitModal` and `ProjectModal` render their shells through `AppDialog` too, which is what gives them Escape dismissal. There are **0** `window.confirm|alert|prompt` call sites under `src/` (design.md §3 D7).
   2. **One debounced writer and one reserved status line per persisting surface** (`src/components/useDebouncedSave.js` + `SaveStatus.jsx`, design.md §8 D12): 500 ms after the last keystroke, flushed on blur and on navigating away (and on unmount), with `Saving…` / `Saved` (fades after ~2 s) / `Could not save — retry` in a reserved `role="status" aria-live="polite"` line. Typing is debounced; discrete actions (a checkbox, an add, a remove) still write immediately; the finance notes textarea keeps its save-on-blur behaviour, now reported in the same line. No write fires per keystroke on any surface.
   3. **Both weeks are named** (F35 / ADR-005) and the two dead day-select controls work (F20). See §3 and §4.3.
+- **The Finance review's last step — "File statements"** (ADR-014; card `t_9675ab38`, branch `feat/finance-statement-filing-step`): `StatementFiling.jsx`/`.css`, rendered by `MonthlyReview.jsx` through exactly one import plus one `<StatementFiling />` element, placed between the Photos section and the static Reference appendix and only when the month is the current one (`!isReadOnly`) — a run is an action, not history. It owns three `statementFilingService` calls and nothing else: `preview` → `GET /api/statement-filing/preview` (the server's pure read), `run` → `POST /api/statement-filing/run` with `{}`, and `lastRun` → `settingsService.get('statementFiling.lastRun')` (absent or unparseable ⇒ nothing is rendered, never an error). It is **manual-trigger only** (ADR-014): no `setInterval`, cron, watcher or background loop is registered anywhere in the step, and the run button stays disabled until a preview has been fetched. The two destination roots (and the Box) are shown as text from a display copy of the server's constants, replaced by the server's resolved values as soon as a preview arrives. The wording never calls a verified copy a failure: a still-locked Box copy reads *filed — Box copy still locked by OneDrive; press File them now again in a minute* (D11's finisher re-pointed at the owner's manual-trigger ruling — there is no cleaner to schedule it).
 
 ## 3. State ownership
 
