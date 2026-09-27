@@ -451,6 +451,32 @@ describe('the copy is verified before the Box source is removed', () => {
     expect(wording.toLowerCase()).not.toContain('scheduled cleaner');
     expect(run.note).toMatch(/not be removed/i);
     expect(run.note).toMatch(/File them now/i);
+    // the singular branch must read as one sentence ("the filed copy is…"), not "the filed copy are…"
+    expect(run.note).toContain('the filed copy is verified and complete');
+    expect(run.note).not.toContain('the filed copy are');
+    expect(run.note).toBe(
+      '1 Box copy could not be removed because OneDrive still holds it — '
+      + 'the filed copy is verified and complete. '
+      + 'Press "File them now" again in a minute to finish removing the Box copy.',
+    );
+  });
+
+  it('keeps the plural wording when more than one Box copy is locked', async () => {
+    writePdf(path.join(sandbox.box, 'hkbn_sep26.pdf'));
+    writePdf(path.join(sandbox.box, 'wewa_sep26.pdf'));
+    const plan = planNow();
+    expect(plan.actions).toHaveLength(2);
+
+    const run = await runPlan(config, plan, {
+      removeFile: () => { throw Object.assign(new Error('EPERM: operation not permitted, unlink'), { code: 'EPERM' }); },
+      sleep: async () => {},
+    });
+
+    expect(run.counts).toEqual({ filed: 0, cleaned: 0, pendingRemoval: 2, skipped: 0 });
+    expect(run.note).toContain('2 Box copies could not be removed');
+    expect(run.note).toContain('the filed copies are verified and complete');
+    expect(run.note).toContain('to finish removing the Box copies.');
+    expect(run.note).not.toContain('the filed copies is');
   });
 
   it('reports an unreadable source as read_error and touches nothing', async () => {

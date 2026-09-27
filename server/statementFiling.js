@@ -442,8 +442,9 @@ function runNote(run) {
   const locked = run.pendingRemoval.length;
   if (locked === 0) return '';
   const copies = locked === 1 ? 'copy' : 'copies';
+  const verb = locked === 1 ? 'is' : 'are';
   return `${locked} Box ${copies} could not be removed because OneDrive still holds `
-    + `${locked === 1 ? 'it' : 'them'} — the filed ${copies} are verified and complete. `
+    + `${locked === 1 ? 'it' : 'them'} — the filed ${copies} ${verb} verified and complete. `
     + 'Press "File them now" again in a minute to finish removing the Box '
     + `${copies}.`;
 }
