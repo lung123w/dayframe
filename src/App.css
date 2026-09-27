@@ -7,247 +7,147 @@
    so the shell can no longer win a race against them, and the ground is the
    one `index.css` declares.
 
-   Values come from `src/styles/tokens.css` (ADR-012). The legacy Neutral Slate
-   comment that used to head this file described the pre-ADR-012 palette
-   (orange CTA, slate ground) and was retired with it; the shell is repainted
-   onto the tokens in its own stage.
+   Stage 2 of `ui-modernization-calm-canvas` (ADR-012) repainted the shell: the
+   220px rail is now a 52px top strip plus the capture line (`.app-chrome`), the
+   layout is a column, and the toolbar below is on the token layer. The
+   `.project-chip*`, `.filter-*` and `.calendar-day-layout*` rules removed here
+   had no importer left (the calendar components went in stage 0); the
+   fill-based `.btn-blue` / `.btn-success` / `.btn-danger` variants keep their
+   literal hexes — each carries a white-on-fill contrast decision that has no
+   token yet, and stage 4 owns them.
    ========================================================================== */
 
 /* ── LAYOUT ── */
 .app {
   min-height: 100vh;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+}
+
+/* The shell chrome — the 52px top strip plus the capture line — pinned to the
+   top so navigation and capture stay reachable on every view. Below the modal
+   overlay's z-index (1000) so a dialog always wins. */
+.app-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  flex-shrink: 0;
 }
 
 /* ── MAIN CONTENT ── */
 .app-main {
   flex: 1;
-  padding: 20px 24px;
+  padding: var(--space-5);
   width: 100%;
-  margin-left: 220px;
   background-color: var(--page);
   overflow-y: auto;
   position: relative;
 }
 
-/* ── TOOLBAR ── */
+/* ── TOOLBAR (planner view) ── */
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  gap: 12px;
+  margin-bottom: var(--space-4);
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
 /* ── STAT CARDS ── */
 .task-stats {
   display: flex;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .stat-card {
   background: var(--surface);
-  border: 1.5px solid var(--hairline);
-  border-radius: 8px;
-  padding: 8px 18px;
+  border: var(--border);
+  border-radius: var(--radius-surface);
+  padding: var(--space-2) var(--space-4);
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 72px;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--motion-state) var(--ease);
 }
 
 .stat-card:hover {
-  border-color: #94A3B8;
+  border-color: var(--text-subtle);
 }
 
 .stat-label {
-  font-size: 10px;
+  font-size: var(--font-label);
   color: var(--text-subtle);
-  font-weight: 700;
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
 
 .stat-value {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--font-page-title);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-body);
-  line-height: 1.2;
-}
-
-/* ── PROJECT FILTER BAR ── */
-.project-filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  padding: 10px 18px;
-  background: var(--surface);
-  border-radius: 8px;
-  border: 1.5px solid var(--hairline);
-}
-
-.project-filter-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-right: 4px;
-  white-space: nowrap;
-}
-
-.project-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 4px;
-  border: 1.5px solid var(--hairline);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-stack);
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  background: var(--surface);
-  color: #475569;
-  white-space: nowrap;
-}
-
-.project-chip:hover {
-  background: var(--surface-2);
-  border-color: #94A3B8;
-}
-
-.project-chip.active {
-  color: white;
-  border-color: transparent;
-}
-
-.project-chip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.project-chip-edit {
-  background: none;
-  border: none;
-  padding: 0;
-  margin-left: 2px;
-  cursor: pointer;
-  opacity: 0.55;
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
-  color: inherit;
-  font-family: var(--font-stack);
-  transition: opacity 0.15s ease;
-}
-
-.project-chip-edit:hover {
-  opacity: 1;
-}
-
-.filter-separator {
-  width: 1px;
-  height: 24px;
-  background: var(--hairline);
-  margin: 0 4px;
-  flex-shrink: 0;
-}
-
-.filter-clear-btn {
-  background: var(--surface);
-  color: var(--text-muted);
-  border: 1.5px solid var(--hairline);
-  border-radius: 4px;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: var(--font-stack);
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.filter-clear-btn:hover {
-  background: var(--surface-2);
-  color: var(--text-body);
-  border-color: #94A3B8;
+  line-height: var(--font-leading-tight);
 }
 
 /* ── BUTTONS ── */
 .btn {
-  padding: 9px 20px;
-  border: 1.5px solid transparent;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: var(--font-row);
+  font-weight: var(--font-weight-semibold);
   font-family: var(--font-stack);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--motion-state) var(--ease), border-color var(--motion-state) var(--ease), color var(--motion-state) var(--ease);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   white-space: nowrap;
   text-decoration: none;
 }
 
-/* Primary = orange CTA */
+/* Primary = the reserved accent (ADR-012: the orange CTA is retired) */
 .btn-primary {
-  background: #F97316;
-  color: white;
-  border-color: #F97316;
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
 }
 
 .btn-primary:hover {
-  background: #EA580C;
-  border-color: #EA580C;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 /* Secondary = neutral outlined */
 .btn-secondary {
   background: var(--surface);
-  color: #475569;
+  color: var(--text-body);
   border-color: var(--hairline);
 }
 
 .btn-secondary:hover {
   background: var(--surface-2);
-  border-color: #94A3B8;
-  color: var(--text-body);
+  border-color: var(--text-subtle);
+  color: var(--text-heading);
 }
 
-/* Blue filled variant (kept for compatibility) */
-.btn-blue {
-  background: #3B82F6;
-  color: white;
-  border-color: #3B82F6;
-}
-
-.btn-blue:hover {
-  background: #2563EB;
-  border-color: #2563EB;
-}
-
+/* Fill-based variants — literal until stage 4 gives them a token pair
+   (white text needs a darker fill than `--success`/`--error` provide). */
 .btn-success {
   background: #16A34A;
   color: white;
@@ -271,42 +171,10 @@
   border-color: #DC2626;
 }
 
-/* ── CALENDAR + DAY PANEL LAYOUT ── */
-.calendar-day-layout {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.calendar-day-layout__calendar {
-  flex: 1;
-  min-width: 0;
-}
-
-.calendar-day-layout__panel {
-  width: 320px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 84px;
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
-}
-
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .calendar-day-layout {
-    flex-direction: column;
-  }
-
-  .calendar-day-layout__panel {
-    width: 100%;
-    position: static;
-    max-height: none;
-  }
-
   .app-main {
-    padding: 16px;
-    margin-left: 0;
+    padding: var(--space-4);
   }
 
   .toolbar {

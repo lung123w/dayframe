@@ -29,7 +29,8 @@ Anderson is in Hong Kong (GMT+8). **A "week" starts Monday. Dates are never hard
 graph TD
     App["App.jsx — root: all shared state, activeView, modals"]
 
-    App --> SB["Sidebar.jsx — nav: today / planner / habits / review / finance / projects"]
+    App --> SB["TopStrip.jsx — 52px shell strip: Today · Week · Habits · Review + More (Finance · Projects · Backup · Notifications)"]
+    App --> Cap["CaptureLine.jsx — the shell's one capture line, on every view"]
     App --> Today["TodayView.jsx"]
     App --> Planner["DailyPlanner.jsx"]
     App --> Habits["HabitTracker.jsx"]
@@ -73,6 +74,7 @@ Notes verified against the import graph:
 - `WeeklyReview.jsx` imports no local component: it renders its own three sections, its own habit chips and its own key-events day grid (`WeeklyReview.jsx:597-844`). `WeeklyObjectives.jsx` (the planner panel) is a *different* key-events UI that also carries the weekly objectives (`WeeklyObjectives.jsx:189, 328-336`).
 - The planner view is also wrapped by an App-level toolbar (New Task / New Project / Total-Done-Pending stats) rendered in `App.jsx:346-375`.
 - **Deleted in stage 0 of `ui-modernization-calm-canvas`** (ADR-012; card `t_aa4715eb`, branch `feat/ui-s0-dead-code`): `Calendar.jsx`/`.css`, `DayPanel.jsx`/`.css`, `OutstandingTasks.jsx`/`.css`, `DailyShutdown.jsx`/`.css` — four components with 0 importers, 1,828 CSS lines (`Calendar.css` 916, `DayPanel.css` 486, `OutstandingTasks.css` 353, `DailyShutdown.css` 73). `DailyShutdown` was **deleted, not revived** (`design.md` §4/D8): the `daily_notes` rows, the table and `GET/PUT /api/daily-notes` are untouched, so no data was removed, and the audit's F42 (a daily close-out ritual) stays an **open item** for a later change once Today's rows have landed. The `vi.mock('../components/DailyShutdown', …)` that was its last remaining reference went with it. `package.json` was **not** touched — `@fullcalendar/*` is now an unused declared dependency, and removing it is its own decision.
+- **The shell, stage 2 of `ui-modernization-calm-canvas`** (ADR-012; card `t_5d2bcf9d`, branch `feat/ui-s2-shell`): `Sidebar.jsx`/`.css` were renamed to `TopStrip.jsx`/`.css` (`git mv`) and now render one ~52px top strip — the app name plus the period as the page title, four text destinations (Today · Week · Habits · Review) and a Radix `dropdown-menu` "More" overflow holding Finance / Projects / Backup / Notifications. All six views stay reachable at 1440 / 768 / 420px, which closes F16 (the rail was `display: none` below 768px). `CaptureLine.jsx`/`.css` is mounted **once**, by `App.jsx` in `.app-chrome` directly under the strip, so quick capture is a shell element: `TodayView.jsx` no longer renders an input of its own. `src/components/captureDefaults.js` owns the client-only D9 preference (`localStorage['dayframe.captureDefaults']`) — no API, schema or settings-row change.
 
 ## 3. State ownership
 
@@ -86,7 +88,7 @@ flowchart LR
       A5["keyEvents"]
       A6["financialCards"]
       A7["monthlyReviews"]
-      A8["activeView (default planner)"]
+      A8["activeView (default today — the cold open)"]
       A9["modal state: showTaskModal / selectedTask / selectedDate / showProjectModal / editingProject"]
     end
     A1 --> TodayView
@@ -100,7 +102,8 @@ flowchart LR
 ```
 
 - `App.jsx` owns the cross-view state and reloads everything with one `loadData()` (`App.jsx:47-78`, 7 parallel service calls) after almost every mutation. Views keep their own local state for their period/document.
-- `activeView` defaults to **`planner`**, not `today` (`App.jsx:41`). There is no router — the Sidebar just sets this one string.
+- `activeView` defaults to **`today`** — Today is the cold open (`App.jsx:41`, stage 2 of `ui-modernization-calm-canvas`). There is no router and no new app-level view state: `TopStrip` just sets this one string, exactly as the rail did.
+- `CaptureLine` keeps its own input text and its D9 defaults in local state and re-reads `localStorage['dayframe.captureDefaults']` at capture time, so nothing about capture lives in `App.jsx` beyond passing `projects` down and calling `loadData` when a task lands.
 - `HabitTracker` receives **no props** (`App.jsx:397-399`): it fetches habits and entries itself. `WeeklyReview` and `MonthlyReview` receive only the slice they need.
 - `todayOrder` is an ordered array of task keys stored as a generic settings row (`App.jsx:202-211`, `settingsService`).
 
@@ -110,8 +113,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Start["Open app (default view: planner)"] --> Today["Today view"]
-    Today --> Capture["Quick capture: type + Enter → POST /api/tasks with dueDate=today, status=pending"]
+    Start["Open app (default view: today — the cold open)"] --> Capture["Shell capture line (CaptureLine.jsx), present on every view: type + Enter → POST /api/tasks with dueDate = today (Hong Kong, computed at run time) and status = pending; the / key focuses it; D9 capture defaults are read from localStorage"]
     Capture --> List["Today list = tasks due today (recurring expanded via generateRecurringTasks) + overdue pending tasks"]
     List --> Pull["'Pull to today' rewrites every overdue task's dueDate to today (Promise.all of PUTs)"]
     List --> Order["Drag to reorder → PUT /api/settings/todayOrder + PUT sortOrder on each real task"]
@@ -120,7 +122,7 @@ flowchart TD
     Done --> Reload
 ```
 
-Evidence: `src/components/TodayView.jsx:39-49` (capture), `:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:152-184` (recurring status override logic), `src/App.jsx:202-211` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation).
+Evidence: `src/components/CaptureLine.jsx` (capture, the `/` key, the D9 defaults; `src/components/captureDefaults.js` owns the localStorage key), `src/components/TodayView.jsx:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:152-184` (recurring status override logic), `src/App.jsx:202-211` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation).
 
 ### 4.2 Habit logging (the write path with a trap)
 

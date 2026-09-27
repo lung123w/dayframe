@@ -1,0 +1,155 @@
+/* =============================================================================
+   TopStrip — the shell's navigation (ADR-012, stage 2 of
+   `ui-modernization-calm-canvas`).
+
+   It replaces the 220px dark rail (`Sidebar.css`). Values come from
+   `src/styles/tokens.css`; the rail's literal slate palette and its
+   `display: none` mobile dead end (audit F16) are gone. The strip is a single
+   row that wraps instead of hiding anything, so every destination stays
+   reachable at 768px and below.
+   ========================================================================== */
+
+.top-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  min-height: 52px;
+  padding: var(--space-2) var(--space-5);
+  background: var(--surface);
+  border-bottom: var(--border);
+}
+
+/* ── Title: app name + the period the active view shows ── */
+.top-strip-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.top-strip-brand {
+  font-size: var(--font-body-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+  line-height: var(--font-leading-tight);
+}
+
+.top-strip-date {
+  font-size: var(--font-meta);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Destinations ── */
+.top-strip-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.top-strip-link {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-stack);
+  font-size: var(--font-row);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-body);
+  cursor: pointer;
+  transition: background var(--motion-state) var(--ease), color var(--motion-state) var(--ease);
+}
+
+.top-strip-link:hover {
+  background: var(--surface-2);
+  color: var(--text-heading);
+}
+
+.top-strip-link.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.top-strip-link.active:hover {
+  background: var(--surface-2);
+  color: var(--accent-hover);
+}
+
+/* The global `:focus-visible` recipe (index.css) supplies the indicator; the
+   declaration is repeated here so the shell keeps it whatever the cascade does
+   to the global rule (audit F30 — never an outline without a replacement). */
+.top-strip-link:focus-visible,
+.top-strip-menu-item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.top-strip-more-caret {
+  font-size: var(--font-label);
+  margin-left: var(--space-1);
+  color: var(--text-subtle);
+}
+
+/* ── "More" overflow (Radix dropdown-menu — the only primitive in this stage) ── */
+.top-strip-menu {
+  min-width: 180px;
+  padding: var(--space-1);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--shadow-overlay);
+  z-index: 2000;
+}
+
+.top-strip-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  font-size: var(--font-row);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-body);
+  cursor: pointer;
+  user-select: none;
+}
+
+.top-strip-menu-item[data-highlighted] {
+  background: var(--surface-2);
+  color: var(--text-heading);
+}
+
+.top-strip-menu-icon {
+  font-size: var(--font-meta);
+  color: var(--text-subtle);
+  flex-shrink: 0;
+}
+
+.top-strip-menu-separator {
+  height: 1px;
+  margin: var(--space-1) 0;
+  background: var(--hairline);
+}
+
+/* ── Responsive: the row wraps, nothing is hidden (closes F16) ── */
+@media (max-width: 768px) {
+  .top-strip {
+    padding: var(--space-2) var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .top-strip-link {
+    padding: var(--space-2);
+  }
+}

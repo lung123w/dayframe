@@ -1,0 +1,77 @@
+/* =============================================================================
+   CaptureLine — the shell's one capture line (ADR-012 stage 2, D9).
+
+   Moved out of `TodayView.css` (`.tv-quick-capture*`) and repainted onto the
+   token layer: the dashed slate box is gone, the values come from
+   `src/styles/tokens.css`.
+   ========================================================================== */
+
+.capture-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  background: var(--page);
+  border-bottom: var(--border);
+}
+
+.capture-line-icon {
+  color: var(--text-subtle);
+  font-size: var(--font-meta);
+  flex-shrink: 0;
+}
+
+.capture-line-input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text-body);
+  font-family: var(--font-stack);
+  font-size: var(--font-row);
+  transition: border-color var(--motion-state) var(--ease);
+}
+
+.capture-line-input:focus {
+  border-color: var(--accent);
+}
+
+.capture-line-input::placeholder {
+  color: var(--text-subtle);
+}
+
+.capture-line-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.capture-line-label {
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.capture-line-select {
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text-body);
+  font-family: var(--font-stack);
+  font-size: var(--font-meta);
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .capture-line {
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+}
