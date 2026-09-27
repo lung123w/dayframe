@@ -35,6 +35,14 @@ vi.mock('../api', () => ({
     complete: mockComplete,
     reopen: mockReopen,
   },
+  // The current-month render mounts StatementFiling, whose only call on mount is
+  // `lastRun`. Stubbed here so the mock matches the real module's shape and the
+  // child is exercised rather than silently failing into its own catch.
+  statementFilingService: {
+    preview: vi.fn(),
+    run: vi.fn(),
+    lastRun: vi.fn().mockResolvedValue(null),
+  },
 }));
 
 import MonthlyReview from '../components/MonthlyReview';
