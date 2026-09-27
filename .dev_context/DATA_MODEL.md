@@ -1,6 +1,6 @@
 # DayFrame — Data Model
 
-Owner: `df-lead` · Last updated: 2026-09-20 (v1.1 — every column re-checked against `server/db.js` CREATE blocks **and** ALTER migrations, plus the live DB)
+Owner: `df-lead` · Last updated: 2026-09-20 (v1.1 — every column re-checked against `server/db.js` CREATE blocks **and** ALTER migrations, plus the live DB; v1.2 — habit `trackType` / entry `count` columns added, `t_74db36be`; v1.3 — `habits.frequency` normalization contract (§1) + the double-encoded live row (§5), `fix-habit-frequency-normalization`)
 
 SQLite, one file: `data/app.db` (gitignored). Schema is created in `server/db.js`; later columns arrive through **idempotent add-only migrations** (`try { db.exec('ALTER TABLE … ADD COLUMN …') } catch {}`). No ORM — `better-sqlite3` prepared statements inside `server/routes/*.js`.
 
@@ -33,12 +33,17 @@ Migrated in: `estimatedMinutes` · `sortOrder` (default 0) · `startTime` · `en
 `id` PK · `parentTaskId` → tasks(id) ON DELETE CASCADE · `title` · `completed` 0/1 · `sortOrder` · `createdAt` · `updatedAt`
 
 ### habits
-`id` PK · `name` · `description` · `color` (default `#10B981`) · `frequency` JSON (`{"type":"daily"}`) · `isArchived` 0/1 · `sortOrder` · `createdAt`
+`id` PK · `name` · `description` · `color` (default `#10B981`) · `frequency` JSON (`{"type":"daily"}`) · **`trackType`** (`duration|count`, default `duration`) · `isArchived` 0/1 · `sortOrder` · `createdAt`
+Migrated in: `trackType` (`server/db.js:290-295`)
+> `trackType` picks the unit a habit is logged in: `duration` uses `habit_entries.timeSpentSeconds`, `count` uses `habit_entries.count`. `POST` / `PUT /api/habits` persist it and accept **only** the two documented values — anything else falls back to `'duration'`, and a `PUT` that omits the field keeps the stored value (`server/routes/habits.js:6-12, 48-54, 73-80`). No CHECK constraint: validation lives in the route (ADR-011).
+> **`frequency` is normalized at the API boundary — the client always receives an object.** `server/habitFrequency.js` exports the single dependency-free `normalizeFrequency(value)` (no imports, so a unit test can load it without opening the live DB), and `server/routes/habits.js` calls it at `:21` (read, inside `parseHabit`), `:52` (`POST`) and `:79` (`PUT`). Contract (ADR-012, design.md D2): a cell that was stored as a JSON *string* — or a nested one — is unwrapped (the cell plus at most two further `JSON.parse` passes, so 4+ layers degrade to daily instead of looping); `weekly` always carries a positive finite numeric `timesPerWeek` (default `1`, matching `frequency.timesPerWeek || 1` in `src/utils/habits.js:94, 205`; preserved unrounded and unclamped); `weekdays` always carries `days` (integers 1–7, deduplicated ascending, `[]` when nothing is usable — never an invented day); an unparsable cell, a non-object, or any `type` other than `daily`/`weekly`/`weekdays` (exact, case-sensitive) → `{type:'daily'}`. Keys the function does not own are copied through untouched. It is total (never throws) and idempotent, because `PUT` feeds an already-normalized value back in.
+> **The write path is the only repair.** `PUT /api/habits/:id` rewrites whatever it read single-encoded, so a doubly-encoded row heals on the next save from the habit modal. There is deliberately **no boot-time `frequency` repair** in `server/db.js` (it still runs only the three rewrites in §2) and no repair migration was added — see §5 for the one live row this leaves in place.
 
 ### habit_entries
-`id` PK · `habitId` → habits(id) ON DELETE CASCADE · `date` · `timeSpentSeconds` (default 0) · `createdAt` · **`UNIQUE(habitId, date)`**
-> One entry per habit per day. A second POST for the same day returns **HTTP 409** `{"error":"Entry already exists for this habit and date"}` **without updating** (`server/routes/habitEntries.js:43-48`) — the correct write path is GET → DELETE (`/by-date?habitId=&date=`) → POST, or PUT the existing entry id.
-> There is **no `count` column** (see §6 — count tracking is inert).
+`id` PK · `habitId` → habits(id) ON DELETE CASCADE · `date` · `timeSpentSeconds` (default 0) · **`count`** (default 0) · `createdAt` · **`UNIQUE(habitId, date)`**
+Migrated in: `count` (`server/db.js:296-301`)
+> One entry per habit per day. A second POST for the same day returns **HTTP 409** `{"error":"Entry already exists for this habit and date"}` **without updating** (`server/routes/habitEntries.js:50-55`) — the correct write path is GET → DELETE (`/by-date?habitId=&date=`) → POST, or PUT the existing entry id.
+> Both value columns are written by the same routes: `timeSpentSeconds` stays canonical for duration habits, `count` for rep habits (`server/routes/habitEntries.js:8-12, 39-47, 60-66`). Each is optional on READ; duration habits leave `count` at 0 and count habits leave `timeSpentSeconds` at 0. Migration defaults (0 / `'duration'`) cover every pre-existing row, so no historical row changed (ADR-011).
 
 ### weekly_objectives
 `id` PK · `weekStart` · `objectives` JSON `'[]'` · `createdAt` · `updatedAt` · `UNIQUE(weekStart)`
@@ -90,6 +95,8 @@ Migrated in: `images` (`server/db.js:249-253`) · `notes` (`:283-287`)
 | `tasks.status`: `todo` / `in-progress` → `pending` | `server/db.js:207-210` | unconditional `UPDATE` on every boot |
 | `yearly_goals`: free-text `goals` → `vision`, `goals` := `'[]'` | `server/db.js:262-281` | one-way; re-running is a no-op because `goals` is then a JSON array |
 
+The **ALTER-only additions** (no data rewrite, defaults keep every existing row valid): `tasks.estimatedMinutes` / `sortOrder` / `startTime` / `endTime` / `scheduledTime` (`:213-241`) · `yearly_goals.images` (`:243-247`) · `monthly_reviews.images` (`:249-253`) · `yearly_goals.vision` (`:255-260`) · `monthly_reviews.notes` (`:283-287`) · **`habits.trackType` + `habit_entries.count`** (`:290-301`, added 2026-09-20 by `t_74db36be`). New migrations are appended at the **end** of the list so no earlier line number in this document shifts.
+
 ## 3. Requested entities that do NOT exist (gap note)
 
 The team mandate listed "Workspaces, Projects, Activity Logs, Users". Reality in the schema:
@@ -116,16 +123,24 @@ The team mandate listed "Workspaces, Projects, Activity Logs, Users". Reality in
 - **17 tables, not 16**: the 16 above plus `google_calendar_tokens` (`id, accessToken, refreshToken, expiryDate, createdAt, updatedAt`). Nothing in this repo creates it — no `CREATE` in `server/`, no reference anywhere in `src/` or `server/` (grep: only `data/app.db` itself matches). It is an orphan left by an out-of-repo script; do not build on it without tracing its writer first.
 - `weekly_reviews` and `weekly_objectives` **do have** `mode TEXT NOT NULL DEFAULT 'personal'`, `UNIQUE(weekStart, mode)` and `CHECK(mode IN ('personal','work'))` in the live DB — the WORK-toggle shape (ADR-009) — while master's `server/db.js` still declares `UNIQUE(weekStart)`. Because the tables already exist, master's `CREATE` is a no-op and the live columns survive.
 - Consequence for planning: a card that says "the column does not exist" must say **where** it checked. Against the live DB, `mode` exists; against master's code, it does not. Both statements are true and neither is sufficient alone.
+- **`habits.frequency` row id 9 (`Gym Session`) is double-encoded in the live DB** — the cell holds the text `"{\"type\":\"weekly\"}"` (a JSON *string* whose contents are the object), so `typeof(frequency)` is still `text` but the value needs **two** `JSON.parse` calls. A scan of every TEXT column of all 17 tables for values starting with `"` on 2026-09-20 found this to be the only such cell in the whole DB; every other `habits.frequency` cell holds a plain object. Identified read-only while building `fix-habit-frequency-normalization` and **deliberately left in place** (design.md D6 — repairing a row of Anderson's real data is his call, POL-001). It is no longer harmful: the API normalizes it on every read (§1) and it self-heals the next time the habit is saved through the UI, because that `PUT` rewrites the cell single-encoded. Verified after the change: live `data/app.db` byte-identical (md5 `edbebbf5c814b28d31ba61e5f2600ae0` before and after), `quote(frequency)` for row 9 still `'"{\"type\":\"weekly\"}"'`, `habits` 6 / `habit_entries` 397 / `tasks` 382 unchanged. The API-level reproduction used a `.backup` **copy** of this file, never the live one.
+- **`habits.trackType` + `habit_entries.count` are now in the live DB too** — added 2026-09-20 by `t_74db36be` with the exact two guarded `ALTER`s the boot path runs (`server/db.js:290-301`), applied by hand (a consistent `.backup` of `data/app.db` was taken to `%LOCALAPPDATA%\Temp\app.db.pre-count-tracking.bak` first). Purely additive: `habit_entries` stayed at **394** rows, `habits` at **6**, `tasks` at **381**, `pragma integrity_check` → `ok`, and every existing row reads back `trackType='duration'` / `count=0`.
 
-## 6. Known data defect — habit count tracking is inert
+## 6. Habit count tracking — fixed 2026-09-20 (was inert)
 
-The `habit-count-tracking` change (`fdc8e05`, archived under `openspec/changes/archive/2026-07-12-habit-count-tracking/`) added per-habit **count** tracking ("Push-ups 30 reps" instead of minutes) — but it **touched zero files under `server/`** (`git show --stat fdc8e05`: 18 files, all `openspec/`, `src/`). Verified against both the live DB and the routes:
+The `habit-count-tracking` change (`fdc8e05`, archived under `openspec/changes/archive/2026-07-12-habit-count-tracking/`) added per-habit **count** tracking ("Push-ups 30 reps" instead of minutes) — but it originally **touched zero files under `server/`** (`git show --stat fdc8e05`: 18 files, all `openspec/`, `src/`), so for two months the feature was inert end-to-end:
 
-- `habits` has **no `trackType` column**, and `POST`/`PUT /api/habits` never read that field (`server/routes/habits.js:36-46, 60-70`) — so a habit saved as "Repetitions" comes back as a duration habit and `getTrackType()` (`src/utils/habits.js:268-270`) always returns `'duration'`.
-- `habit_entries` has **no `count` column**, and `POST`/`PUT /api/habit-entries` only read `timeSpentSeconds` (`server/routes/habitEntries.js:32, 40, 56`) — while the UI sends `count` (`src/components/HabitTracker.jsx:89, 112-120`, `src/components/PlannerHabitsPanel.jsx:66-80`). The reps are silently discarded; the entry is stored with `timeSpentSeconds = 0`.
-- Live check: `select coalesce(trackType,'<NULL>') … from habits` and the same for `habit_entries.count` both fail with `no such column`.
+- `habits` had **no `trackType` column** and the habit routes never read the field, so a habit saved as "Repetitions" came back as a duration habit and `getTrackType()` (`src/utils/habits.js:268-270`) always returned `'duration'`.
+- `habit_entries` had **no `count` column** and the entry routes only read `timeSpentSeconds`, while the UI sends `count` (`src/components/HabitTracker.jsx:89, 112-120`, `src/components/PlannerHabitsPanel.jsx:66-80`) — the reps were silently discarded and the day was stored as 0, so every `entry.count` reader (`getEntryValue`, `HabitHeatmap`, `HabitTracker`, the weekly-review habit chips) read `undefined`.
 
-So `entry.count` readers (`getEntryValue`, `HabitHeatmap`, `HabitTracker`, `WeeklyReview` habit chips) read `undefined`. Fixing it needs a schema migration (§4.3 for the rebuild-free path: two ALTERs), route field plumbing, and a verify script — tracked as an open item in `DECISION_LOG.md`, not fixed here.
+**Fixed by `t_74db36be`** (branch `fix/habit-count-tracking-persistence`):
+
+- `server/db.js:290-301` — two add-only guarded migrations: `habits.trackType TEXT NOT NULL DEFAULT 'duration'` and `habit_entries.count INTEGER NOT NULL DEFAULT 0`. No CHECK constraint and no table rebuild (§4.1); existing rows keep the defaults.
+- `server/routes/habits.js:6-12, 45-51, 70-77` — `POST`/`PUT` persist `trackType`; a value outside `duration|count` falls back to `'duration'`, and a `PUT` that omits it keeps the stored value.
+- `server/routes/habitEntries.js:8-12, 39-47, 60-66` — `POST`/`PUT` persist `count` (whole, non-negative; anything else stores 0) while `timeSpentSeconds` behaves exactly as before. `GET` responses carry both fields, so no response shape change beyond the columns.
+- **No client change was needed** — the UI already sent and read both fields; the `UNIQUE(habitId, date)` 409 contract is unchanged.
+
+Verification: a legacy-shaped **copy** of the live DB (the pre-migration backup) was booted with the new code — the two columns appeared, `habit_entries` stayed at 394 rows / `habits` at 6, and a 19-check API script passed (POST→GET→PUT round-trips for both fields, the duration path, an invalid `trackType`, and the duplicate-day 409). The live DB then received the same two `ALTER`s (§5) and the running old-code API stayed healthy (`GET /api/habits` → 200 with `trackType`).
 
 ## 7. How to update this document
 
