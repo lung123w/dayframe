@@ -119,6 +119,18 @@ describe('App shell (stage 2 of ui-modernization-calm-canvas)', () => {
     expect(screen.getByRole('button', { name: /navigate to week view/i })).not.toHaveAttribute('aria-current');
   });
 
+  it('mounts exactly one capture input on the cold open (Today owns the row)', async () => {
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/remaining/)).toBeInTheDocument();
+    });
+
+    // The shell line is not rendered on Today — the row inside the task list is
+    // the only capture affordance (ADR-015 / fix-today-inline-capture-row).
+    expect(screen.getAllByLabelText(/quick capture task/i)).toHaveLength(1);
+  });
+
   it('keeps the capture line on a non-Today view', async () => {
     render(<App />);
 

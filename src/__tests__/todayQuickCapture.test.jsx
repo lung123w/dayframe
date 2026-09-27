@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 
 // Mock the api module
 vi.mock('../api', () => ({
@@ -34,6 +34,25 @@ const STORAGE_KEY = 'dayframe.captureDefaults';
 function localToday() {
   const d = new Date();
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+}
+
+/** `days` away from today on the local calendar, as `YYYY-MM-DD`. */
+function localDayOffset(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+}
+
+/**
+ * Move focus the way a browser does, inside `act` so React flushes the state
+ * update the focus handler schedules before the next assertion reads the DOM.
+ * jsdom fires the whole focus sequence (`blur` → `focusout` → `focus` →
+ * `focusin`), so this drives the same handlers a real browser does.
+ */
+function focusElement(element) {
+  act(() => {
+    element.focus();
+  });
 }
 
 const projects = [{ id: 7, name: 'Renovation' }];
@@ -94,17 +113,37 @@ describe('CaptureLine — the shell capture contract', () => {
     expect(input).toHaveFocus();
   });
 
-  it('is reachable from the shell and creates against the same defaults on any view', () => {
-    // The line is a shell element: rendering it directly is what every view does.
+  it('is reachable wherever it is mounted and keeps the same capture defaults', () => {
+    // Both variants render this component: the shell line on the five views other
+    // than Today, and the row inside `TodayView` (ADR-015). Rendering it directly
+    // is what both call sites do.
     const { input } = renderCapture();
     expect(input).toBeInTheDocument();
   });
 
-  it('does not leave a second capture line inside TodayView', () => {
+  it('does not render its controls while nothing has focus in the row', () => {
+    render(
+      <CaptureLine variant="row" projects={projects} onCaptured={vi.fn()} />
+    );
+
+    expect(screen.getByLabelText(/quick capture task/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/capture project/i)).toBeNull();
+    expect(screen.queryByLabelText(/capture priority/i)).toBeNull();
+  });
+});
+
+describe('TodayView — the capture row is the list\'s first row (ADR-015)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    taskService.create.mockResolvedValue({ id: 99, title: 'Test task' });
+  });
+
+  function renderTodayView(tasks = []) {
     render(
       <TodayView
-        tasks={[]}
-        projects={[]}
+        tasks={tasks}
+        projects={projects}
         todayOrder={[]}
         onTodayOrderChange={vi.fn()}
         onTaskClick={vi.fn()}
@@ -113,7 +152,102 @@ describe('CaptureLine — the shell capture contract', () => {
         onDataChange={vi.fn()}
       />
     );
-    expect(screen.queryByLabelText(/quick capture task/i)).toBeNull();
+    return document.querySelector('.today-tasks-panel');
+  }
+
+  it('is the first child of the Today list and precedes the OVERDUE header', () => {
+    // An overdue task is seeded so the OVERDUE header is actually in the tree —
+    // without it the ordering assertion would be vacuous.
+    const panel = renderTodayView([
+      { id: 11, title: 'Overdue invoice', status: 'pending', dueDate: localDayOffset(-3) },
+    ]);
+    expect(panel).not.toBeNull();
+
+    const row = screen.getByLabelText(/quick capture task/i).closest('.capture-line--row');
+    expect(row).not.toBeNull();
+
+    // Order, not mere presence.
+    expect(panel.firstElementChild).toBe(row);
+
+    const overdueHeader = screen.getByText(/Overdue \(1\)/);
+    expect(panel.contains(overdueHeader)).toBe(true);
+    expect(
+      row.compareDocumentPosition(overdueHeader) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+
+    // Not a keyboard-layer row and not a task row, so the first `j` still lands
+    // on the first task below it (design.md D4).
+    expect(row.getAttribute('data-kbd-row')).toBeNull();
+    expect(row.classList.contains('tv-task')).toBe(false);
+    expect(panel.querySelectorAll('.tv-task')).toHaveLength(1);
+  });
+
+  it('reveals the project and priority controls on focus and collapses when focus leaves', () => {
+    renderTodayView();
+    const input = screen.getByLabelText(/quick capture task/i);
+
+    // Collapsed: not rendered at all, so there is no hidden tab stop (D3).
+    expect(screen.queryByLabelText(/capture project/i)).toBeNull();
+    expect(screen.queryByLabelText(/capture priority/i)).toBeNull();
+
+    // Focus enters the row → both controls are present.
+    focusElement(input);
+    const project = screen.getByLabelText(/capture project/i);
+    expect(screen.getByLabelText(/capture priority/i)).toBeInTheDocument();
+
+    // Focus moving *within* the row keeps it expanded (input → Project → Priority).
+    focusElement(project);
+    expect(screen.getByLabelText(/capture project/i)).toBeInTheDocument();
+
+    focusElement(screen.getByLabelText(/capture priority/i));
+    expect(screen.getByLabelText(/capture priority/i)).toBeInTheDocument();
+
+    // Focus leaving the row for an outside target collapses it again.
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    focusElement(outside);
+
+    expect(screen.queryByLabelText(/capture project/i)).toBeNull();
+    expect(screen.queryByLabelText(/capture priority/i)).toBeNull();
+    outside.remove();
+  });
+
+  it('captures from the row with the stored defaults and stays expanded', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ projectId: 7, priority: 'high' }));
+    renderTodayView();
+    const input = screen.getByLabelText(/quick capture task/i);
+
+    focusElement(input);
+    fireEvent.change(input, { target: { value: 'Buy paint' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(taskService.create).toHaveBeenCalledWith({
+        title: 'Buy paint',
+        dueDate: localToday(),
+        status: 'pending',
+        projectId: 7,
+        priority: 'high',
+      });
+    });
+    await waitFor(() => expect(input.value).toBe(''));
+
+    // The controls stay revealed while the user keeps capturing (they are only
+    // revealed by focus, and nothing blurred the row).
+    expect(input).toHaveFocus();
+    expect(screen.getByLabelText(/capture project/i)).toBeInTheDocument();
+
+    // An empty Enter creates nothing and does not collapse the row.
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(taskService.create).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText(/capture priority/i)).toBeInTheDocument();
+
+    // Escape clears the text and leaves the row expanded (design.md D9).
+    fireEvent.change(input, { target: { value: 'draft' } });
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input.value).toBe('');
+    expect(screen.getByLabelText(/capture project/i)).toBeInTheDocument();
   });
 });
 
