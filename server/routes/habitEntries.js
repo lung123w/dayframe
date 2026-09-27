@@ -3,6 +3,13 @@ import db from '../db.js';
 
 const router = Router();
 
+// Rep counts are whole, non-negative numbers; anything else is stored as 0 so a
+// duration habit (which never sends `count`) keeps writing 0 (ADR-011).
+function normalizeCount(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0;
+}
+
 function parseEntry(row) {
   if (!row) return null;
   return { ...row };
@@ -29,15 +36,15 @@ router.get('/by-habit/:habitId', (req, res) => {
 
 // POST /api/habit-entries
 router.post('/', (req, res) => {
-  const { habitId, date, timeSpentSeconds } = req.body;
+  const { habitId, date, timeSpentSeconds, count } = req.body;
   if (!habitId || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return res.status(400).json({ error: 'habitId and a valid date (YYYY-MM-DD) are required' });
   }
   const now = new Date().toISOString();
   try {
     const result = db.prepare(
-      'INSERT INTO habit_entries (habitId, date, timeSpentSeconds, createdAt) VALUES (?, ?, ?, ?)'
-    ).run(habitId, date, timeSpentSeconds || 0, now);
+      'INSERT INTO habit_entries (habitId, date, timeSpentSeconds, count, createdAt) VALUES (?, ?, ?, ?, ?)'
+    ).run(habitId, date, timeSpentSeconds || 0, normalizeCount(count), now);
     const newEntry = db.prepare('SELECT * FROM habit_entries WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(parseEntry(newEntry));
   } catch (err) {
@@ -53,9 +60,10 @@ router.put('/:id', (req, res) => {
   const existing = db.prepare('SELECT * FROM habit_entries WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Entry not found' });
 
-  const { timeSpentSeconds } = req.body;
-  db.prepare('UPDATE habit_entries SET timeSpentSeconds=? WHERE id=?').run(
+  const { timeSpentSeconds, count } = req.body;
+  db.prepare('UPDATE habit_entries SET timeSpentSeconds=?, count=? WHERE id=?').run(
     timeSpentSeconds ?? existing.timeSpentSeconds,
+    count === undefined || count === null ? existing.count : normalizeCount(count),
     req.params.id
   );
   const updated = db.prepare('SELECT * FROM habit_entries WHERE id = ?').get(req.params.id);
