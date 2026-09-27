@@ -40,7 +40,7 @@ The capture line SHALL be always visible on every view; on the Today view it SHA
 
 #### Scenario: Newly captured task appears in Today view immediately
 - **WHEN** a task is created via quick capture
-- **THEN** it SHALL appear in the Today task list without a page reload, directly below the capture row
+- **THEN** it SHALL appear in the Today task list without a page reload
 
 #### Scenario: The capture line is present on every view
 - **WHEN** the user is on any of the six views
