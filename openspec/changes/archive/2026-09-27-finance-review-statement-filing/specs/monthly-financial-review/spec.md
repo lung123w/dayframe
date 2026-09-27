@@ -27,7 +27,7 @@ The Finance view SHALL render a statement-filing step as the review's last actio
 
 #### Scenario: The result summary distinguishes filed from locked
 - **WHEN** a run completes with some files filed and others still held in the box by a OneDrive lock
-- **THEN** the summary SHALL report the filed and cleaned counts, and SHALL describe each locked file as filed with its box copy still pending removal by the scheduled cleaner, never as a failure
+- **THEN** the summary SHALL report the filed and cleaned counts, and SHALL describe each locked file as filed with its box copy still locked by OneDrive and the step's instruction to run it again in a minute, never as a failure
 
 #### Scenario: The last run is visible after a reload
 - **WHEN** the user reloads the Finance view after a run
