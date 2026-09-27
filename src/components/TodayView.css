@@ -387,8 +387,10 @@
   align-items: center;
 }
 
-/* Quick capture moved to the shell's CaptureLine (stage 2 of
-   ui-modernization-calm-canvas) — the `.tv-quick-capture*` rules went with it. */
+/* The capture line is not styled here. Today renders `CaptureLine variant="row"`
+   (ADR-015) as the first row of `.today-tasks-panel` and its `.capture-line--row`
+   rules live in `CaptureLine.css`; the old `.tv-quick-capture*` block went with
+   it in stage 2 of ui-modernization-calm-canvas. */
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
