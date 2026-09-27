@@ -1,7 +1,8 @@
-# statement-filing Specification (Delta)
+# statement-filing Specification
 
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change finance-review-statement-filing. Update Purpose after archive.
+## Requirements
 ### Requirement: Statement filing is a fixed, allow-listed job with no client-supplied input
 The statement-filing job SHALL be fixed server-side code reachable only through `GET /api/statement-filing/preview` and `POST /api/statement-filing/run`, both of which SHALL accept no input from the client: a run body carrying any key SHALL be rejected with HTTP 400, a preview carrying any query parameter SHALL be rejected with HTTP 400, and the Box root and the two destination roots SHALL come from server-side configuration, never from request data. No client value SHALL ever reach a subprocess argument or a filesystem path.
 
@@ -81,7 +82,7 @@ The job SHALL compute the source hash before acting and the destination hash aft
 - **THEN** the copied destination file SHALL be removed, the Box source SHALL be kept, and the file SHALL be reported with reason `copy_mismatch`
 
 ### Requirement: A OneDrive lock is rescheduled, never reported as a failure
-When the source cannot be removed because the file is held by OneDrive or the operating system, the job SHALL retry a bounded number of times and then report the entry as pending removal with the lock as the reason, SHALL keep the verified destination copy, and SHALL NOT describe the copy as failed. The summary SHALL state that the scheduled cleaner finishes the removal.
+When the source cannot be removed because the file is held by OneDrive or the operating system, the job SHALL retry a bounded number of times and then report the entry as pending removal with the lock as the reason, SHALL keep the verified destination copy, and SHALL NOT describe the copy as failed. The summary SHALL state that the Box copy is still locked and that pressing the run action again finishes the removal. No removal, retry or cleanup SHALL be scheduled outside the run the user triggered.
 
 #### Scenario: Locked Box copy is reported as pending, not failed
 - **WHEN** a copied file cannot be removed from the Box because it is locked
@@ -157,3 +158,4 @@ The job SHALL read and write only the configured Box and destination roots, and 
 #### Scenario: No external call is made
 - **WHEN** a preview or a run executes
 - **THEN** no HTTP, DNS or cloud-storage call SHALL be made by the job
+
