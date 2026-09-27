@@ -1,10 +1,15 @@
-/* ── Daily Timeline ── */
+/* ── Daily Timeline ──
+   Repainted onto the token layer by the sweep (card `t_e904b822`, spec
+   `ui-presentation-system`): the panel is `--surface` with the one composite
+   `--border`, the hour rules are `--hairline`, the "now" marker is `--error`,
+   and every size that sat at 9-11px moved up to `--font-meta` (12px) so the
+   type floor holds — 11px is reserved for the caps-label role. */
 .tl-container {
   width: 220px;
   flex-shrink: 0;
-  background: white;
-  border: 1.5px solid #E2E8F0;
-  border-radius: 10px;
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
   position: sticky;
   top: 84px;
   max-height: calc(100vh - 100px);
@@ -16,17 +21,17 @@
 .tl-header {
   padding: 12px 14px 8px;
   display: flex; align-items: center; gap: 8px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: var(--border);
 }
-.tl-header-icon { color: #3B82F6; font-size: 14px; }
-.tl-header-title { font-size: 13px; font-weight: 700; color: #1E293B; }
+.tl-header-icon { color: var(--accent); font-size: var(--font-row); }
+.tl-header-title { font-size: var(--font-row); font-weight: 700; color: var(--text-body); }
 
 /* Untimed tasks */
-.tl-untimed { padding: 8px 12px; border-bottom: 1px solid #F1F5F9; }
-.tl-untimed-label { font-size: 10px; color: #94A3B8; font-weight: 600; display: block; margin-bottom: 4px; }
+.tl-untimed { padding: 8px 12px; border-bottom: var(--border); }
+.tl-untimed-label { font-size: var(--font-meta); color: var(--text-subtle); font-weight: 600; display: block; margin-bottom: 4px; }
 .tl-untimed-task { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
-.tl-untimed-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.tl-untimed-name { font-size: 11px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-untimed-dot { width: 6px; height: 6px; border-radius: var(--radius-pill); flex-shrink: 0; }
+.tl-untimed-name { font-size: var(--font-meta); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Grid */
 .tl-grid {
@@ -42,24 +47,24 @@
   display: flex; align-items: center; height: 0;
 }
 .tl-hour-label {
-  font-size: 9px; color: #94A3B8; font-weight: 600;
+  font-size: var(--font-meta); color: var(--text-subtle); font-weight: 600;
   width: 28px; text-align: right; padding-right: 4px; flex-shrink: 0;
 }
-.tl-hour-line { flex: 1; height: 1px; background: #F1F5F9; }
+.tl-hour-line { flex: 1; height: 1px; background: var(--hairline); }
 
 /* Task blocks */
 .tl-block {
   position: absolute; left: 34px; right: 8px;
-  border-left: 3px solid; border-radius: 4px;
+  border-left: 3px solid; border-radius: var(--radius-control);
   padding: 4px 8px; overflow: hidden;
   display: flex; flex-direction: column; justify-content: center;
   min-height: 18px;
 }
 .tl-block-title {
-  font-size: 11px; font-weight: 600; color: #1E293B;
+  font-size: var(--font-meta); font-weight: 600; color: var(--text-body);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.tl-block-time { font-size: 9px; color: #64748B; }
+.tl-block-time { font-size: var(--font-meta); color: var(--text-muted); }
 
 /* Current time indicator */
 .tl-now-line {
@@ -74,18 +79,18 @@
 .tl-now-dot {
   width: 8px;
   height: 8px;
-  background: #EF4444;
-  border-radius: 50%;
+  background: var(--error);
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
   margin-left: 24px;
 }
 .tl-now-rule {
   flex: 1;
   height: 2px;
-  background: #EF4444;
+  background: var(--error);
 }
 
 .tl-block-duration {
-  font-size: 9px;
-  color: #64748B;
+  font-size: var(--font-meta);
+  color: var(--text-muted);
 }

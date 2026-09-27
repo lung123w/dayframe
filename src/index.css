@@ -28,13 +28,16 @@
   box-sizing: border-box;
 }
 
+/* The link pair is the accent pair: the app's only link role is interactive
+   text, and the Calm Canvas palette reserves one accent for it (ADR-013). The
+   former blue pair (Tailwind blue-600/700) was a second, unreferenced blue. */
 a {
   font-weight: 500;
-  color: #2563EB;
+  color: var(--accent);
   text-decoration: none;
 }
 a:hover {
-  color: #1D4ED8;
+  color: var(--accent-hover);
 }
 
 body {
@@ -52,13 +55,16 @@ button {
   font-family: var(--font-stack);
 }
 
+/* The scrollbar pair reads `--text-subtle`: the palette has no control grey,
+   and a fill-only tone may not clear 4.5:1 (D4), which is why the mid tone
+   carries it. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #CBD5E1 transparent;
+  scrollbar-color: var(--text-subtle) transparent;
 }
 *::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+*::-webkit-scrollbar-thumb { background: var(--text-subtle); border-radius: var(--radius-pill); }
 
 /* The one focus recipe (D2/D6). The app had 0 `:focus-visible` rules and 27
    sites that suppressed the outline; a component that still suppresses it is

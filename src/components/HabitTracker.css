@@ -45,7 +45,7 @@
 .habit-color-dot {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
 
@@ -222,21 +222,24 @@
 }
 
 /* Undo delete toast — unchanged (card §3.6: the habit-delete undo stays where
-   it is; the Today row undo is the shared `UndoToast` component). */
+   it is; the Today row undo is the shared `UndoToast` component). The sweep
+   (card `t_e904b822`) moved its last literals onto the layer: a dark toast is
+   `--text-body` as the ground with `--surface` as its ink — the pairing the
+   heat-map tooltip uses — and its shadow is the system's one overlay shadow. */
 .undo-toast {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: #1E293B;
-  color: white;
+  background: var(--text-body);
+  color: var(--surface);
   padding: 12px 20px;
-  border-radius: 10px;
+  border-radius: var(--radius-surface);
   display: flex;
   align-items: center;
   gap: 16px;
-  font-size: 14px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  font-size: var(--font-row);
+  box-shadow: var(--shadow-overlay);
   z-index: 2000;
   animation: toast-slide-up 200ms ease-out;
 }
@@ -254,8 +257,8 @@
 
 .undo-toast-btn {
   background: transparent;
-  color: #60A5FA;
-  border: 1px solid #60A5FA;
+  color: var(--surface);
+  border: 1px solid var(--surface);
   cursor: pointer;
   font-weight: 600;
 }
