@@ -1,9 +1,11 @@
 /* =============================================================================
-   CaptureLine — the shell's one capture line (ADR-012 stage 2, D9).
+   CaptureLine — the one capture line, in two variants (ADR-012 stage 2, D9;
+   ADR-015 for the Today row).
 
-   Moved out of `TodayView.css` (`.tv-quick-capture*`) and repainted onto the
-   token layer: the dashed slate box is gone, the values come from
-   `src/styles/tokens.css`.
+   `.capture-line` is the shell chrome strip the five views other than Today
+   render; `.capture-line--row` is Today's instance, the first row of the task
+   list. Both are painted from `src/styles/tokens.css` — the values here are
+   names only (no literal colour, size or radius), as the token sweep left them.
    ========================================================================== */
 
 .capture-line {
@@ -74,4 +76,25 @@
     padding: var(--space-3);
     gap: var(--space-2);
   }
+}
+
+/* ── The row variant — Today's capture row (ADR-015) ─────────────────────────
+   Today renders the same component as the first row of `.today-tasks-panel`, so
+   it repeats the *task row's* metrics (`.tv-task`, TodayView.css) rather than
+   the chrome strip's: the list's 8px/16px gutter, a hairline bottom border and a
+   transparent ground. Nothing else changes — the input keeps its own box.
+
+   Declared after the shell strip's `@media (max-width: 768px)` block on purpose:
+   the row keeps the list's 16px gutter at every width, exactly as `.tv-task`
+   does, and equal specificity means the later rule wins.
+
+   The row's height is the same collapsed and expanded at ≥768px (design.md D5),
+   with no magic constant: the collapsed row is as tall as the input's own box
+   (8px padding + 14px type at the inherited 1.5 leading + 1px border ≈ 39px) and
+   the revealed cluster — an 11px caps label beside a 12px select with 4px/8px
+   padding ≈ 28px — is shorter, so `align-items: center` pins the row's height. */
+.capture-line--row {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border-bottom: var(--border);
 }
