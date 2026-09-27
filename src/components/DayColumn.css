@@ -86,6 +86,7 @@
    its own drag-target div, so `:last-child` would strip the hairline from every
    row. The hairline is the row separator — it stays. */
 .dc-task:hover,
+.dc-task:focus,
 .dc-task:focus-within {
   background: var(--surface-2);
 }

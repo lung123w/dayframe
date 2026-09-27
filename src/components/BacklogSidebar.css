@@ -89,6 +89,7 @@
 }
 .backlog-task:last-child { border-bottom: none; }
 .backlog-task:hover,
+.backlog-task:focus,
 .backlog-task:focus-within { background: var(--surface-2); }
 .backlog-task:active { cursor: grabbing; }
 

@@ -150,6 +150,7 @@ export default function DailyPlanner({
           onTaskClick={onTaskClick}
           onAssignDate={onAssignDate}
           onDeleteTask={onDeleteTask}
+          onStatusUpdate={onStatusUpdate}
         />
       </div>
 
@@ -190,6 +191,7 @@ export default function DailyPlanner({
             onDeleteTask={onDeleteTask}
             onSubtaskToggle={onSubtaskToggle}
             onEstimateChange={handleEstimateChange}
+            onAssignDate={onAssignDate}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onDayClick={handleSelectDay}

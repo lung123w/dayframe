@@ -1,0 +1,152 @@
+/* -- Command palette (stage 5 of `ui-modernization-calm-canvas`, ADR-012) --
+   The droppable slice: deleting `CommandPalette.jsx`, its mount in `App.jsx`
+   and the `Ctrl/⌘ + K` entry in `useKeyboardLayer.js` removes this file's only
+   consumer. Every value comes from `src/styles/tokens.css`. */
+
+.command-palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.32);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--space-7) var(--space-5) var(--space-5);
+  z-index: 1000;
+}
+
+.command-palette {
+  z-index: 1001;
+  width: min(560px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--shadow-overlay);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-family: var(--font-stack);
+  color: var(--text-body);
+}
+
+.command-palette-title {
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin: 0;
+}
+
+.command-palette-input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: var(--font-body);
+}
+
+.command-palette-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.command-palette-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  font-size: var(--font-row);
+  border-bottom: var(--border);
+}
+
+.command-palette-item:last-child {
+  border-bottom: none;
+}
+
+.command-palette-item--active {
+  background: var(--surface-2);
+  color: var(--text-heading);
+}
+
+.command-palette-item-label {
+  flex: 1;
+}
+
+.command-palette-current {
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.command-palette-item-key {
+  font-family: inherit;
+  font-size: var(--font-meta);
+  color: var(--text-subtle);
+  background: var(--surface-2);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  padding: 0 var(--space-1);
+}
+
+.command-palette-empty {
+  padding: var(--space-3);
+  color: var(--text-subtle);
+  font-size: var(--font-meta);
+}
+
+/* -- Footer: the key map, so the layer is discoverable in the app itself -- */
+.command-palette-footer {
+  border-top: var(--border);
+  padding-top: var(--space-3);
+}
+
+.command-palette-footer-title {
+  display: block;
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: var(--space-2);
+}
+
+.command-palette-shortcuts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-1) var(--space-4);
+}
+
+.command-palette-shortcut {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-meta);
+  color: var(--text-subtle);
+}
+
+.command-palette-shortcut kbd {
+  font-family: inherit;
+  font-size: var(--font-label);
+  color: var(--text-body);
+  background: var(--surface-2);
+  border: var(--border);
+  border-radius: var(--radius-control);
+  padding: 0 var(--space-1);
+  white-space: nowrap;
+}

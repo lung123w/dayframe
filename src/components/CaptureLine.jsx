@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { taskService } from '../api';
 import { CAPTURE_DEFAULTS_EVENT, DEFAULT_PRIORITY, PRIORITIES, readCaptureDefaults, writeCaptureDefaults } from './captureDefaults';
+import { isTypingContext, isOverlayOpen } from './keyboard';
 import './CaptureLine.css';
 
 /**
@@ -14,20 +15,15 @@ import './CaptureLine.css';
  * date computed at run time, `status: 'pending'`, the input clears, Escape
  * clears, an empty input is ignored, and the new task appears without a reload.
  * New in this stage: the `/` focus key and the D9 capture defaults.
+ *
+ * The `/` key is the one entry of the stage-5 key map that stays here rather
+ * than in `useKeyboardLayer` (it needs this component's input ref); it reads
+ * the layer's shared `isTypingContext` / `isOverlayOpen` rules from
+ * `keyboard.js` so the guard cannot drift from the rest of the map.
  */
 
 function toLocalDateStr(date) {
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
-}
-
-/** True when the element is a text field, the rich-text editor or an open dialog. */
-function isTypingContext(el) {
-  if (!el || typeof el.tagName !== 'string') return false;
-  const tag = el.tagName.toLowerCase();
-  if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
-  if (el.isContentEditable) return true;
-  if (typeof el.closest !== 'function') return false;
-  return Boolean(el.closest('[contenteditable="true"], [contenteditable=""], .ProseMirror, [role="dialog"], [aria-modal="true"]'));
 }
 
 export default function CaptureLine({ projects = [], onCaptured }) {
@@ -50,7 +46,7 @@ export default function CaptureLine({ projects = [], onCaptured }) {
       if (event.key !== '/' || event.defaultPrevented) return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (isTypingContext(document.activeElement)) return;
-      if (document.querySelector('.modal-overlay, [role="dialog"], [aria-modal="true"]')) return;
+      if (isOverlayOpen()) return;
       event.preventDefault();
       if (inputRef.current) inputRef.current.focus();
     };
