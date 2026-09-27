@@ -1,3 +1,10 @@
+/* NOT RENDERED — the Today view deliberately does not mount this panel (owner
+   request 2026-09-27, ADR-017) and the freed 300px went to the task list. This
+   component is **retained, not dead**: re-rendering
+   `<DailyTimeline dateStr={…} tasks={…} projects={…} />` from `TodayView.jsx` —
+   optionally behind a toggle in `TopStrip.jsx` — is the intended way back. Do
+   not delete it in a dead-code sweep; `src/__tests__/TodayView.noTimeline.test.jsx`
+   (T3) asserts both files still exist. */
 import React, { useMemo } from 'react';
 import { FaClock } from 'react-icons/fa';
 import { generateRecurringTasks } from '../utils/recurrence';

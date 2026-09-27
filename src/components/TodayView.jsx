@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FaCalendarDay, FaPlus, FaCircle, FaCheckCircle, FaExclamationCircle, FaArrowUp, FaArrowDown, FaPen } from 'react-icons/fa';
 import CaptureLine from './CaptureLine';
-import DailyTimeline from './DailyTimeline';
 import PlannerHabitsPanel from './PlannerHabitsPanel';
 import DeferPopover from './DeferPopover';
 import TooltipButton from './TooltipButton';
@@ -386,14 +385,6 @@ export default function TodayView({ tasks, projects, todayOrder, onTodayOrderCha
               {completedToday.map(t => renderTaskRow(t))}
             </div>
           )}
-        </div>
-
-        <div className="today-timeline-panel">
-          <DailyTimeline
-            dateStr={today}
-            tasks={tasks}
-            projects={projects}
-          />
         </div>
       </div>
 

@@ -20,7 +20,6 @@ vi.mock('../api', () => ({
 }));
 
 // Mock child components that need complex setup
-vi.mock('../components/DailyTimeline', () => ({ default: () => <div data-testid="daily-timeline" /> }));
 vi.mock('../components/PlannerHabitsPanel', () => ({ default: () => <div data-testid="habits-panel" /> }));
 vi.mock('../components/DailyWorkflow', () => ({ default: () => <div data-testid="daily-workflow" /> }));
 
