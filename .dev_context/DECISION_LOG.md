@@ -1,8 +1,8 @@
 # DayFrame — Decision Log (ADRs · conventions · policies)
 
-Owner: `df-lead` · Last updated: 2026-09-26 (v1.5 — **the token layer is complete** (card `t_e904b822`, branch `refactor/ui-token-sweep`): the eight stylesheets no stage repainted now carry 0 literal 6-digit hexes, 0 literal `font-size` and 0 literal `border-radius` values (114 converted onto frozen names), two `-soft` state grounds were added to `src/styles/tokens.css`, and the D6 open item is struck; v1.4 — **the UI modernization shipped and was archived**: `ui-modernization-calm-canvas` closed out on card `t_55c01442` (six stages, each with a `df-tester` verification card as its acceptance gate; 30 files / 383 tests / 0 failed), its deltas merged into `openspec/specs/` and the change moved to `openspec/changes/archive/2026-09-26-ui-modernization-calm-canvas/`; §D updated, **no new ADR** - the stages took no decision outside ADR-013 and the change's own `design.md` (D1-D14); v1.3 — UI direction ADR renumbered **ADR-013** to resolve a number collision with ADR-012; v1.2 — ADR-012 added (`habits.frequency` normalization at the API boundary) + §D open item, and ADR-013 added (UI direction + design tokens + design stack, selected by `df-tester` on kanban `t_7783a00e`); v1.1 — ADR-005…008 re-verified against the code at `master` `526f3b3`, ADR-010…011, CONV-005, POL-006)
+Owner: `df-lead`
 
-Append-only. Newest decisions at the bottom of each section. Every entry names the evidence (commit, file) — not intentions.
+Append-only. Newest decisions at the bottom of each section. Every entry names the evidence (commit, file) — not intentions. **The `Owner:` header line is static** — no branch edits it, and no version or date is stamped on it (POL-007, ADR-014); this change's provenance is one bullet in the tail `## Changelog`.
 
 ## A. Architecture decisions (ADR)
 
@@ -89,6 +89,18 @@ Two addenda the deck's Concept A block does **not** carry (measured here, so the
 
 *Base note (process).* `.dev_context/` is not yet on `master` — it lands with PR #17 (branch `fix/financial-cards-seed-data`). This entry was therefore written on branch `design/ui-direction` stacked on that branch, so it **appends** to the existing log instead of creating a second `DECISION_LOG.md` on `master` that would collide on merge.
 
+**ADR-014 — The `.dev_context` header line is static; provenance lives in the file's tail changelog.** *(2026-09-27, card `t_a2c9a7db`)*
+
+*Evidence of the problem (measured).* Merging the 2026-09 UI-modernization ladder into `master` had to resolve the **same single line** of `ROUTE_MAP.md` / `DECISION_LOG.md` / `ARCHITECTURE.md` — the header that stamped an owner, a date and a version chain (`Owner: … · Last updated: … (vN — …; vN-1 — …)`) — while every other hunk in those files merged cleanly, **seven times**: `711ba5f` (PR #22), `bb6f62a` (#25), `0f17de6` (#27), `4df6b25` (#28), `d8c6c15` (#29), `acf7f70` (#30), `c572f1e` (`design/ui-direction`). Each branch bumped a version, changed the date and prepended a clause, so any two branches disagree on that line **by construction**. The cost was a worktree plus a hand-built union per PR, and `scripts/resolve_doc_header_conflict.py` (a stopgap kept in the agent home, never in this repo) existed only to automate that union.
+
+*Decision.* The header line carries **the owner and nothing else** — the bare `Owner:` line naming `df-lead`, byte-identical in `ARCHITECTURE.md`, `DATA_MODEL.md`, `ROUTE_MAP.md` and `DECISION_LOG.md`. No date, no version, no clause; a branch may not edit it (POL-007).
+
+*Where provenance goes.* Every file ends in a `## Changelog` section — append-only, newest last, one bullet per change carrying its date and evidence — and the retired versioned history is carried there **verbatim**. An append at the tail can still collide when two branches append at once, but that resolution is trivial and lossless (keep both bullets); the versioned header was neither, because a new clause always rewrote the same line.
+
+*Rejected.* Keeping the versioned header and leaning on the merge resolver treats the symptom: on every merge a script has to guess a truthful union of two prose clauses, and the resolver only exists because the header is rewritten at all.
+
+*Consequences.* No merge resolves this line any more; the `## Changelog` bullet is the only per-branch provenance edit. A branch cut **before** 2026-09-27 still carries a versioned header — resolve such a conflict by taking `master`'s static line and moving the branch's own clause into the changelog (lossless), after which the line stops being editable. Mechanical gate check for `df-tester` (must print `1`): `grep -h '^Owner:' .dev_context/*.md | sort -u | wc -l`.
+
 ## B. Product / UI conventions
 
 **CONV-001 — Empty is not broken.** New periods legitimately start empty (a fresh week has no habit entries). Show an explicit empty state; never render a period that silently belongs to a different week.
@@ -122,6 +134,11 @@ Read `ARCHITECTURE.md` / `DATA_MODEL.md` / `ROUTE_MAP.md` (Rule A) before writin
 The GitHub repo `lung123w/dayframe` is **public** (`api.github.com/repos/lung123w/dayframe` → `"private": false`), while `server/routes/financialCards.js:6-16` hardcodes the SEED_CARDS list with **real account numbers** (Hang Seng, HSBC, Citibank, BEA, BOC) and inserts them on the first `GET /api/financial-cards` against an empty table (`:31`).
 Consequence: new seed/lookup/reference data must not live in tracked source — it goes in a gitignored file under `data/` (the repo already ignores `data/*.db`, `*.export.json`, `*.export.csv`). Do not paste account numbers, tokens or statements into specs, cards, comments or commits. Removing a value from `HEAD` does not un-publish it from history: scrubbing history is destructive git and needs Anderson's explicit call (POL-001).
 
+**POL-007 — Branches do not edit the `.dev_context` header line.** *(2026-09-27, card `t_a2c9a7db` — ADR-014)*
+All four context files open with the same line — `Owner:` plus the owner name, and nothing else — no date, no version, no clause — which is exactly what makes it conflict-free (ADR-014). Rule B is unchanged: a task updates the affected **section** before Done and records its provenance as one bullet appended to the file's tail `## Changelog` (newest last; never edit or delete an existing bullet). A header edit, a version bump or a date stamp is a defect, not an update, and `df-tester` rejects it. Gate check (must print `1`):
+`grep -h '^Owner:' .dev_context/*.md | sort -u | wc -l`
+A branch cut before 2026-09-27 that still carries a versioned header is the one exception: keep `master`'s static line and move the branch's own clause into the changelog — the same union the stopgap `scripts/resolve_doc_header_conflict.py` (agent home) used to build by hand.
+
 ## D. Open items
 
 - **UI/UX modernization — Concept A "Calm Canvas" shipped and archived (ADR-013).** The six-stage chain (dead code → token layer → shell + cold open → Today + habits → week/review/finance → keyboard layer + palette) landed as one branch and PR per stage, each with a `df-tester` verification card as its acceptance gate. The OpenSpec change is archived at `openspec/changes/archive/2026-09-26-ui-modernization-calm-canvas/` and its deltas are the current truth in `openspec/specs/` (new capability `ui-presentation-system`; modified `today-quick-capture`, `today-item-ordering`, `weekly-review-planning`). Close-out (card `t_55c01442`, branch `docs/ui-modernization-archive` from `feat/ui-s5-keyboard` @ `6c120ab`): `openspec validate ui-modernization-calm-canvas --strict` **valid** (14 deltas), archive merged **+9 created / ~5 modified**, `npx vitest run --exclude='**/.worktrees/**'` **30 files / 383 tests / 0 failed**, `npx eslint src` **6**, `vite build` **ok**.
@@ -145,3 +162,17 @@ Consequence: new seed/lookup/reference data must not live in tracked source — 
 - **`input[type=date]` loses its focus ring on one internal sub-field stop** (where `:focus` and `:focus-visible` are both false on the host) - reproduced on a bare injected control *and* at base `fd468c9`, so it is UA-level rather than an app rule; the fix is a `:focus-within` arm for date inputs. **Accepted, cosmetic** (stage-5 verification).
 - **The focused row's ring is clipped to top/bottom bands** by `.today-tasks-panel { overflow: auto }` - visible above and below the row, clipped left and right. **Accepted, cosmetic**; the fix is an inset ring or container padding.
 - **Six base specs in `openspec/specs/` are still delta-shaped** — `daily-planning-session`, `overdue-pull-to-today`, `planner-today-order-sync`, `user-data-git-isolation` and `weekly-goals-key-events-panel` open with `## ADDED Requirements`, and `weekly-key-events` with `## MODIFIED Requirements` + `## REMOVED Requirements`: earlier archives copied a delta file in as the main spec. Their requirements are invisible to `openspec validate` / `list` / `archive`, and **any future archive that targets one of them aborts** (*"Requirement header appears outside the main ## Requirements section"*) - which is exactly what happened twice while archiving `ui-modernization-calm-canvas` (2026-09-26). The three targets of that change were repaired in the closing branch (delta header -> `## Requirements`, plus `# <name> Specification` + a `## Purpose` for `today-item-ordering`, `today-quick-capture`, `weekly-review-planning`); the other six were left alone deliberately. The repair for each is the same: rename the delta header to `## Requirements`, add the title + `## Purpose`, and drop any `## REMOVED` block.
+
+## Changelog
+
+Append-only, newest last. One bullet per change: `- YYYY-MM-DD — what changed — evidence (card / commit / PR)`. Never edit or delete an existing bullet, and never edit the header line: it is static and identical in all four files, so two branches cannot disagree on it (POL-007, ADR-014).
+
+History carried over verbatim from the retired versioned header (its labels are kept as written):
+
+- **v1.1** — ADR-005…008 re-verified against the code at `master` `526f3b3`, ADR-010…011, CONV-005, POL-006
+- **v1.2** — ADR-012 added (`habits.frequency` normalization at the API boundary) + §D open item, and ADR-013 added (UI direction + design tokens + design stack, selected by `df-tester` on kanban `t_7783a00e`)
+- **v1.3** — UI direction ADR renumbered **ADR-013** to resolve a number collision with ADR-012
+- **v1.4** — **the UI modernization shipped and was archived**: `ui-modernization-calm-canvas` closed out on card `t_55c01442` (six stages, each with a `df-tester` verification card as its acceptance gate; 30 files / 383 tests / 0 failed), its deltas merged into `openspec/specs/` and the change moved to `openspec/changes/archive/2026-09-26-ui-modernization-calm-canvas/`; §D updated, **no new ADR** - the stages took no decision outside ADR-013 and the change's own `design.md` (D1-D14)
+- **v1.5** — **the token layer is complete** (card `t_e904b822`, branch `refactor/ui-token-sweep`): the eight stylesheets no stage repainted now carry 0 literal 6-digit hexes, 0 literal `font-size` and 0 literal `border-radius` values (114 converted onto frozen names), two `-soft` state grounds were added to `src/styles/tokens.css`, and the D6 open item is struck
+
+- **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`
