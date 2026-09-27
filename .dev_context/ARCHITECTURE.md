@@ -42,7 +42,6 @@ graph TD
     App --> Kbd["keyboard.js + useKeyboardLayer.js — the frozen key map, one document handler"]
     App --> Dlg["AppDialog.jsx — the one Radix dialog shell (stage 4): AppDialog · ConfirmDialog · PromptDialog, with the focus trap, Escape dismissal and focus return"]
 
-    Today --> Timeline["DailyTimeline.jsx"]
     Today --> PHPanel["PlannerHabitsPanel.jsx — today's habits (collapsed rail) + DailyWorkflow"]
     Today --> Defer["DeferPopover.jsx"]
     Today --> Undo["UndoToast.jsx — one 5-second undo for complete / defer / reorder"]
@@ -91,7 +90,7 @@ graph TD
 
 Notes verified against the import graph:
 
-- `PlannerHabitsPanel`, `DailyTimeline` and `DeferPopover` are children of **TodayView** (`src/components/TodayView.jsx:3-5`) — not of the planner. `TimePopover` / `RepsPopover` are shared by `HabitTracker`, `HabitHeatmap` and `PlannerHabitsPanel`.
+- `PlannerHabitsPanel` and `DeferPopover` are children of **TodayView** (`src/components/TodayView.jsx:4-5`) — not of the planner. `DailyTimeline.jsx` is **retained but not rendered** by any view (ADR-017 — the Today Timeline panel is hidden on purpose; re-rendering it from `TodayView.jsx` is the way back). `TimePopover` / `RepsPopover` are shared by `HabitTracker`, `HabitHeatmap` and `PlannerHabitsPanel`.
 - `DailyPlanner` also owns `BacklogSidebar`, `YearlyGoals` and `WeeklyObjectives` (`src/components/DailyPlanner.jsx:4-8`). `BacklogSidebar` is **not** in ProjectsView.
 - `WeeklyReview.jsx` imports no local component: it renders its own three sections, its own habit chips and its own key-events day grid (`WeeklyReview.jsx:597-844`). `WeeklyObjectives.jsx` (the planner panel) is a *different* key-events UI that also carries the weekly objectives (`WeeklyObjectives.jsx:189, 328-336`).
 - The planner view is also wrapped by an App-level toolbar (New Task / New Project / Total-Done-Pending stats) rendered in `App.jsx:346-375`.
@@ -323,3 +322,5 @@ History carried over verbatim from the retired versioned header (its labels are 
 - **2026-09-27** — header line made static: every file now opens with `Owner:` and the profile name and nothing else; the versioned header is retired and its history moved here verbatim — card `t_a2c9a7db`, branch `docs/dev-context-static-header`
 
 - **2026-09-27** — §2 gains the Finance review's last step: the `Finance --> Filing` / `Filing --> API` mermaid nodes, the `StatementFiling.jsx` note (the statement-filing job, cited as **ADR-015** — the label this file used before close-out was ADR-014, see `DECISION_LOG.md`), and the router / service counts 16 → 17 — change `finance-review-statement-filing`, cards `t_d2e44c21` (engine) and `t_9675ab38` (step), archived and closed out by card `t_8d16d0fc`
+
+- **2026-09-27** — §1's graph loses the `Today --> Timeline` edge and the "children of TodayView" note now names `PlannerHabitsPanel` and `DeferPopover` only and records `DailyTimeline.jsx` as **retained but not rendered** (ADR-017 — the Today Timeline panel is hidden on purpose and the component is kept, re-rendering it from `TodayView.jsx` being the way back) — card `t_77858d71`, branch `feat/hide-today-timeline`

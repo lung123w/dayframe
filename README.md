@@ -1,6 +1,6 @@
 # DayFrame
 
-A personal productivity app with a daily planner, habit tracker, timeline view, and structured daily workflow. Built with React + Vite on the frontend and Node.js + Express + SQLite on the backend. All data is stored locally — no cloud, no accounts.
+A personal productivity app with a daily planner, habit tracker, and structured daily workflow. Built with React + Vite on the frontend and Node.js + Express + SQLite on the backend. All data is stored locally — no cloud, no accounts.
 
 ## Features
 
@@ -10,7 +10,7 @@ A personal productivity app with a daily planner, habit tracker, timeline view, 
 - One-click "Pull all overdue to today" to reschedule everything at once
 - Drag-and-drop reordering; order persists across sessions
 - Defer individual tasks to another date via a date popover
-- **Daily Timeline**: visual 6 am–9 pm hourly grid showing tasks as positioned time blocks by start/end time, with a live current-time indicator
+- Start/end times are kept per task and printed on the task row (`9am – 10:30am`, and the Week view lays the block out); the 6 am–9 pm **Timeline** panel is no longer rendered on this view — the component is retained (`.dev_context/DECISION_LOG.md` ADR-017)
 
 ### Planner (Week View)
 - 7-day column grid for the current week with forward/backward navigation

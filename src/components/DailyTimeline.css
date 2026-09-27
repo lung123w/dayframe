@@ -3,7 +3,8 @@
    `ui-presentation-system`): the panel is `--surface` with the one composite
    `--border`, the hour rules are `--hairline`, the "now" marker is `--error`,
    and every size that sat at 9-11px moved up to `--font-meta` (12px) so the
-   type floor holds — 11px is reserved for the caps-label role. */
+   type floor holds — 11px is reserved for the caps-label role.
+   The panel is retained but not rendered — see the component's header and ADR-017. */
 .tl-container {
   width: 220px;
   flex-shrink: 0;

@@ -110,11 +110,6 @@
   min-width: 0;
 }
 
-.today-timeline-panel {
-  width: 300px;
-  flex-shrink: 0;
-}
-
 /* ── Sections ── */
 .tv-section {
   border-bottom: var(--border);
@@ -222,10 +217,17 @@
 .tv-status-icon--done { color: var(--success); }
 .tv-status-icon--overdue { color: var(--error); }
 
-/* Task content — the title, at body size */
+/* Task content — the title, at body size.
+   `max-width` is the reading measure (design D3, ADR-017): the Timeline column
+   is gone, so `.today-tasks-panel` is ~1074px wide at 1440 (it was 758px) and
+   the row's text would otherwise run to ~172 characters of 12px description.
+   640px gains width over the pre-change column (~420–520px on a plain row,
+   ~330–430px once the longest metadata is present) and still holds the
+   description near 100 characters. */
 .tv-task-content {
   flex: 1;
   min-width: 0;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -269,12 +271,16 @@
 
 .tv-task-description p { margin: 0; }
 
-/* Right-aligned metadata — one muted size: time, project dot, priority */
+/* Right-aligned metadata — one muted size: time, project dot, priority.
+   `margin-left: auto` keeps the metadata and the row actions flush to the
+   panel's right content edge now that the capped content above no longer
+   absorbs the free space (design D3, ADR-017). */
 .tv-task-meta {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   flex-shrink: 0;
+  margin-left: auto;
   font-size: var(--font-meta);
   color: var(--text-muted);
 }
@@ -405,11 +411,6 @@
 
   .today-left-column {
     width: 100%;
-  }
-
-  .today-timeline-panel {
-    width: 100%;
-    height: 350px;
   }
 
   .today-header {
