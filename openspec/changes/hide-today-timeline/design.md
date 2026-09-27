@@ -30,9 +30,11 @@ by its number.
    - `@media (max-width: 768px)` (line 394) sets `.today-content { flex-direction: column }`,
      `.today-left-column { width: 100% }` and `.today-timeline-panel { width: 100%; height: 350px }`
      (line 404).
-3. Column budget at 1440px (arithmetic from 2): the task panel is
-   `1440 − 32 (content padding) − 260 (habits rail) − 32 (two 16px gaps) − 300 (timeline)`
-   = **816px** today; with the wrapper gone and one gap left it becomes **1132px**. At ≤768px
+3. Column budget at 1440px (arithmetic from 2, re-derived and measured to the pixel by the
+   spec audit `t_aa690faa`): the task panel is
+   `1440 − 10 (root scrollbar) − 48 (.app-main padding, 24px per side) − 32 (content padding)
+   − 260 (habits rail) − 32 (two 16px gaps) − 300 (timeline)`
+   = **758px** today; with the wrapper gone and one gap left it becomes **1074px**. At ≤768px
    the vertical column rule already governs, so the "collapses to a single column at narrow
    widths" behaviour is that media block — it stays, minus the timeline's own rule.
 4. The row already prints its time: `TodayView.jsx:247-252` renders `.tv-task-time` from
@@ -76,20 +78,23 @@ worker merges into `master`; the close-out card does that after the tester passe
 `.today-timeline-panel` entirely (the base rule at 109-112 **and** the `@media (max-width:
 768px)` sibling at 404-407). Do **not** add a placeholder, a spacer, a fixed gutter, a
 `calc()` compensation or a new column — `.today-tasks-panel` keeps `flex: 1; min-width: 0` and
-absorbs the 300px (816 → 1132px at 1440). At ≤768px the single-column rule is unchanged.
+absorbs the 300px (758 → 1074px at 1440). At ≤768px the single-column rule is unchanged.
 
 **D3 — Measure cap (this is the "no absurdly long measure" requirement, made measurable).**
 In `TodayView.css`:
 - `.tv-task-content { max-width: 640px }` — one added declaration, next to a comment naming
-  the reason (the panel is ~1132px at 1440 now the timeline column is gone).
+  the reason (the panel is ~1074px at 1440 now the timeline column is gone).
 - `.tv-task-meta { margin-left: auto }` — without it the capped content no longer absorbs the
   free space and the metadata/actions would float left of the row's right edge with an orphan
   gap behind them.
-Numbers: at 1440 the text column measured ≈420–520px before the change (panel 816 − 32px row
-padding − ~20px status button − 2×12px gaps − the row actions ≈110px − the meta block); 640px
+Numbers: at 1440 the text column measured **547–638px** before the change on the live data
+(panel 758 − 32px row padding − ~20px status button − 2×12px gaps − the row actions 20–111px),
+falling to ≈330–430px on a row carrying the longest metadata (time + project + priority); 640px
 therefore **gains** width and still caps the description (12px) near 100 characters instead of
 ~190. Acceptance at 1440px: rendered `.tv-task-content` **> the pre-change width and ≤ 720px**,
-and the row's last element flush to the panel's right content edge (±1px) as it is today.
+and the row's **last child** flush to the panel's right content edge (±1px) as it is today — a
+capped row with no metadata keeps a ~223px gap *before* the actions, which is the cap doing its
+job, not a defect.
 640px is a width, not one of the three banned literals (hex / `font-size` / `border-radius`),
 and the file already carries `260px` / `300px`.
 
@@ -166,7 +171,7 @@ No other test file may need an edit; if one does, stop and comment on the card.
    > retained.** *(2026-09-27, owner request; card `t_77858d71`)*
    > *Decision.* `TodayView.jsx` no longer imports or renders `DailyTimeline`, and
    > `.today-timeline-panel` is out of `TodayView.css`, so the 300px the third column held goes
-   > to `.today-tasks-panel` (816 → 1132px at 1440), with a 640px reading-measure cap on the
+   > to `.today-tasks-panel` (758 → 1074px at 1440), with a 640px reading-measure cap on the
    > row's text column. `DailyTimeline.jsx` / `DailyTimeline.css` stay in the repo with a
    > "not rendered" header comment.
    > *Why.* The panel is display-only — it groups tasks that carry a `startTime` onto a
@@ -222,7 +227,7 @@ At 1440 / 1024 / 768 / 420px, light and forced dark (`document.documentElement.c
 - `.today-timeline-panel` count is 0, `.tl-container` count is 0, no "Timeline" heading, no
   "No time set" text — with a populated list **including tasks that have a `startTime`/**
   `endTime` set.
-- The panel's own width at 1440 (`getBoundingClientRect`): ~1132px after vs ~816px before
+- The panel's own width at 1440 (`getBoundingClientRect`): ~1074px after vs ~758px before
   (measure the pre-change value from `origin/master`'s checkout, or record it from the earlier
   build's evidence).
 - `.tv-task-content` width at 1440: strictly greater than the pre-change value and ≤ 720px;
