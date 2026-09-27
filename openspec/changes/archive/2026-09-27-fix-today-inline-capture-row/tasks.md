@@ -135,3 +135,28 @@ Card ids: the placeholders below (`t_ed6002ca` / `t_6e88d0d9` / `t_d5816ad1` /
 | Making the capture row a `data-kbd-row` | design.md D4 — it would move the first `j` target. |
 | A dark-mode switch | ADR-013: dark is designed for, not built. |
 | Any API, schema, `src/api.js` or `server/` change | Capture's payload and route are unchanged. |
+## Post-archive correction — the "directly below the capture row" clause (2026-09-27, card `t_dbe8b90e`)
+
+The `today-quick-capture` delta on this change **added** the clause ", directly below the capture
+row" to *Scenario: Newly captured task appears in Today view immediately* (line 40 of the delta
+spec). The shipped code does not do that: measured on this branch's own build (headless Chrome,
+1440×900, a `sqlite3 ".backup"` copy of the live DB, with a task seeded so the `OVERDUE` header
+exists) the captured task is the **last row of the Today section** — `.tv-task` 11 of 26 overall,
+y=447 — with the `OVERDUE` section and five Today rows between it and the capture row (round-2
+verification of this change, card `t_d5816ad1`, `EVIDENCE-round2.md` Gap 3). This is pre-existing
+ordering, not a regression: the change touches no ordering code (`git diff 889a69f..5b7a303 --
+src/components/TodayView.jsx src/App.jsx` = the `CaptureLine variant="row"` mount plus the
+shell-line condition only), exactly as design.md §3 says — "ordering behaviour untouched; the
+capture row is outside `todayOrder`".
+
+Corrected **in place, after the archive** (the close-out card `t_30eb4ff5` forbade editing the
+requirement text while archiving; card `t_dbe8b90e`), in two files — this delta and the archived
+capability `openspec/specs/today-quick-capture/spec.md` — back to the base `889a69f` clause:
+
+> - **THEN** it SHALL appear in the Today task list without a page reload
+
+Both are **corrections, not scope changes**. Left as written and superseded rather than edited:
+task 3.3 above ("a captured task landing directly beneath the row"), which described the
+screenshot to take, not a contract. If top-of-Today insertion is actually wanted, it is a
+*behaviour* change — it contradicts design.md §3 as written — and needs its own design decision
+and build card, not a re-worded scenario.
