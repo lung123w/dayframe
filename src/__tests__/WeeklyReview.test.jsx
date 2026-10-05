@@ -54,6 +54,15 @@ function thisWeekStart() {
   return format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
 }
 
+// The review opens on the week containing *yesterday* (see the late-night
+// regression test below), so fixtures for what it displays must be seeded in
+// THAT week, not the week containing today. The two differ only when today is
+// Monday — which is exactly when thisWeekStart() made the key-event fixtures
+// invisible.
+function reviewedWeekStart() {
+  return format(startOfWeek(subDays(new Date(), 1), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+}
+
 describe('WeeklyReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -368,7 +377,7 @@ describe('WeeklyReview', () => {
   // ── Key events bridging ───────────────────────────────────────────────────
 
   it('lists key events for the current week grouped by day', async () => {
-    const weekStart = thisWeekStart();
+    const weekStart = reviewedWeekStart();
     const props = {
       ...defaultProps,
       keyEvents: [
@@ -383,7 +392,7 @@ describe('WeeklyReview', () => {
   });
 
   it('calls onAddKeyEvent when a key event is added from the review', async () => {
-    const weekStart = thisWeekStart();
+    const weekStart = reviewedWeekStart();
     const props = {
       ...defaultProps,
       keyEvents: [{ id: 1, title: 'Dentist', date: weekStart, description: '', category: '' }],

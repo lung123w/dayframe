@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { SHORTCUTS, focusCaptureLine } from './keyboard';
+import { buildShortcuts, focusCaptureLine } from './keyboard';
+import { VIEW_ORDER, VIEW_META, isViewVisible } from './viewVisibility';
 import './CommandPalette.css';
 
 /**
@@ -11,36 +12,44 @@ import './CommandPalette.css';
  *
  * Its whole surface is: one component, one mount in `App.jsx`, and the
  * `Ctrl/⌘ + K` entry in `useKeyboardLayer`. It reads the six frozen
- * `activeView` values and the one action the key map already exposes (focusing
- * the capture line); it adds no router, no view key and no app state beyond the
- * boolean that opens it. Its footer is the in-app discoverability affordance
- * for the key map.
+ * `activeView` values — filtered by the visibility preference, so a hidden view
+ * is never offered (ADR-018) — and the one action the key map already exposes
+ * (focusing the capture line); it adds no router, no view key and no app state
+ * beyond the boolean that opens it. Its footer is the in-app discoverability
+ * affordance for the key map, rebuilt from the visible views.
  *
  * The Radix dialog underneath supplies the focus trap, Escape dismissal and
  * focus return — the same primitive stage 4 adopted in `AppDialog.jsx`.
  */
 
-const VIEW_COMMANDS = [
-  { id: 'today', label: 'Go to Today', hint: 'g t', view: 'today' },
-  { id: 'planner', label: 'Go to Week', hint: 'g w', view: 'planner' },
-  { id: 'habits', label: 'Go to Habits', hint: 'g h', view: 'habits' },
-  { id: 'review', label: 'Go to Review', hint: 'g r', view: 'review' },
-  { id: 'finance', label: 'Go to Finance', hint: 'g f', view: 'finance' },
-  { id: 'projects', label: 'Go to Projects', hint: 'g p', view: 'projects' },
-  { id: 'capture', label: 'Focus the capture line', hint: '/', action: 'capture' },
-];
+/** The view commands, from the catalogue so a hidden view cannot be listed. */
+function viewCommands(visibleViews) {
+  return VIEW_ORDER
+    .filter((view) => isViewVisible(visibleViews, view))
+    .map((view) => ({ id: view, label: VIEW_META[view].command, hint: `g ${VIEW_META[view].goto}`, view }));
+}
+
+/** The one action the map exposes besides navigation — never hideable. */
+const CAPTURE_COMMAND = { id: 'capture', label: 'Focus the capture line', hint: '/', action: 'capture' };
 
 const LIST_ID = 'command-palette-list';
 
-function PaletteBody({ activeView, onRun }) {
+function PaletteBody({ activeView, visibleViews, onRun }) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // The visible views plus the capture action: between 2 and 7 rows (D11) —
+  // `ui.visibleViews` can never be empty (D7), so there is no all-hidden state.
+  const allCommands = useMemo(
+    () => [...viewCommands(visibleViews), CAPTURE_COMMAND],
+    [visibleViews],
+  );
+
   const commands = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return VIEW_COMMANDS;
-    return VIEW_COMMANDS.filter((command) => command.label.toLowerCase().includes(needle));
-  }, [query]);
+    if (!needle) return allCommands;
+    return allCommands.filter((command) => command.label.toLowerCase().includes(needle));
+  }, [allCommands, query]);
 
   const active = commands[Math.min(activeIndex, commands.length - 1)];
   const activeId = active ? `command-palette-option-${active.id}` : undefined;
@@ -108,7 +117,7 @@ function PaletteBody({ activeView, onRun }) {
       <div className="command-palette-footer">
         <span className="command-palette-footer-title">Keyboard</span>
         <ul className="command-palette-shortcuts">
-          {SHORTCUTS.map((shortcut) => (
+          {buildShortcuts(visibleViews).map((shortcut) => (
             <li key={shortcut.keys} className="command-palette-shortcut">
               <kbd>{shortcut.keys}</kbd>
               <span>{shortcut.label}</span>
@@ -120,7 +129,7 @@ function PaletteBody({ activeView, onRun }) {
   );
 }
 
-export default function CommandPalette({ open, onClose, activeView, onNavigate }) {
+export default function CommandPalette({ open, onClose, activeView, onNavigate, visibleViews }) {
   const invokerRef = useRef(null);
   // What the close should focus instead of the invoker, when the chosen command
   // itself moves focus (reading it inside onCloseAutoFocus rather than calling
@@ -175,7 +184,7 @@ export default function CommandPalette({ open, onClose, activeView, onNavigate }
               }
             }}
           >
-            <PaletteBody activeView={activeView} onRun={run} />
+            <PaletteBody activeView={activeView} visibleViews={visibleViews} onRun={run} />
           </Dialog.Content>
         </Dialog.Overlay>
       </Dialog.Portal>

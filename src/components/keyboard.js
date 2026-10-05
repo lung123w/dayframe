@@ -14,6 +14,8 @@
  * no context, no router, no app-level state (`design.md` §6 rule 3).
  */
 
+import { VIEW_ORDER, VIEW_META, ALL_VIEWS, isViewVisible } from './viewVisibility';
+
 /** A focusable list row, and the container that scopes `j`/`k` to one list. */
 export const ROW_SELECTOR = '[data-kbd-row]';
 export const LIST_SELECTOR = '[data-kbd-list]';
@@ -39,32 +41,39 @@ export function isGotoArmed() {
 }
 
 /**
- * `g` then one of these switches view. The six `activeView` values are the
- * frozen ones — this map adds no new key (`design.md` §1).
+ * `g` then one of these switches view. Derived from the catalogue so the key
+ * map and the navigation cannot drift (`view-visibility-configuration` D2/D11);
+ * the six `activeView` values are unchanged — this map adds no new key.
  */
-export const GOTO_VIEWS = {
-  t: 'today',
-  w: 'planner',
-  h: 'habits',
-  r: 'review',
-  f: 'finance',
-  p: 'projects',
-};
+export const GOTO_VIEWS = VIEW_ORDER.reduce((map, view) => {
+  map[VIEW_META[view].goto] = view;
+  return map;
+}, {});
 
 /**
  * The key map as displayed in the command palette's footer — the in-app
  * discoverability affordance `design.md` §6 asks for.
+ *
+ * The one derived row is the `g` chord: its keys and its label name only the
+ * visible views, so a hidden view's shortcut is never advertised (D11). With
+ * everything visible the result is byte-identical to the frozen map.
  */
-export const SHORTCUTS = [
-  { keys: '/', label: 'Focus the capture line' },
-  { keys: 'j / k', label: 'Move the focused row down / up' },
-  { keys: 'x', label: 'Toggle completion of the focused row' },
-  { keys: 't', label: 'Defer the focused row to tomorrow' },
-  { keys: 'u', label: 'Undo the last row action (5 s)' },
-  { keys: 'g → t / w / h / r / f / p', label: 'Today · Week · Habits · Review · Finance · Projects' },
-  { keys: 'Escape', label: 'Close the open overlay' },
-  { keys: 'Ctrl / ⌘ + K', label: 'Open the command palette' },
-];
+export function buildShortcuts(visibleViews) {
+  const views = VIEW_ORDER.filter((view) => isViewVisible(visibleViews, view));
+  return [
+    { keys: '/', label: 'Focus the capture line' },
+    { keys: 'j / k', label: 'Move the focused row down / up' },
+    { keys: 'x', label: 'Toggle completion of the focused row' },
+    { keys: 't', label: 'Defer the focused row to tomorrow' },
+    { keys: 'u', label: 'Undo the last row action (5 s)' },
+    { keys: `g → ${views.map((view) => VIEW_META[view].goto).join(' / ')}`, label: views.map((view) => VIEW_META[view].label).join(' · ') },
+    { keys: 'Escape', label: 'Close the open overlay' },
+    { keys: 'Ctrl / ⌘ + K', label: 'Open the command palette' },
+  ];
+}
+
+/** The fresh-install footer: `buildShortcuts(ALL_VIEWS)` — the frozen map. */
+export const SHORTCUTS = buildShortcuts(ALL_VIEWS);
 
 /**
  * True when the element is a text field, a select, the rich-text editor or the

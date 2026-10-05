@@ -10,8 +10,10 @@ import TopStrip from './components/TopStrip';
 import CaptureLine from './components/CaptureLine';
 import { readCaptureDefaults, writeCaptureDefaults } from './components/captureDefaults';
 import MonthlyReview from './components/MonthlyReview';
+import SettingsView from './components/SettingsView';
 import CommandPalette from './components/CommandPalette';
 import useKeyboardLayer from './components/useKeyboardLayer';
+import { SETTINGS_KEY, ALL_VIEWS, VIEW_ORDER, normalizeVisibleViews, isViewVisible, firstVisibleView } from './components/viewVisibility';
 import { ConfirmDialog } from './components/AppDialog';
 import { taskService, projectService, subtaskService, habitService, habitEntryService, settingsService, keyEventService, financialCardService, monthlyReviewService } from './api';
 import { startNotificationService, requestNotificationPermission } from './utils/notifications';
@@ -45,12 +47,17 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeView, setActiveView] = useState('today');
 
+  // Which views the navigation shows (`view-visibility-configuration` D5/D9;
+  // ADR-018). `null` until the one boot read settles — the shell renders nothing
+  // in that window, so a tab that is about to disappear is never painted.
+  const [visibleViews, setVisibleViews] = useState(null);
+
   // The keyboard layer (stage 5, design.md §6 D10). The only app-level state it
   // needs is the palette's open/closed boolean — the layer adds no view key and
   // no route.
   const [paletteOpen, setPaletteOpen] = useState(false);
   const togglePalette = useCallback(() => setPaletteOpen((open) => !open), []);
-  useKeyboardLayer({ onNavigate: setActiveView, onTogglePalette: togglePalette });
+  useKeyboardLayer({ onNavigate: setActiveView, onTogglePalette: togglePalette, visibleViews });
 
   // In-app dialogs (design.md §3 D7) replacing the native confirm / alert.
   const [pendingTaskDelete, setPendingTaskDelete] = useState(null);
@@ -109,6 +116,29 @@ function App() {
 
     return cleanup;
   }, []);
+
+  // D5 — read the visible-view preference once, before the shell paints. A
+  // failed read behaves exactly like a fresh install (all six visible).
+  useEffect(() => {
+    let cancelled = false;
+    settingsService.get(SETTINGS_KEY)
+      .then((value) => { if (!cancelled) setVisibleViews(normalizeVisibleViews(value)); })
+      .catch(() => { if (!cancelled) setVisibleViews(ALL_VIEWS); });
+    return () => { cancelled = true; };
+  }, []);
+
+  // D9 — the active view, when it is one of the six, is always a visible view.
+  // The `settings` shell value is exempt (`VIEW_ORDER.includes`): it is not a
+  // view id, and without the guard opening Settings would immediately bounce the
+  // user away from the toggles.
+  useEffect(() => {
+    if (visibleViews && VIEW_ORDER.includes(activeView) && !isViewVisible(visibleViews, activeView)) {
+      // The fallback is the invariant, not a cascading render: it fires only when
+      // a stored preference excludes the view the shell is standing on.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveView(firstVisibleView(visibleViews));
+    }
+  }, [visibleViews, activeView]);
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
@@ -351,6 +381,10 @@ function App() {
     }
   };
 
+  // D5 — no paint until the preference is known: a destination that is about to
+  // disappear is never rendered, not even for one frame.
+  if (visibleViews === null) return null;
+
   return (
     <div className="app">
       <div className="app-chrome">
@@ -359,12 +393,13 @@ function App() {
           onNavigate={setActiveView}
           onNotifications={requestNotificationPermission}
           onBackup={handleBackup}
+          visibleViews={visibleViews}
         />
 
         {/* One capture affordance per view: on Today the capture row is the
             first row of the task list (ADR-015), so the shell line serves the
-            other five views only. */}
-        {activeView !== 'today' && <CaptureLine projects={projects} onCaptured={loadData} />}
+            other non-Today views only — never the configuration page. */}
+        {activeView !== 'today' && activeView !== 'settings' && <CaptureLine projects={projects} onCaptured={loadData} />}
       </div>
 
       <main className="app-main">
@@ -466,6 +501,10 @@ function App() {
             onDataChange={loadData}
           />
         )}
+
+        {activeView === 'settings' && (
+          <SettingsView visibleViews={visibleViews} onVisibleViewsChange={setVisibleViews} />
+        )}
       </main>
 
       {showTaskModal && (
@@ -525,6 +564,7 @@ function App() {
         onClose={() => setPaletteOpen(false)}
         activeView={activeView}
         onNavigate={setActiveView}
+        visibleViews={visibleViews}
       />
     </div>
   );
