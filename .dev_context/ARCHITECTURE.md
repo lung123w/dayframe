@@ -29,14 +29,15 @@ Anderson is in Hong Kong (GMT+8). **A "week" starts Monday. Dates are never hard
 graph TD
     App["App.jsx — root: all shared state, activeView, modals"]
 
-    App --> SB["TopStrip.jsx — 52px shell strip: Today · Week · Habits · Review + More (Finance · Projects · Backup · Notifications)"]
-    App --> Cap["CaptureLine.jsx — variant 'shell': the capture line on the five non-Today views"]
+    App --> SB["TopStrip.jsx — 52px shell strip: the visible views (Today · Week · Habits · Review) + More (visible Finance · Projects · Settings · Backup · Notifications)"]
+    App --> Cap["CaptureLine.jsx — variant 'shell': the capture line on the four non-Today, non-Settings views"]
     App --> Today["TodayView.jsx"]
     App --> Planner["DailyPlanner.jsx"]
     App --> Habits["HabitTracker.jsx"]
     App --> Projects["ProjectsView.jsx"]
     App --> Review["WeeklyReview.jsx"]
     App --> Finance["MonthlyReview.jsx"]
+    App --> Settings["SettingsView.jsx — the six view toggles (activeView === 'settings', a shell value)"]
     App --> Modals["App-level modals: TaskModal · ProjectModal — now Dialog-owned (stage 4)"]
     App --> Palette["CommandPalette.jsx — command palette (the droppable slice)"]
     App --> Kbd["keyboard.js + useKeyboardLayer.js — the frozen key map, one document handler"]
@@ -123,7 +124,9 @@ flowchart LR
       A7["monthlyReviews"]
       A8["activeView (default today — the cold open)"]
       A9["modal state: showTaskModal / selectedTask / selectedDate / showProjectModal / editingProject"]
+      A10["visibleViews — settings['ui.visibleViews'] (read once at boot; gates the shell paint)"]
     end
+    A10 --> Shell["TopStrip.jsx / CommandPalette.jsx / useKeyboardLayer.js — the filtered navigation surfaces"]
     A1 --> TodayView
     A1 --> DailyPlanner
     A4 --> TodayView
@@ -134,13 +137,14 @@ flowchart LR
     A7 --> MonthlyReview
 ```
 
-- `App.jsx` owns the cross-view state and reloads everything with one `loadData()` (`App.jsx:47-78`, 7 parallel service calls) after almost every mutation. Views keep their own local state for their period/document.
-- `activeView` defaults to **`today`** — Today is the cold open (`App.jsx:41`, stage 2 of `ui-modernization-calm-canvas`). There is no router and no new app-level view state: `TopStrip` just sets this one string, exactly as the rail did.
-- `CaptureLine` keeps its own input text and its D9 defaults in local state and re-reads `localStorage['dayframe.captureDefaults']` at capture time, so nothing about capture lives in `App.jsx` beyond passing `projects` down and calling `loadData` when a task lands. It has **two mounts** (ADR-016): the shell instance on the five non-Today views and, on Today, the `variant="row"` instance `TodayView` renders as the first child of `.today-tasks-panel` — mutually exclusive, so exactly one input exists at a time. In the row variant the revealed Project/Priority pair is a `.capture-line-cluster` wrapper that is `display: contents` while the row has room for it and becomes a positioned pill under the row when it has not, keyed off `.today-tasks-panel`'s `container-type: inline-size` (the `@container (max-width: 611px)` block in `CaptureLine.css`) — so the row is one line tall at every width ≥768px and the list below never moves (`design.md` D5; the fix card `t_456f1d3b`).
-- `HabitTracker` receives **no props** (`App.jsx:397-399`): it fetches habits and entries itself. `WeeklyReview` and `MonthlyReview` receive only the slice they need.
-- `todayOrder` is an ordered array of task keys stored as a generic settings row (`App.jsx:202-211`, `settingsService`).
+- `App.jsx` owns the cross-view state and reloads everything with one `loadData()` (`App.jsx:70-101`, 7 parallel service calls) after almost every mutation. Views keep their own local state for their period/document.
+- `activeView` defaults to **`today`** — Today is the cold open while it is in the visible set (`App.jsx:48`, stage 2 of `ui-modernization-calm-canvas`). There is no router and no new app-level *view* state: `TopStrip` just sets this one string, exactly as the rail did. `activeView` also carries the **`settings` shell value** (ADR-018): the configuration page is not one of the six destinations, no destination is marked active on it, and it is exempt from the fallback below.
+- `visibleViews` is the second piece of app-level state (ADR-018, `view-visibility-configuration`): it starts `null`, is read once from `settings['ui.visibleViews']` (`App.jsx:120-128`; a rejected read behaves like a fresh install — all six), and while it is `null` the shell renders **nothing** (`App.jsx:386`), so a destination that is about to disappear is never painted. `normalizeVisibleViews` guarantees a canonical, deduped, non-empty set, and the invariant effect (`App.jsx:134-141`) sets the active view to `firstVisibleView(...)` whenever the active view is one of the six and is not visible — never for the `settings` shell value.
+- `CaptureLine` keeps its own input text and its D9 defaults in local state and re-reads `localStorage['dayframe.captureDefaults']` at capture time, so nothing about capture lives in `App.jsx` beyond passing `projects` down and calling `loadData` when a task lands. It has **two mounts** (ADR-016): the shell instance on the four non-Today, non-Settings views and, on Today, the `variant="row"` instance `TodayView` renders as the first child of `.today-tasks-panel` — mutually exclusive, so exactly one input exists at a time. In the row variant the revealed Project/Priority pair is a `.capture-line-cluster` wrapper that is `display: contents` while the row has room for it and becomes a positioned pill under the row when it has not, keyed off `.today-tasks-panel`'s `container-type: inline-size` (the `@container (max-width: 611px)` block in `CaptureLine.css`) — so the row is one line tall at every width ≥768px and the list below never moves (`design.md` D5; the fix card `t_456f1d3b`).
+- `HabitTracker` receives **no props** (`App.jsx:474-476`): it fetches habits and entries itself. `WeeklyReview` and `MonthlyReview` receive only the slice they need.
+- `todayOrder` is an ordered array of task keys stored as a generic settings row (`App.jsx:264-273`, the `settingsService.set` at `:267`).
 - **Stage 4 adds no app-level state.** Two pieces of state exist and both are view-local: `DailyPlanner`'s `focusedDay` (F20 — the day button in the week bar and a day column's own header both set it; it drives the column emphasis, the `.mini-week-day[aria-pressed]` marker and the horizontal scroll, and it is cleared whenever the week moves) and the save status, which lives inside `useDebouncedSave` in the surface that persists (WeeklyReview, MonthlyReview, WeeklyObjectives) and is rendered by `SaveStatus`. `App.jsx` gained only two dialog flags — `pendingTaskDelete` (the id awaiting confirmation) and `noticeDialog` (the backup-failure notice) — neither of which is shared with a view.
-- **Stage 5 adds exactly one piece of app-level state**: `App.jsx`'s `paletteOpen` boolean, which is what the droppable command palette needs to open and close. The keyboard layer itself owns no state — it reads the DOM (`[data-kbd-row]` / `[data-kbd-list]`), and the only module-level value is the `g` chord's armed flag in `keyboard.js`. The row keys drive each surface's own callbacks, so `x`/`t` move the same core state (`todayOrder` + `sortOrder`, the recurring status override, `dueDate`) that the pointer path moves.
+- **Stage 5 adds one piece of app-level state** — `App.jsx`'s `paletteOpen` boolean, which is what the droppable command palette needs to open and close. `view-visibility-configuration` (ADR-018) adds the second, `visibleViews` (above). The keyboard layer itself owns no state — it reads the DOM (`[data-kbd-row]` / `[data-kbd-list]`), and the only module-level value is the `g` chord's armed flag in `keyboard.js`. The row keys drive each surface's own callbacks, so `x`/`t` move the same core state (`todayOrder` + `sortOrder`, the recurring status override, `dueDate`) that the pointer path moves.
 
 ## 4. The main user flows
 
@@ -148,7 +152,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Start["Open app (default view: today — the cold open)"] --> Capture["Capture line (CaptureLine.jsx) — variant 'shell' on the five non-Today views, variant 'row' as the first row of the Today list (ADR-016): type + Enter → POST /api/tasks with dueDate = today (Hong Kong, computed at run time) and status = pending; the / key focuses it; D9 capture defaults are read from localStorage"]
+    Start["Open app (default view: today — the cold open)"] --> Capture["Capture line (CaptureLine.jsx) — variant 'shell' on the four non-Today, non-Settings views, variant 'row' as the first row of the Today list (ADR-016): type + Enter → POST /api/tasks with dueDate = today (Hong Kong, computed at run time) and status = pending; the / key focuses it; D9 capture defaults are read from localStorage"]
     Capture --> List["Today list = rows (stage 3), not cards: tasks due today (recurring expanded via generateRecurringTasks) + overdue pending tasks; a row takes focus (tabIndex 0) and its actions appear on focus or hover — and always where hover is unavailable"]
     List --> Pull["'Pull to today' rewrites every overdue task's dueDate to today (Promise.all of PUTs)"]
     List --> Order["Drag to reorder, or the row's up/down text arrows (touch) → PUT /api/settings/todayOrder + PUT sortOrder on each real task; the row toast offers a 5-second undo"]
@@ -158,7 +162,7 @@ flowchart TD
     Done --> Reload
 ```
 
-Evidence: `src/components/CaptureLine.jsx` (capture, the `/` key, the D9 defaults, the `variant` prop and the focus reveal of ADR-016; `src/components/captureDefaults.js` owns the localStorage key), `src/components/TodayView.jsx:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:152-184` (recurring status override logic), `src/App.jsx:202-211` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation). Stage 3 of `ui-modernization-calm-canvas` restyled this surface without moving any of that logic: the row markup, the focus-revealed `.tv-row-actions`, the `UndoToast` and the Radix `RadixPopover` shell are presentation only. **Stage 4** wired the Week view's two dead day-select controls (`DailyPlanner.handleSelectDay`, `DayColumn`'s header): activating a day in the week bar or a column's own header sets a view-local focused day that emphasises that column and scrolls it into view — no app state, no route (`design.md` §3 D7/D12 scope; F20).
+Evidence: `src/components/CaptureLine.jsx` (capture, the `/` key, the D9 defaults, the `variant` prop and the focus reveal of ADR-016; `src/components/captureDefaults.js` owns the localStorage key), `src/components/TodayView.jsx:60-103` (today/overdue lists, `mergeOrder`), `:85-89` (pull-to-today), `src/App.jsx:214-246` (recurring status override logic), `src/App.jsx:264-273` (todayOrder), `src/utils/recurrence.js:102-143` (instance generation). Stage 3 of `ui-modernization-calm-canvas` restyled this surface without moving any of that logic: the row markup, the focus-revealed `.tv-row-actions`, the `UndoToast` and the Radix `RadixPopover` shell are presentation only. **Stage 4** wired the Week view's two dead day-select controls (`DailyPlanner.handleSelectDay`, `DayColumn`'s header): activating a day in the week bar or a column's own header sets a view-local focused day that emphasises that column and scrolls it into view — no app state, no route (`design.md` §3 D7/D12 scope; F20).
 
 ### 4.2 Habit logging (one click, and the 409 trap)
 
@@ -246,7 +250,7 @@ sequenceDiagram
     R->>T: GET /api/tasks — if no task titled exactly "Monthly Financial Review" exists, create a recurring monthly one (last Saturday 09:00, high priority)
 ```
 
-Evidence: `src/App.jsx:80-95` (bootstrap), `:67-74` (default project), `src/utils/notifications.js:17-68`, `src/utils/monthlyReviewReminder.js:16-55`.
+Evidence: `src/App.jsx:103-118` (bootstrap), `:90-97` (default project), `src/utils/notifications.js:17-68`, `src/utils/monthlyReviewReminder.js:16-55`.
 **Why this matters:** the reminder bootstrap explains recurring "Monthly Financial Review" duplicates — it is idempotent by exact title only, so any renamed/duplicated task re-triggers creation.
 
 ### 4.6 The keyboard layer (stage 5) — where each handler is registered
@@ -259,13 +263,13 @@ One frozen map (`design.md` §6 D10), four registration points, and no key handl
 | `j` / `k` | `useKeyboardLayer.js` (a document `keydown`, mounted once by `App.jsx`) | Moves focus between `[data-kbd-row]` elements inside the focused row's `[data-kbd-list]` container, or the first list on the screen when nothing is focused |
 | `x` / `t` | each row's own `onKeyDown` (`handleRowKeyDown` from `keyboard.js`) | Toggles completion / defers to tomorrow **through the surface's existing callbacks**, so the keyboard drives the same handlers as the pointer |
 | `u` | `UndoToast.jsx` (a document `keydown`, alive only while the toast is) | Runs the toast's own undo callback — one undo mechanism, and it works after the acted-on row has left the list |
-| `g` then `t/w/h/r/f/p` | `useKeyboardLayer.js` | Switches the one `activeView` string; the chord is armed for 1.5 s and disarms on the next keystroke |
+| `g` then `t/w/h/r/f/p` | `useKeyboardLayer.js` | Switches the one `activeView` string — **only for a visible view** (ADR-018; a hidden view's letter is a no-op that consumes nothing); the chord is armed for 1.5 s and disarms on the next keystroke |
 | `Escape` | every overlay's own dismissable layer (Radix dialog/popover/menu, the two lightboxes) | Closes the open overlay; the layer deliberately adds nothing here |
 | `Ctrl/⌘ + K` | `useKeyboardLayer.js` | Opens/closes `CommandPalette.jsx` |
 
 **Rules that make the layer safe.** A handler fires only when `isTypingContext(document.activeElement)` is false — an `<input>`, `<textarea>`, `<select>`, a `contenteditable`/`.ProseMirror` editor, or anything inside an open `[role="dialog"]`/`[aria-modal]`; `Escape` and `Ctrl/⌘ + K` are the two deliberate exceptions (a chord is not a character anyone types). No handler consumes Tab, and `preventDefault()` is called only on a key the handler actually acted on. While the `g` chord is armed the row handlers stand down (`keyboard.js`'s module-level `isGotoArmed()`), so `g` then `t` means "go to Today" rather than "defer this row".
 
-**What the layer does not do.** It adds no router, no seventh `activeView` value and no app-level state except `App.jsx`'s `paletteOpen` boolean. Row state is the surfaces' own: `TodayView` supplies `x`/`t` from the handlers its own buttons use (so completing still offers the stage-3 undo), `DayColumn` supplies `x` on every row and `t` only where the write is safe (a non-recurring task dated today or earlier — writing `dueDate` on a recurring source would move the whole series), and `BacklogSidebar` supplies both from the props `DailyPlanner` already passes. The `t` key writes `dueDate` = tomorrow computed at run time (CONV-003); it never hardcodes a date.
+**What the layer does not do.** It adds no router, no seventh *destination* — `settings` is a shell value with no destination of its own (ADR-018), and there is still no router — and no app-level state except `App.jsx`'s `paletteOpen` boolean and its `visibleViews` set. The palette's option list is filtered by `visibleViews` (the `VIEW_ORDER.filter(visible)` rows plus the one capture action) and its footer is rebuilt from `buildShortcuts(visibleViews)`, so no hidden view is offered or advertised. Row state is the surfaces' own: `TodayView` supplies `x`/`t` from the handlers its own buttons use (so completing still offers the stage-3 undo), `DayColumn` supplies `x` on every row and `t` only where the write is safe (a non-recurring task dated today or earlier — writing `dueDate` on a recurring source would move the whole series), and `BacklogSidebar` supplies both from the props `DailyPlanner` already passes. The `t` key writes `dueDate` = tomorrow computed at run time (CONV-003); it never hardcodes a date.
 
 ## 5. Period model (the app's hard part)
 
@@ -324,3 +328,4 @@ History carried over verbatim from the retired versioned header (its labels are 
 - **2026-09-27** — §2 gains the Finance review's last step: the `Finance --> Filing` / `Filing --> API` mermaid nodes, the `StatementFiling.jsx` note (the statement-filing job, cited as **ADR-015** — the label this file used before close-out was ADR-014, see `DECISION_LOG.md`), and the router / service counts 16 → 17 — change `finance-review-statement-filing`, cards `t_d2e44c21` (engine) and `t_9675ab38` (step), archived and closed out by card `t_8d16d0fc`
 
 - **2026-09-27** — §1's graph loses the `Today --> Timeline` edge and the "children of TodayView" note now names `PlannerHabitsPanel` and `DeferPopover` only and records `DailyTimeline.jsx` as **retained but not rendered** (ADR-017 — the Today Timeline panel is hidden on purpose and the component is kept, re-rendering it from `TodayView.jsx` being the way back) — card `t_77858d71`, branch `feat/hide-today-timeline`
+- **2026-10-05** — view visibility (**ADR-018**, change `view-visibility-configuration`, card `t_eb9198c1`, PR #48): §2's graph gains the `SettingsView.jsx` node and the strip/capture labels now read "the visible views" / "the four non-Today, non-Settings views"; §3's state graph gains `visibleViews` (`settings['ui.visibleViews']`, read once at boot behind the paint gate) and its bullets carry the `settings` shell value, the fallback invariant and the corrected `App.jsx` citations; §4.1's capture step and §4.6's `g`-chord row now name the visibility rule, and §4.6's "no seventh `activeView` value" is superseded by "no seventh *destination*"

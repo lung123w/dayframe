@@ -7,24 +7,24 @@ the `df-tester` PASS is the acceptance gate.
 
 ## 0. Prerequisite (test-only) — df-fullstack, first commit on the branch
 
-- [ ] 0.1 `src/setupTests.js`: restore the jsdom `localStorage` global when
+- [x] 0.1 `src/setupTests.js`: restore the jsdom `localStorage` global when
   `globalThis.localStorage === 'undefined'` (exact shape in design D15). Root
   cause: Node v26.7.0 defines its own `localStorage` accessor, so vitest's
   jsdom environment no longer installs it and 7 test files throw on
   `localStorage.clear()`. Measured: 8 files / 114 failing tests → 2 files / 3.
-- [ ] 0.2 `src/__tests__/habits.test.js` — make `handles weekly streaks by
+- [x] 0.2 `src/__tests__/habits.test.js` — make `handles weekly streaks by
   timesPerWeek` weekday-independent (freeze the clock for that test, or build
   the fixture from `startOfWeek(now, { weekStartsOn: 1 })`).
-- [ ] 0.3 `src/__tests__/WeeklyReview.test.jsx` — the two key-event tests must
+- [x] 0.3 `src/__tests__/WeeklyReview.test.jsx` — the two key-event tests must
   seed their event in the week the review opens on
   (`startOfWeek(subDays(new Date(), 1), { weekStartsOn: 1 })`), not
   `thisWeekStart()`.
-- [ ] 0.4 No production file may change in §0. Evidence: the standard command
+- [x] 0.4 No production file may change in §0. Evidence: the standard command
   reports **0 failed**; `git diff master --stat` shows only the three test
   files (plus the openspec artifacts). Report both vitest counts (with and
   without the cross-lane untracked file) and note that the two Monday
   fixtures fail on `master` before the repair.
-- [ ] 0.5 Do **not** touch `calculateWeeklyStreak` or the review's
+- [x] 0.5 Do **not** touch `calculateWeeklyStreak` or the review's
   default-week rule: the Monday behaviour they expose (a 2×/week habit reads
   0 early in the week until the week's target is met) is an owner-facing
   observation for the close-out, not a fix in this change.
@@ -64,37 +64,37 @@ the `df-tester` PASS is the acceptance gate.
 
 ## 2. Build — df-fullstack (code, tests, Rule B)
 
-- [ ] 2.1 `git fetch && git checkout feat/view-visibility-configuration &&
+- [x] 2.1 `git fetch && git checkout feat/view-visibility-configuration &&
   git merge --ff-only origin/feat/view-visibility-configuration` first; never
   work from a stale branch and never commit to `master`.
-- [ ] 2.2 `src/components/viewVisibility.js` per design D2/D4 (the only owner
+- [x] 2.2 `src/components/viewVisibility.js` per design D2/D4 (the only owner
   of the catalogue, the key, the canonical order and the normalizer).
-- [ ] 2.3 `src/components/SettingsView.jsx` + `SettingsView.css` per D7/D8/D10
+- [x] 2.3 `src/components/SettingsView.jsx` + `SettingsView.css` per D7/D8/D10
   (six rows, `role="switch"`, the two status lines, the refusal line, the
   write-failure revert, the fixed-order caption, tokens only).
-- [ ] 2.4 `src/App.jsx` per D5/D9/D10: the `visibleViews` state + boot read +
+- [x] 2.4 `src/App.jsx` per D5/D9/D10: the `visibleViews` state + boot read +
   `if (visibleViews === null) return null;` gate, the active-view invariant,
   `activeView === 'settings'` → `SettingsView`, capture line off on `settings`,
   and `visibleViews` passed to `TopStrip`, `CommandPalette` and
   `useKeyboardLayer`.
-- [ ] 2.5 `src/components/TopStrip.jsx` per D1/D6: filter the strip
+- [x] 2.5 `src/components/TopStrip.jsx` per D1/D6: filter the strip
   destinations and the More menu's Finance/Projects by visibility; always
   render the Settings item (gear icon, above Backup), Backup, Notifications.
-- [ ] 2.6 `src/components/CommandPalette.jsx` + `keyboard.js` +
+- [x] 2.6 `src/components/CommandPalette.jsx` + `keyboard.js` +
   `useKeyboardLayer.js` per D11 (`buildShortcuts`, the chord guard, the
   filtered command list, `SHORTCUTS` kept identical when nothing is hidden).
-- [ ] 2.7 Tests per D12 — the three new files and the acceptance map. Any edit
+- [x] 2.7 Tests per D12 — the three new files and the acceptance map. Any edit
   to an existing test file must be additive and named in the handoff.
-- [ ] 2.8 Rule B (D13): `ROUTE_MAP.md`, `ARCHITECTURE.md`, `DECISION_LOG.md`
+- [x] 2.8 Rule B (D13): `ROUTE_MAP.md`, `ARCHITECTURE.md`, `DECISION_LOG.md`
   (ADR-018 + ADR-019 + one tail changelog bullet each; header line untouched —
   POL-007).
-- [ ] 2.9 Gates: `npx vitest run --exclude='**/.worktrees/**'
+- [x] 2.9 Gates: `npx vitest run --exclude='**/.worktrees/**'
   --exclude='not relevant/**'` (**0 failed** — §0 must already be green
   before this card), `npx eslint src` (no new problems; the current count is
   the one to hold), `vite build` foregound via
   `node node_modules/vite/bin/vite.js build`. Report both vitest counts (with
   and without the cross-lane untracked `src/__tests__/wrModeStorage.test.jsx`).
-- [ ] 2.10 Push the branch and open/refresh the PR to `master`; comment the
+- [x] 2.10 Push the branch and open/refresh the PR to `master`; comment the
   head SHA and the PR number.
 
 ## 3. Verify — df-tester (the acceptance gate)
