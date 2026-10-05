@@ -31,28 +31,32 @@ the `df-tester` PASS is the acceptance gate.
 
 ## 1. Spec — df-analyst (read-only on code, may edit this change's artifacts)
 
-- [ ] 1.1 Read `.dev_context/ROUTE_MAP.md` §1 + §2, `.dev_context/ARCHITECTURE.md`
+- [x] 1.1 Read `.dev_context/ROUTE_MAP.md` §1 + §2, `.dev_context/ARCHITECTURE.md`
   §1/§2/§4.6 and `DECISION_LOG.md` §A/§D (Rule A) before anything else.
-- [ ] 1.2 Audit `design.md` D2 against the code byte-for-byte: the six
+- [x] 1.2 Audit `design.md` D2 against the code byte-for-byte: the six
   `VIEW_ORDER` ids, `VIEW_META.label`, `.goto`, `.command`, `.placement`,
   `.ariaLabel` vs `TopStrip.jsx` (`DESTINATIONS`, `VIEW_TITLES`, the More menu
   items), `CommandPalette.jsx` (`VIEW_COMMANDS`) and `keyboard.js`
   (`GOTO_VIEWS`, `SHORTCUTS`). Report any mismatch as a delta/design edit,
-  not as prose in the card.
-- [ ] 1.3 Freeze the edge-case matrix on the card: D4's table row by row,
+  not as prose in the card. (Result: full parity — no correction needed;
+  D2 carries the evidence table.)
+- [x] 1.3 Freeze the edge-case matrix on the card: D4's table row by row,
   D5's `null`-gate semantics, D7's refusal wording, D8's write-failure revert,
   D9's unreachable-runtime-path statement, D11's `buildShortcuts(ALL_VIEWS)
   === SHORTCUTS` identity. Name the exact strings the build must emit.
-- [ ] 1.4 Confirm the existing suite's assumptions hold: `App.test.jsx`'s
+  (Result: 10 scenarios added, 25 → 35; D4 +2 rows (2 amended); D9 corrected — see 1.6.)
+- [x] 1.4 Confirm the existing suite's assumptions hold: `App.test.jsx`'s
   More-menu test (all six visible is the default), `keyboardLayer.test.jsx`'s
   palette-options length 7 and the `SHORTCUTS`-footer loop, and that no
   `render(<App/>)` in those files makes a synchronous first assertion (D5's
   gate). If one does, name the file, line and the minimal additive edit.
-- [ ] 1.5 Confirm the collision surface is empty: no in-flight change edits
+  (Result: none does; both files await their first assertion — no edit needed.)
+- [x] 1.5 Confirm the collision surface is empty: no in-flight change edits
   `App.jsx`, `TopStrip.jsx`, `CommandPalette.jsx`, `keyboard.js`,
   `useKeyboardLayer.js`; `.dev_context`'s next free ADR number is **018**
-  (label census, not a heading grep).
-- [ ] 1.6 If §1.2–§1.5 change anything, edit this change's artifacts on
+  (label census, not a heading grep). (Result: empty; the only sibling
+  worktrees are on `docs/ui-modernization-pitch` (docs only); ADR-018/019 free.)
+- [x] 1.6 If §1.2–§1.5 change anything, edit this change's artifacts on
   `feat/view-visibility-configuration`, re-run
   `node "$APPDATA/npm/node_modules/@fission-ai/openspec/bin/openspec.js" validate view-visibility-configuration --strict`
   (the CLI must be called by absolute path — `npx openspec` fails on this box)

@@ -21,6 +21,10 @@ DayFrame SHALL render every view inside one shared shell: a single ~52px top str
 - **WHEN** any visibility preference is in effect
 - **THEN** the More overflow SHALL still render the Settings entry, Backup and Notifications, and the Settings page SHALL be reachable
 
+#### Scenario: The strip names the Settings page and marks no view
+- **WHEN** the `settings` shell value is active
+- **THEN** the strip's page title SHALL read `Settings · ` followed by the same long date the strip renders on every other view, and none of the six view destinations SHALL be marked active (Settings is a shell value, not a seventh destination)
+
 ### Requirement: Today is the cold open
 DayFrame SHALL open on the `today` view while it is visible, and on the first visible view in the canonical order otherwise, and the day's tasks SHALL be captured, completed and ordered on that surface.
 
