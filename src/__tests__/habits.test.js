@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { calculateCurrentStreak, calculateLongestStreak, formatTimeSpent, isDateApplicable, formatCount, getEntryValue, getEntryUnit, getTrackType } from '../utils/habits';
 
 describe('calculateCurrentStreak', () => {
@@ -37,16 +37,26 @@ describe('calculateCurrentStreak', () => {
   it('handles weekly streaks by timesPerWeek', () => {
     const freq = { type: 'weekly', timesPerWeek: 2 };
     const entries = [];
-    const now = new Date();
-    for (let week = 0; week < 3; week++) {
-      for (let day = 0; day < 2; day++) {
-        const d = new Date(now);
-        d.setDate(now.getDate() - (week * 7 + day));
-        entries.push({ date: d.toISOString().slice(0, 10) });
+    // Freeze "now" to a fixed Wednesday so both entries of the current week
+    // fall inside that week. Built from a live "today" a Monday leaves the
+    // current week holding a single entry (< timesPerWeek) and the streak
+    // reads 0 — a fixture defect, not a streak bug.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      vi.setSystemTime(new Date('2026-09-09T12:00:00'));
+      const now = new Date();
+      for (let week = 0; week < 3; week++) {
+        for (let day = 0; day < 2; day++) {
+          const d = new Date(now);
+          d.setDate(now.getDate() - (week * 7 + day));
+          entries.push({ date: d.toISOString().slice(0, 10) });
+        }
       }
+      const streak = calculateCurrentStreak(entries, freq);
+      expect(streak).toBe(3);
+    } finally {
+      vi.useRealTimers();
     }
-    const streak = calculateCurrentStreak(entries, freq);
-    expect(streak).toBe(3);
   });
 });
 
