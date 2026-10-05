@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { GOTO_VIEWS, armGoto, disarmGoto, isGotoArmed, isOverlayOpen, isTypingContext, moveRowFocus } from './keyboard';
+import { ALL_VIEWS, isViewVisible } from './viewVisibility';
 
 /**
  * The document-level half of the keyboard layer — stage 5 of
@@ -15,12 +16,19 @@ import { GOTO_VIEWS, armGoto, disarmGoto, isGotoArmed, isOverlayOpen, isTypingCo
  * The layer never consumes Tab, never preventDefaults when a text field, the
  * rich-text editor or an open overlay has focus, and only ever calls
  * `preventDefault()` on the keys it has actually acted on (design.md §6 rule 3).
+ *
+ * `view-visibility-configuration` D11 adds one input: `visibleViews`. The `g`
+ * chord navigates **only** to a visible view; a hidden view's letter clears the
+ * chord, changes nothing and consumes nothing (no `preventDefault()`), so the
+ * keystroke is never swallowed and no hidden destination is reachable by
+ * keyboard. The prop is null-safe: `null`/absent means every view is visible
+ * (the value `App.jsx` holds during its boot round trip).
  */
 
 /** How long `g` stays armed before the chord is abandoned. */
 const GOTO_WINDOW_MS = 1500;
 
-export default function useKeyboardLayer({ onNavigate, onTogglePalette } = {}) {
+export default function useKeyboardLayer({ onNavigate, onTogglePalette, visibleViews } = {}) {
   const gotoTimerRef = useRef(null);
 
   const navigate = useCallback((view) => {
@@ -32,6 +40,8 @@ export default function useKeyboardLayer({ onNavigate, onTogglePalette } = {}) {
   }, [onTogglePalette]);
 
   useEffect(() => {
+    const visible = visibleViews ?? ALL_VIEWS;
+
     const clearGoto = () => {
       disarmGoto();
       if (gotoTimerRef.current !== null) {
@@ -55,7 +65,8 @@ export default function useKeyboardLayer({ onNavigate, onTogglePalette } = {}) {
       if (isGotoArmed()) {
         const view = GOTO_VIEWS[event.key.toLowerCase()];
         clearGoto();
-        if (view) {
+        // D11 — a hidden view's letter changes nothing and consumes nothing.
+        if (view && isViewVisible(visible, view)) {
           event.preventDefault();
           navigate(view);
         }
@@ -87,5 +98,5 @@ export default function useKeyboardLayer({ onNavigate, onTogglePalette } = {}) {
       document.removeEventListener('keydown', handleKeyDown);
       clearGoto();
     };
-  }, [navigate, togglePalette]);
+  }, [navigate, togglePalette, visibleViews]);
 }
